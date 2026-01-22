@@ -1,0 +1,291 @@
+.route-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background: #f5f5f5;
+}
+
+.route-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    z-index: 1000;
+}
+
+.route-header h1 {
+    margin: 0;
+    color: #333;
+}
+
+.route-stats {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.btn-back, .btn-refresh, .btn-export {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.btn-back {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.btn-refresh {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.btn-export {
+    background: #f0f9ff;
+    color: #0369a1;
+}
+
+.route-map {
+    flex: 1;
+    min-height: 300px;
+    background: #e0e0e0;
+}
+
+.route-deliveries {
+    background: white;
+    padding: 20px;
+    border-top: 2px solid #e5e7eb;
+    max-height: 40vh;
+    overflow-y: auto;
+}
+
+.delivery-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.deliveries-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.delivery-card {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.delivery-card.active {
+    background: #dbeafe;
+    border-color: #3b82f6;
+}
+
+.delivery-card.completed {
+    opacity: 0.7;
+    background: #f0fdf4;
+}
+
+.delivery-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.delivery-number {
+    background: #3b82f6;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.delivery-status {
+    font-size: 0.8rem;
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+.status-pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-active {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.status-completed {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.delivery-info {
+    margin-bottom: 8px;
+}
+
+.delivery-info .label {
+    font-weight: 600;
+    color: #555;
+    margin-right: 5px;
+}
+
+.delivery-eta {
+    font-size: 0.9rem;
+    color: #666;
+    display: flex;
+    justify-content: space-between;
+}
+
+.route-summary {
+    margin-top: 15px;
+    padding: 15px;
+    background: #f8fafc;
+    border-radius: 8px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.summary-item {
+    text-align: center;
+}
+
+.summary-item span {
+    display: block;
+    font-size: 0.8rem;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.summary-item strong {
+    font-size: 1.2rem;
+    color: #333;
+}
+
+.route-controls {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    padding: 15px;
+    background: white;
+    border-top: 2px solid #e5e7eb;
+}
+
+.btn-navigation, .btn-complete, .btn-skip {
+    padding: 15px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.btn-navigation {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white;
+}
+
+.btn-complete {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+}
+
+.btn-skip {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+}
+
+.btn-navigation:disabled,
+.btn-complete:disabled,
+.btn-skip:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Modal del restaurante */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 400px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .route-container {
+        height: auto;
+    }
+    
+    .route-map {
+        height: 300px;
+    }
+    
+    .route-summary {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .route-controls {
+        grid-template-columns: 1fr;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+    }
+    
+    .delivery-card {
+        padding: 10px;
+    }
+}
+
+.delivery-card.no-coordinates {
+    border-left: 4px solid #ef4444;
+    opacity: 0.8;
+}
+
+.delivery-card.no-coordinates .delivery-info {
+    color: #666;
+}
+
+.coordinates-warning {
+    color: #dc2626;
+    font-size: 0.8rem;
+    margin-top: 5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.coordinates-warning::before {
+    content: "⚠️";
+}
