@@ -7,7 +7,7 @@ class OCRService {
         imagePath,
         'spa',
         {
-          logger: m => console.log(m.status, m.progress),
+          //logger: m => console.log(m.status, m.progress),
           tessedit_char_whitelist: '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÁÉÍÓÚáéíóúÑñ$.,:/-# ',
           tessedit_pageseg_mode: '6',
           preserve_interword_spaces: '1'

@@ -7,6 +7,7 @@ const upload = require('../middleware/upload');
 const OCRService = require('../services/ocrService');
 const SimpleRouteService = require('../services/routeService');
 const AIParserService = require('../services/AIParserService');
+const moment = require('moment-timezone');
 
 router.get('/', async (req, res) => {
     try {
@@ -229,17 +230,14 @@ router.get('/api/route/start', async (req, res) => {
                 address: 'Eduardo Santos, Barranquilla, Atlántico'
             };
         }
-        
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
+        const today = moment.tz("America/Bogota").startOf('day').toDate();
+        const tomorrow = moment.tz("America/Bogota").endOf('day').toDate();
 
         const pendingDeliveries = await Delivery.find({
             deliveryStatus: 'pendiente',
             date: {
                 $gte: today,
-                $lt: tomorrow
+                $lte: tomorrow
             }
         });
 
@@ -258,8 +256,7 @@ router.get('/api/route/start', async (req, res) => {
         console.error('❌ Error en /api/route/start:', error);
         res.status(500).json({ 
             success: false,
-            error: error.message,
-            message: 'Error al crear la ruta'
+            error: error.message
         });
     }
 });
