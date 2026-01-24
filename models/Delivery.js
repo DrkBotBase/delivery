@@ -5,6 +5,10 @@ const deliverySchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  shiftId: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'Shift' 
+  },
   date: {
     type: Date,
     required: true

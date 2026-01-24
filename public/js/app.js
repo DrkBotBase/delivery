@@ -1,15 +1,613 @@
-document.getElementById('receipt').addEventListener('change', function(e) {
-    const fileName = e.target.files[0]?.name;
-    document.getElementById('fileName').textContent = fileName || '';
+let cropper = null;
+let originalFile = null;
+let croppedImageBlob = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    initializeFileInput();
+    setupEventListeners();
+    checkPendingSync();
+    addCustomStyles();
 });
 
-document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+function addCustomStyles() {
+    if (document.getElementById('cropper-styles')) return;
+    
+    const style = document.createElement('style');
+    style.id = 'cropper-styles';
+    style.textContent = `
+        body.modal-open {
+            overflow: hidden !important;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .zoom-slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(to right, #e5e7eb, #e5e7eb);
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            outline: none;
+            margin: 15px 0;
+        }
+        
+        .zoom-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #4f46e5;
+            cursor: pointer;
+            border: 3px solid white;
+            box-shadow: 0 2px 10px rgba(79, 70, 229, 0.4);
+            transition: all 0.2s;
+        }
+        
+        .zoom-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+            box-shadow: 0 3px 15px rgba(79, 70, 229, 0.6);
+        }
+        
+        .zoom-slider::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #4f46e5;
+            cursor: pointer;
+            border: 3px solid white;
+            box-shadow: 0 2px 10px rgba(79, 70, 229, 0.4);
+            transition: all 0.2s;
+        }
+        
+        .zoom-slider::-moz-range-thumb:hover {
+            transform: scale(1.1);
+            box-shadow: 0 3px 15px rgba(79, 70, 229, 0.6);
+        }
+        
+        .modal-enter {
+            animation: modalFadeIn 0.3s ease-out;
+        }
+        
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        .cropper-container {
+            max-width: 100% !important;
+            max-height: 500px !important;
+        }
+        
+        .aspect-btn.active {
+            background-color: #4f46e5 !important;
+            color: white !important;
+        }
+        
+        .crop-modal {
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+function initializeFileInput() {
+    const fileInput = document.getElementById('receipt');
+    
+    if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const fileName = document.getElementById('fileName');
+            
+            if (file) {
+                fileName.textContent = file.name;
+                originalFile = file;
+                croppedImageBlob = null;
+                
+                if (!file.type.match('image.*')) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Por favor, selecciona solo archivos de imagen',
+                        confirmButtonColor: '#4f46e5'
+                    });
+                    fileInput.value = '';
+                    fileName.textContent = '';
+                    return;
+                }
+                
+                if (file.size > 5 * 1024 * 1024) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Archivo muy grande',
+                        text: 'La imagen no debe superar los 5MB',
+                        confirmButtonColor: '#4f46e5'
+                    });
+                    fileInput.value = '';
+                    fileName.textContent = '';
+                    return;
+                }
+                
+                openImageEditor(file);
+            } else {
+                fileName.textContent = '';
+            }
+        });
+    }
+}
+
+function setupEventListeners() {
+    const uploadForm = document.getElementById('uploadForm');
+    if (uploadForm) {
+        uploadForm.addEventListener('submit', handleFormSubmit);
+    }
+}
+
+function openImageEditor(file) {
+    const reader = new FileReader();
+    
+    reader.onload = function(e) {
+        createCropModal(e.target.result);
+    };
+    
+    reader.onerror = function() {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudo cargar la imagen',
+            confirmButtonColor: '#4f46e5'
+        });
+    };
+    
+    reader.readAsDataURL(file);
+}
+
+function createCropModal(imageSrc) {
+    const existingModal = document.getElementById('cropModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    document.body.classList.add('modal-open');
+    
+    const modalHTML = `
+        <div id="cropModal" class="crop-modal fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-90 flex items-center justify-center p-4 modal-enter">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col" id="cropModalContent">
+                <!-- Header -->
+                <div class="flex justify-between items-center p-6 border-b border-gray-200 flex-shrink-0">
+                    <h3 class="text-xl font-bold text-gray-800">Editar Foto</h3>
+                    <button id="closeCropModal" type="button" class="text-gray-400 hover:text-gray-600 transition-transform hover:scale-110 w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <!-- Contenido -->
+                <div class="p-6 overflow-auto flex-grow">
+                    <div class="flex flex-col lg:flex-row gap-6">
+                        <!-- Área de la imagen -->
+                        <div class="lg:w-2/3">
+                            <div class="bg-gray-100 rounded-xl overflow-hidden flex items-center justify-center" style="min-height: 400px; max-height: 500px;">
+                                <img id="imageToCrop" src="${imageSrc}" alt="Imagen a recortar" style="max-width: 100%; max-height: 100%; display: block;">
+                            </div>
+                        </div>
+                        
+                        <!-- Controles -->
+                        <div class="lg:w-1/3 space-y-6">
+                            <div>
+                                <h4 class="font-medium text-gray-700 mb-3">Controles</h4>
+                                <div class="space-y-4">
+                                    <!-- Zoom -->
+                                    <div>
+                                        <div class="flex justify-between items-center mb-2">
+                                            <label class="block text-sm font-medium text-gray-600">Zoom</label>
+                                            <span id="zoomValue" class="text-sm font-bold text-indigo-600">1.0x</span>
+                                        </div>
+                                        <input type="range" id="zoomSlider" min="0.1" max="3" step="0.1" value="1" 
+                                               class="zoom-slider w-full">
+                                        <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                            <span>0.1x</span>
+                                            <span>1.0x</span>
+                                            <span>3.0x</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Rotación -->
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-600 mb-2">Rotar</label>
+                                        <div class="flex gap-2">
+                                            <button type="button" id="rotateLeft" 
+                                                    class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-xl font-medium transition active:scale-95 flex items-center justify-center">
+                                                <i class="fas fa-undo-alt mr-2"></i>Izquierda
+                                            </button>
+                                            <button type="button" id="rotateRight" 
+                                                    class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-xl font-medium transition active:scale-95 flex items-center justify-center">
+                                                <i class="fas fa-redo-alt mr-2"></i>Derecha
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Relación de aspecto -->
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-600 mb-2">Formato</label>
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <button type="button" data-ratio="free" 
+                                                    class="aspect-btn active bg-indigo-600 text-white py-2 rounded-lg font-medium transition active:scale-95">
+                                                Libre
+                                            </button>
+                                            <button type="button" data-ratio="1" 
+                                                    class="aspect-btn bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg font-medium transition active:scale-95">
+                                                1:1
+                                            </button>
+                                            <button type="button" data-ratio="4/3" 
+                                                    class="aspect-btn bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg font-medium transition active:scale-95">
+                                                4:3
+                                            </button>
+                                            <button type="button" data-ratio="16/9" 
+                                                    class="aspect-btn bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg font-medium transition active:scale-95">
+                                                16:9
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Botones de acción -->
+                            <div class="pt-4 border-t border-gray-200">
+                                <div class="flex gap-3">
+                                    <button type="button" id="cancelCrop" 
+                                            class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3.5 rounded-xl transition active:scale-95">
+                                        Cancelar
+                                    </button>
+                                    <button type="button" id="saveCrop" 
+                                            class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-indigo-500/30 transition active:scale-95">
+                                        <i class="fas fa-check mr-2"></i>Guardar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    initializeCropper();
+    setupCropModalListeners();
+}
+
+function initializeCropper() {
+    const image = document.getElementById('imageToCrop');
+    
+    if (!image) {
+        console.error('No se encontró la imagen para cropper');
+        return;
+    }
+    
+    if (cropper) {
+        cropper.destroy();
+        cropper = null;
+    }
+    
+    if (!image.complete) {
+        image.onload = function() {
+            setupCropperInstance(image);
+        };
+    } else {
+        setupCropperInstance(image);
+    }
+}
+
+function setupCropperInstance(image) {
+    try {
+        cropper = new Cropper(image, {
+            viewMode: 1,
+            dragMode: 'crop',
+            responsive: true,
+            restore: false,
+            guides: true,
+            center: true,
+            highlight: false,
+            cropBoxMovable: true,
+            cropBoxResizable: true,
+            toggleDragModeOnDblclick: false,
+            minContainerWidth: 300,
+            minContainerHeight: 300,
+            ready: function() {
+                console.log('Cropper listo');
+                setupZoomSlider();
+            }
+        });
+        
+        console.log('Cropper inicializado correctamente');
+    } catch (error) {
+        console.error('Error al inicializar cropper:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudo inicializar el editor de imágenes',
+            confirmButtonColor: '#4f46e5'
+        });
+    }
+}
+
+function setupZoomSlider() {
+    const zoomSlider = document.getElementById('zoomSlider');
+    const zoomValue = document.getElementById('zoomValue');
+    
+    if (!zoomSlider || !zoomValue) {
+        console.error('No se encontró el slider de zoom');
+        return;
+    }
+    
+    zoomSlider.addEventListener('input', function() {
+        if (!cropper) return;
+        
+        const zoomLevel = parseFloat(this.value);
+        try {
+            cropper.zoomTo(zoomLevel);
+            zoomValue.textContent = zoomLevel.toFixed(1) + 'x';
+            
+            const percentage = ((zoomLevel - 0.1) / (3 - 0.1)) * 100;
+            this.style.background = `linear-gradient(to right, #4f46e5 ${percentage}%, #e5e7eb ${percentage}%)`;
+        } catch (error) {
+            console.error('Error al aplicar zoom:', error);
+        }
+    });
+    
+    const initialPercentage = ((1 - 0.1) / (3 - 0.1)) * 100;
+    zoomSlider.style.background = `linear-gradient(to right, #4f46e5 ${initialPercentage}%, #e5e7eb ${initialPercentage}%)`;
+    
+    if (cropper) {
+        cropper.cropper.addEventListener('zoom', function(event) {
+            if (!event.detail || !event.detail.ratio) return;
+            
+            const ratio = event.detail.ratio;
+            const sliderValue = Math.min(Math.max(ratio, 0.1), 3);
+            zoomSlider.value = sliderValue;
+            zoomValue.textContent = sliderValue.toFixed(1) + 'x';
+            
+            const percentage = ((sliderValue - 0.1) / (3 - 0.1)) * 100;
+            zoomSlider.style.background = `linear-gradient(to right, #4f46e5 ${percentage}%, #e5e7eb ${percentage}%)`;
+        });
+    }
+}
+
+function setupCropModalListeners() {
+    const closeBtn = document.getElementById('closeCropModal');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeCropModal);
+    }
+    
+    const cancelBtn = document.getElementById('cancelCrop');
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', closeCropModal);
+    }
+    
+    const saveBtn = document.getElementById('saveCrop');
+    if (saveBtn) {
+        saveBtn.addEventListener('click', saveCroppedImage);
+    }
+    
+    const rotateLeft = document.getElementById('rotateLeft');
+    if (rotateLeft) {
+        rotateLeft.addEventListener('click', () => rotateImage(-90));
+    }
+    
+    const rotateRight = document.getElementById('rotateRight');
+    if (rotateRight) {
+        rotateRight.addEventListener('click', () => rotateImage(90));
+    }
+    
+    const aspectBtns = document.querySelectorAll('.aspect-btn');
+    aspectBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const ratio = this.dataset.ratio;
+            setAspectRatio(ratio);
+            
+            aspectBtns.forEach(b => {
+                b.classList.remove('active', 'bg-indigo-600', 'text-white');
+                b.classList.add('bg-gray-100', 'hover:bg-gray-200', 'text-gray-700');
+            });
+            
+            this.classList.remove('bg-gray-100', 'hover:bg-gray-200', 'text-gray-700');
+            this.classList.add('active', 'bg-indigo-600', 'text-white');
+        });
+    });
+    
+    const modalContent = document.getElementById('cropModalContent');
+    if (modalContent) {
+        modalContent.addEventListener('wheel', function(e) {
+            e.stopPropagation();
+        }, { passive: false });
+        
+        modalContent.addEventListener('touchmove', function(e) {
+            e.stopPropagation();
+        }, { passive: false });
+    }
+    
+    const modal = document.getElementById('cropModal');
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closeCropModal();
+            }
+        });
+    }
+    
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('cropModal');
+            if (modal) {
+                closeCropModal();
+            }
+        }
+    });
+}
+
+
+function rotateImage(degrees) {
+    if (cropper) {
+        cropper.rotate(degrees);
+    }
+}
+
+function setAspectRatio(ratio) {
+    if (!cropper) return;
+    
+    if (ratio === 'free') {
+        cropper.setAspectRatio(NaN);
+    } else {
+        try {
+            cropper.setAspectRatio(eval(ratio));
+        } catch (error) {
+            console.error('Error al establecer relación de aspecto:', error);
+        }
+    }
+}
+
+function closeCropModal() {
+    document.body.classList.remove('modal-open');
+    
+    const modal = document.getElementById('cropModal');
+    if (modal) {
+        modal.remove();
+    }
+    
+    if (cropper) {
+        cropper.destroy();
+        cropper = null;
+    }
+    
+    const fileInput = document.getElementById('receipt');
+    if (fileInput && !croppedImageBlob) {
+        fileInput.value = '';
+        const fileNameDisplay = document.getElementById('fileName');
+        if (fileNameDisplay) {
+            fileNameDisplay.textContent = '';
+        }
+    }
+}
+
+async function saveCroppedImage() {
+    if (!cropper) {
+        console.error('No hay cropper activo');
+        closeCropModal();
+        return;
+    }
+    
+    try {
+        const loader = Swal.fire({
+            title: 'Procesando imagen...',
+            text: 'Por favor espera',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+        
+        const canvas = cropper.getCroppedCanvas({
+            width: 800,
+            height: 800,
+            fillColor: '#fff',
+            imageSmoothingEnabled: true,
+            imageSmoothingQuality: 'high'
+        });
+        
+        if (!canvas) {
+            throw new Error('No se pudo generar el canvas recortado');
+        }
+        
+        canvas.toBlob(async function(blob) {
+            if (!blob) {
+                Swal.close();
+                throw new Error('Error al generar la imagen recortada');
+            }
+            
+            croppedImageBlob = blob;
+            
+            const fileName = originalFile?.name || 'factura_recortada.jpg';
+            const croppedFile = new File([blob], fileName, {
+                type: 'image/jpeg',
+                lastModified: Date.now()
+            });
+            
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(croppedFile);
+            
+            const fileInput = document.getElementById('receipt');
+            if (fileInput) {
+                fileInput.files = dataTransfer.files;
+                
+                const fileNameDisplay = document.getElementById('fileName');
+                if (fileNameDisplay) {
+                    const baseName = fileName.replace(/\.[^/.]+$/, "");
+                    fileNameDisplay.textContent = baseName + ' (editada).jpg';
+                }
+                
+                closeCropModal();
+                
+                Swal.close();
+                
+                await Swal.fire({
+                    icon: 'success',
+                    title: '¡Imagen editada!',
+                    text: 'La imagen ha sido recortada exitosamente',
+                    timer: 1500,
+                    showConfirmButton: false,
+                    backdrop: 'rgba(0,0,0,0.4)'
+                });
+                
+                console.log('Imagen recortada guardada correctamente');
+            } else {
+                Swal.close();
+                throw new Error('No se encontró el input de archivo');
+            }
+        }, 'image/jpeg', 0.9); // 90% de calidad para mejor rendimiento
+        
+    } catch (error) {
+        console.error('Error al guardar imagen recortada:', error);
+        Swal.close();
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudo guardar la imagen recortada: ' + error.message,
+            confirmButtonColor: '#4f46e5'
+        });
+    }
+}
+
+async function handleFormSubmit(e) {
     e.preventDefault();
     
-    const formData = new FormData(this);
+    const form = e.target;
     const uploadBtn = document.getElementById('uploadText');
     const spinner = document.getElementById('spinner');
-    const btnElement = this.querySelector('button[type="submit"]');
+    const btnElement = form.querySelector('button[type="submit"]');
+    
+    const fileInput = document.getElementById('receipt');
+    if (!fileInput || !fileInput.files[0]) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Imagen requerida',
+            text: 'Por favor, selecciona una foto de la factura',
+            confirmButtonColor: '#4f46e5'
+        });
+        return;
+    }
     
     uploadBtn.textContent = 'Subiendo...';
     spinner.classList.remove('hidden');
@@ -17,6 +615,18 @@ document.getElementById('uploadForm').addEventListener('submit', async function(
     btnElement.classList.add('opacity-75');
     
     try {
+        const formData = new FormData(form);
+
+        if (croppedImageBlob && originalFile) {
+            const fileName = originalFile.name;
+            const croppedFile = new File([croppedImageBlob], fileName, {
+                type: 'image/jpeg',
+                lastModified: Date.now()
+            });
+            
+            formData.set('receipt', croppedFile, fileName);
+        }
+        
         const response = await fetch('/upload', {
             method: 'POST',
             body: formData
@@ -31,14 +641,22 @@ document.getElementById('uploadForm').addEventListener('submit', async function(
                 text: 'Factura procesada correctamente',
                 timer: 1500,
                 showConfirmButton: false,
-                backdrop: `rgba(0,0,0,0.4)`
+                backdrop: 'rgba(0,0,0,0.4)'
             });
-            location.reload();
+            
+            croppedImageBlob = null;
+            originalFile = null;
+            
+            setTimeout(() => {
+                location.reload();
+            }, 500);
         } else {
             throw new Error(result.error || 'Error desconocido');
         }
+        
     } catch (error) {
         console.error('Error:', error);
+        
         Swal.fire({
             icon: 'error',
             title: 'Error',
@@ -51,16 +669,13 @@ document.getElementById('uploadForm').addEventListener('submit', async function(
         btnElement.disabled = false;
         btnElement.classList.remove('opacity-75');
     }
-});
+}
 
-/**
- * Muestra el Modal Principal buscando los datos por ID
- */
 function openDeliveryModal(id) {
     const delivery = window.deliveriesData.find(d => d._id === id);
     
     if (!delivery) {
-        Swal.fire('Error', 'No se encontró la información de este pedido', 'error');
+        Swal.fire('Error', 'No se encontró la información', 'error');
         return;
     }
     
@@ -76,8 +691,8 @@ function openDeliveryModal(id) {
                         <h2 class="text-2xl font-bold text-gray-800">#${delivery.invoiceNumber}</h2>
                         <p class="text-sm text-gray-500 capitalize">${fecha} - ${hora}</p>
                     </div>
-                    <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-bold">
-                        $${Number(delivery.amount).toFixed(2)}
+                    <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-bold mr-5">
+                        $${Number(delivery.amount)}
                     </span>
                 </div>
 
@@ -97,7 +712,7 @@ function openDeliveryModal(id) {
 
                     <div class="bg-indigo-50 p-3 rounded-xl border border-indigo-100 cursor-pointer active:scale-95 transition"
                          onclick="openContactOptions('${delivery.phone}')">
-                        <label class="text-xs font-bold text-indigo-400 uppercase">Teléfono (Tocar para contactar)</label>
+                        <label class="text-xs font-bold text-indigo-400 uppercase">Teléfono</label>
                         <p class="font-bold text-indigo-700 text-lg flex items-center justify-between">
                             ${delivery.phone}
                             <i class="fas fa-phone-alt text-indigo-400"></i>
@@ -112,13 +727,14 @@ function openDeliveryModal(id) {
                 </div>
 
                 <div class="mt-6 grid grid-cols-2 gap-3">
-                    <a href="${delivery.imageUrl}" target="_blank" class="col-span-2 text-center py-2.5 bg-gray-800 text-white rounded-xl font-medium shadow-lg shadow-gray-400/30">
+                    <button onclick="viewInvoice('${delivery.imageUrl}')" class="col-span-2 py-2.5 bg-gray-800 text-white rounded-xl font-medium shadow-lg shadow-gray-400/30 active:scale-95 transition">
                         <i class="fas fa-receipt mr-2"></i> Ver Factura Original
-                    </a>
-                    <button onclick="editDelivery('${delivery._id}')" class="py-2.5 bg-white border-2 border-gray-200 text-gray-600 rounded-xl font-bold hover:bg-gray-50">
+                    </button>
+                    
+                    <button onclick="editDelivery('${delivery._id}')" class="py-2.5 bg-white border-2 border-gray-200 text-gray-600 rounded-xl font-bold hover:bg-gray-50 active:scale-95 transition">
                         Editar
                     </button>
-                    <button onclick="deleteDelivery('${delivery._id}')" class="py-2.5 bg-red-50 text-red-500 rounded-xl font-bold hover:bg-red-100">
+                    <button onclick="deleteDelivery('${delivery._id}')" class="py-2.5 bg-red-50 text-red-500 rounded-xl font-bold hover:bg-red-100 active:scale-95 transition">
                         Eliminar
                     </button>
                 </div>
@@ -133,10 +749,6 @@ function openDeliveryModal(id) {
     });
 }
 
-
-/**
- * Modal para seleccionar método de contacto (Llamada o WhatsApp)
- */
 function openContactOptions(phone) {
     let cleanPhone = phone.replace(/\D/g, ''); 
 
@@ -170,9 +782,22 @@ function openContactOptions(phone) {
     });
 }
 
-/**
- * Edición de Domicilio usando SweetAlert inputs
- */
+function viewInvoice(url) {
+    Swal.fire({
+        imageUrl: url,
+        imageAlt: 'Factura Original',
+        showConfirmButton: false,
+        showCloseButton: true,
+        background: 'transparent',
+        backdrop: 'rgba(0,0,0,0.9)',
+        customClass: {
+            popup: 'p-0 overflow-hidden bg-transparent shadow-none',
+            image: 'max-h-[85vh] w-auto rounded-lg object-contain m-0',
+            closeButton: 'bg-white rounded-full m-2 text-black focus:outline-none'
+        }
+    });
+}
+
 async function editDelivery(id) {
     try {
         const delivery = await fetch(`/api/deliveries/${id}`).then(res => res.json());
@@ -183,6 +808,7 @@ async function editDelivery(id) {
             title: 'Editar Domicilio',
             html: `
                 <input id="swal-invoice" class="swal2-input" placeholder="Factura #" value="${delivery.invoiceNumber}">
+                <input id="swal-name" class="swal2-input" placeholder="Nombre" value="${delivery.customerName}">
                 <input id="swal-phone" class="swal2-input" placeholder="Teléfono" value="${delivery.phone}">
                 <input id="swal-address" class="swal2-input" placeholder="Dirección" value="${delivery.address}">
                 <input id="swal-amount" type="number" step="0.01" class="swal2-input" placeholder="Valor" value="${delivery.amount}">
@@ -195,6 +821,7 @@ async function editDelivery(id) {
             preConfirm: () => {
                 return {
                     invoiceNumber: document.getElementById('swal-invoice').value,
+                    customerName: document.getElementById('swal-name').value,
                     phone: document.getElementById('swal-phone').value,
                     address: document.getElementById('swal-address').value,
                     amount: parseFloat(document.getElementById('swal-amount').value),
@@ -220,7 +847,7 @@ async function editDelivery(id) {
                 }).then(() => location.reload());
             }
         } else {
-            showDeliveryDetails(delivery);
+            openDeliveryModal(delivery._id);
         }
 
     } catch (error) {
@@ -228,9 +855,6 @@ async function editDelivery(id) {
     }
 }
 
-/**
- * Eliminar domicilio
- */
 function deleteDelivery(id) {
     Swal.close();
 
@@ -288,11 +912,8 @@ window.addEventListener('offline', () => {
     toast.fire({ icon: 'warning', title: 'Sin conexión a internet' });
 });
 
-document.addEventListener('DOMContentLoaded', () => {
-    checkPendingSync();
-});
-
 let pendingSync = [];
+
 function checkPendingSync() {
     const pending = localStorage.getItem('pendingSync');
     if (pending) {

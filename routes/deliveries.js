@@ -8,6 +8,7 @@ const OCRService = require('../services/ocrService');
 const SimpleRouteService = require('../services/routeService');
 const AIParserService = require('../services/AIParserService');
 const moment = require('moment-timezone');
+const fs = require('fs');
 
 router.get('/', async (req, res) => {
     try {
@@ -138,7 +139,6 @@ router.get('/api/stats', async (req, res) => {
   }
 });
 
-const fs = require('fs');
 router.delete('/api/deliveries/:id', async (req, res) => {
   try {
     const delivery = await Delivery.findById(req.params.id);

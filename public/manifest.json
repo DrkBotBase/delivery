@@ -1,23 +1,100 @@
 {
     "name": "Delivery Tracker",
-    "short_name": "DeliveryApp",
-    "description": "Aplicación para tracking de domicilios de delivery",
+    "short_name": "MJFOOD DeliveryApp",
+    "description": "Delivery Tracker de MJFOOD",
     "start_url": "/",
     "display": "standalone",
-    "background_color": "#667eea",
+    "background_color": "#000000",
     "theme_color": "#667eea",
     "orientation": "portrait",
+    "lang": "es",
+    "screenshots": [
+      {
+        "src": "/screenshots/1.jpg",
+        "sizes": "1080x1920",
+        "type": "image/jpeg",
+        "form_factor": "narrow",
+        "label": "Pantalla Inicio"
+      },
+      {
+        "src": "/screenshots/2.jpg",
+        "sizes": "1080x1920",
+        "type": "image/jpeg",
+        "form_factor": "narrow",
+        "label": "Selección Recorte Imagen"
+      },
+      {
+        "src": "/screenshots/3.jpg",
+        "sizes": "1080x1920",
+        "type": "image/jpeg",
+        "form_factor": "narrow",
+        "label": "Información del Pedido"
+      },
+      {
+        "src": "/screenshots/4.jpg",
+        "sizes": "1080x1920",
+        "type": "image/jpeg",
+        "form_factor": "narrow",
+        "label": "Modo Ruta"
+      },
+      {
+        "src": "/screenshots/4.jpg",
+        "sizes": "1080x1920",
+        "type": "image/jpeg",
+        "form_factor": "narrow",
+        "label": "Boton Contactar"
+      },
+       {
+        "src": "/screenshots/desktop-1.jpg",
+        "sizes": "1920x1080",
+        "type": "image/jpeg",
+        "form_factor": "wide",
+        "label": "Vista de escritorio - Panel principal"
+      },
+      {
+        "src": "/screenshots/desktop-2.jpg",
+        "sizes": "1920x1080",
+        "type": "image/jpeg",
+        "form_factor": "wide",
+        "label": "Vista de escritorio - Modo Ruta"
+      }
+    ],
     "icons": [
+        {
+            "src": "/icons/44.png",
+            "sizes": "44x44",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icons/72.png",
+            "sizes": "72x72",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icons/96.png",
+            "sizes": "96x96",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icons/144.png",
+            "sizes": "144x144",
+            "type": "image/png",
+            "purpose": "any"
+        },
         {
             "src": "/icons/192.png",
             "sizes": "192x192",
             "type": "image/png",
-            "purpose": "any maskable"
+            "purpose": "maskable"
         },
         {
             "src": "/icons/512.png",
             "sizes": "512x512",
-            "type": "image/png"
+            "type": "image/png",
+            "purpose": "maskable"
         }
     ]
 }

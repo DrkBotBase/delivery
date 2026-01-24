@@ -88,7 +88,7 @@ function renderRouteUI() {
                      <button onclick="openContactOptions('${delivery.phone}')" class="text-indigo-600 font-bold bg-indigo-50 px-3 py-1.5 rounded-lg text-xs flex items-center gap-1">
                         <i class="fab fa-whatsapp"></i> Contactar
                      </button>
-                     <span class="font-bold text-gray-700">$${Number(delivery.amount).toFixed(2)}</span>
+                     <span class="font-bold text-gray-700">$${Number(delivery.amount)}</span>
                 </div>
             </div>
             
@@ -231,8 +231,8 @@ function openContactOptions(phone) {
         customClass: {
             popup: 'rounded-2xl',
             actions: 'flex-col gap-3 w-full',
-            confirmButton: 'w-full py-3 rounded-xl font-bold',
-            denyButton: 'w-full py-3 rounded-xl font-bold order-2',
+            confirmButton: 'py-3 rounded-xl font-bold',
+            denyButton: 'py-3 rounded-xl font-bold order-2',
             cancelButton: 'text-gray-400 order-3'
         }
     }).then((result) => {
