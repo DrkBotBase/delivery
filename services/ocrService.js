@@ -7,7 +7,6 @@ class OCRService {
         imagePath,
         'spa',
         {
-          //logger: m => console.log(m.status, m.progress),
           tessedit_char_whitelist: '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÁÉÍÓÚáéíóúÑñ$.,:/-# ',
           tessedit_pageseg_mode: '6',
           preserve_interword_spaces: '1'
@@ -38,6 +37,7 @@ class OCRService {
   }
 
   static normalizeText(text) {
+    if (!text) return '';
     return text
       .replace(/\r/g, '')
       .replace(/[ ]{2,}/g, ' ')
@@ -54,9 +54,11 @@ class OCRService {
   }
 
   static find(patterns, text) {
+    if (!text || typeof text !== 'string') return null;
+    
     for (const p of patterns) {
       const m = text.match(p);
-      if (m) return m[1].trim();
+      if (m) return m[1] ? m[1].trim() : m[0].trim();
     }
     return null;
   }
@@ -94,11 +96,13 @@ class OCRService {
   static extractDeliveryData(rawText) {
     const text = this.normalizeText(rawText);
     const data = {};
-
-    data.invoiceNumber = this.find([
-      /fv[-:\s]*([0-9]+)/i,
-      /cm[-:\s]*([0-9]+)/i
+    
+    const cmNumber = this.find([
+      /CM\s*[-:]\s*([0-9]+)/i,
+      /C\.?M\.?\s*[-:]\s*([0-9]+)/i
     ], text);
+    
+    data.invoiceNumber = cmNumber ? `CM: ${cmNumber}` : '0000';
 
     data.date = this.getColombiaDate();
 
