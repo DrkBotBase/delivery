@@ -1,30 +1,132 @@
 const path = require('path');
 const express = require('express');
 const router = express.Router();
-const Delivery = require('../models/Delivery');
+
+const fs = require('fs');
+const crypto = require('crypto');
+const moment = require('moment-timezone');
+
 const Restaurant = require('../models/Restaurant');
+const Delivery = require('../models/Delivery');
+const Shift = require('../models/Shift');
+const Expense = require('../models/Expense');
+
 const upload = require('../middleware/upload');
 const OCRService = require('../services/ocrService');
 const SimpleRouteService = require('../services/routeService');
 const AIParserService = require('../services/AIParserService');
-const moment = require('moment-timezone');
-const fs = require('fs');
+
+const { info } = require('../config');
 
 router.get('/', async (req, res) => {
     try {
-        const deliveries = await Delivery.find().sort({ date: -1 });
-        const total = deliveries.reduce((sum, delivery) => sum + delivery.amount, 0);
+        const { page = 1, limit = 10, search, shiftId } = req.query;
+
+        let deliveryQuery = {};
+        if (shiftId) deliveryQuery.shiftId = shiftId;
+        if (search) {
+            deliveryQuery.$or = [
+                { invoiceNumber: { $regex: search, $options: 'i' } },
+                { customerName: { $regex: search, $options: 'i' } },
+                { address: { $regex: search, $options: 'i' } }
+            ];
+        }
         
+        let expenseQuery = {};
+        if (shiftId) expenseQuery.shiftId = shiftId;
+        if (search) {
+            expenseQuery.description = { $regex: search, $options: 'i' };
+        }
+
+        const [allDeliveries, allExpenses] = await Promise.all([
+            Delivery.find(deliveryQuery).sort({ date: -1 }).lean(),
+            Expense.find(expenseQuery).sort({ date: -1 }).lean()
+        ]);
+
+        const formattedDeliveries = allDeliveries.map(d => ({ 
+            ...d, 
+            type: 'delivery'
+        }));
+        
+        const formattedExpenses = allExpenses.map(e => ({
+            ...e,
+            type: 'expense',
+            invoiceNumber: 'GASTO',
+            customerName: 'Egreso',
+            address: e.description,
+            date: e.date
+        }));
+
+        let combinedData = [...formattedDeliveries, ...formattedExpenses];
+        combinedData.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        const totalDocs = combinedData.length;
+        const startIndex = (parseInt(page) - 1) * parseInt(limit);
+        const endIndex = startIndex + parseInt(limit);
+        
+        const paginatedItems = combinedData.slice(startIndex, endIndex);
+
+        const totalDeliveriesAmount = allDeliveries.reduce((sum, d) => sum + d.amount, 0);
+        const totalExpensesAmount = allExpenses.reduce((sum, e) => sum + e.amount, 0);
+        const netTotal = totalDeliveriesAmount - totalExpensesAmount;
+
         res.render('layout', {
-            deliveries,
-            total: total.toFixed(2),
-            todayTotal: calculateTodayTotal(deliveries)
+            title: `${info.name_page} | Home`,
+            deliveries: paginatedItems,
+            total: netTotal.toFixed(2),
+            todayTotal: calculateTodayTotal(allDeliveries),
+            pagination: {
+                totalDocs: totalDocs,
+                totalPages: Math.ceil(totalDocs / limit),
+                page: parseInt(page),
+                hasNextPage: endIndex < totalDocs,
+                hasPrevPage: startIndex > 0
+            },
+            filters: {
+                search,
+                shiftId
+            }
         });
+
+    } catch (error) {
+        console.error("Error en home:", error);
+        res.status(500).send("Error en el servidor");
+    }
+});
+
+router.get('/api/shifts/history', async (req, res) => {
+    try {
+        const shifts = await Shift.find()
+            .sort({ startTime: -1 })
+            .limit(20);
+        res.json(shifts);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
+const USE_IA_OCR = process.env.IA_OCR === "true";
+async function parseWithIAFallback(ocrTxt) {
+  if (!USE_IA_OCR) {
+    return OCRService.extractDeliveryData(ocrTxt);
+  }
+  
+  try {
+    return await AIParserService.parseInvoice(ocrTxt);
+  } catch (error) {
+    console.warn('IA parsing failed, using OCR fallback:', error.message);
+    return OCRService.extractDeliveryData(ocrTxt);
+  }
+}
+function normalizeAddress(address) {
+  let fullAddress = OCRService.fixAddress(address || "NO DETECTADA");
+  
+  if (!fullAddress.toLowerCase().includes('barranquilla')) {
+    fullAddress = `${fullAddress}, Riomar, Barranquilla, Atlántico`;
+  }
+  
+  return fullAddress;
+}
 router.post('/upload', upload.single('receipt'), async (req, res) => {
   try {
     if (!req.file) {
@@ -34,13 +136,8 @@ router.post('/upload', upload.single('receipt'), async (req, res) => {
     const imagePath = path.join(__dirname, '../public/uploads/', req.file.filename);
 
     const ocrText = await OCRService.extractTextFromImage(imagePath);
-
-    let parsed;
-    try {
-      parsed = await AIParserService.parseInvoice(ocrText);
-    } catch {
-      parsed = OCRService.extractDeliveryData(ocrText);
-    }
+    
+    const parsed = await parseWithIAFallback(ocrText)
 
     if (!parsed.delivery || parsed.delivery === 0) {
       return res.status(400).json({
@@ -49,14 +146,9 @@ router.post('/upload', upload.single('receipt'), async (req, res) => {
       });
     }
 
-    let fullAddress = OCRService.fixAddress(parsed.address || "NO DETECTADA");
-    if (!fullAddress.toLowerCase().includes('barranquilla')) {
-      fullAddress = `${fullAddress}, Riomar, Barranquilla, Atlántico`;
-    }
-
+    const fullAddress = normalizeAddress(parsed.address);
     const dateCol = OCRService.getColombiaDate();
-
-    let phoneFinal = parsed.phone || "NO DETECTADO";
+    const phoneFinal = parsed.phone || "NO DETECTADO";
     if (parsed.phoneStatus && parsed.phoneStatus !== "ok") {
       phoneFinal = `${phoneFinal} (${parsed.phoneStatus})`;
     }
@@ -75,6 +167,15 @@ router.post('/upload', upload.single('receipt'), async (req, res) => {
       notes: req.body.notes,
       deliveryStatus: 'pendiente'
     });
+    
+    try {
+        const activeShift = await Shift.findOne({ status: 'active' });
+        if (activeShift) {
+            delivery.shiftId = activeShift._id;
+        }
+    } catch (err) {
+        console.error("No se pudo vincular a jornada:", err);
+    }
 
     await delivery.save();
 
@@ -283,5 +384,220 @@ function calculateTodayTotal(deliveries) {
     .reduce((sum, d) => sum + d.amount, 0)
     .toFixed(2);
 }
+
+router.post('/api/shift/start', async (req, res) => {
+    try {
+        const existing = await Shift.findOne({ status: 'active' });
+        if (existing) return res.status(400).json({ error: 'Ya tienes una jornada abierta' });
+
+        const newShift = new Shift({
+            baseMoney: req.body.base || 0,
+            shareToken: crypto.randomBytes(16).toString('hex')
+        });
+        await newShift.save();
+        res.json({ success: true, shift: newShift });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+router.get('/api/shift/current', async (req, res) => {
+    try {
+        const shift = await Shift.findOne({ status: 'active' });
+        if (!shift) return res.json({ active: false });
+      
+        const deliveries = await Delivery.find({ shiftId: shift._id });
+        const expenses = await Expense.find({ shiftId: shift._id });
+
+        const totalDeliveries = deliveries.reduce((sum, d) => sum + (d.amount || 0), 0);
+        const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+        
+        const grandTotal = (shift.baseMoney || 0) + totalDeliveries - totalExpenses;
+        
+        res.json({ 
+            active: true, 
+            shift, 
+            stats: {
+                count: deliveries.length,
+                totalDeliveries: totalDeliveries,
+                totalExpenses: totalExpenses,
+                grandTotal: grandTotal
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+router.post('/api/shift/end', async (req, res) => {
+    try {
+        const shift = await Shift.findOne({ status: 'active' });
+        if (!shift) return res.status(400).json({ error: 'No hay jornada activa' });
+
+        const deliveries = await Delivery.find({ shiftId: shift._id });
+        const totalAmount = deliveries.reduce((sum, d) => sum + (d.amount || 0), 0);
+
+        shift.endTime = new Date();
+        shift.status = 'closed';
+        shift.totalDeliveryAmount = totalAmount;
+        await shift.save();
+
+        res.json({ success: true, total: totalAmount });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+router.get('/report/:token', async (req, res) => {
+    try {
+        const shift = await Shift.findOne({ shareToken: req.params.token });
+        
+        if (!shift) {
+            return res.status(404).send(`
+                <div style="text-align:center; padding:50px; font-family:sans-serif;">
+                    <h1>⚠️ Enlace no válido</h1>
+                    <p>Este reporte no existe o fue eliminado.</p>
+                </div>
+            `);
+        }
+
+        const [deliveries, expenses] = await Promise.all([
+            Delivery.find({ shiftId: shift._id }).sort({ date: -1 }).lean(),
+            Expense.find({ shiftId: shift._id }).sort({ date: -1 }).lean()
+        ]);
+
+        const totalVentas = deliveries.reduce((sum, d) => sum + d.amount, 0);
+        const totalGastos = expenses.reduce((sum, e) => sum + e.amount, 0);
+        const dineroEnCaja = (shift.baseMoney || 0) + totalVentas - totalGastos;
+
+        const items = [
+            ...deliveries.map(d => ({ ...d, type: 'delivery' })),
+            ...expenses.map(e => ({ ...e, type: 'expense', date: e.date }))
+        ].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        res.render('report', { 
+            title: `${info.name_page} | Reporte Jornada`,
+            shift, 
+            items,
+            stats: {
+                base: shift.baseMoney || 0,
+                ventas: totalVentas,
+                gastos: totalGastos,
+                caja: dineroEnCaja,
+                count: deliveries.length
+            }
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Error interno del servidor');
+    }
+});
+
+router.post('/api/expenses', async (req, res) => {
+    try {
+        const activeShift = await Shift.findOne({ status: 'active' });
+        
+        const expense = new Expense({
+            description: req.body.description,
+            amount: parseFloat(req.body.amount),
+            shiftId: activeShift ? activeShift._id : null
+        });
+        
+        await expense.save();
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+router.post('/api/deliveries/manual', async (req, res) => {
+    try {
+        const activeShift = await Shift.findOne({ status: 'active' });
+        
+        const delivery = new Delivery({
+            invoiceNumber: 'MANUAL-' + Date.now().toString().slice(-4),
+            date: moment.tz("America/Bogota").toDate(),
+            amount: parseFloat(req.body.amount),
+            address: req.body.address || "Pedido Manual / Extra",
+            customerName: "Ingreso Extra",
+            notes: req.body.notes || "Agregado manualmente",
+            deliveryStatus: 'pendiente',
+            imageUrl: '/icons/512.png',
+            phone: 'N/A',
+            shiftId: activeShift ? activeShift._id : null
+        });
+
+        await delivery.save();
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+router.get('/api/transactions', async (req, res) => {
+    try {
+        const { page = 1, limit = 10, search, shiftId } = req.query;
+
+        let deliveryQuery = {};
+        if (shiftId) deliveryQuery.shiftId = shiftId;
+        if (search) {
+            deliveryQuery.$or = [
+                { invoiceNumber: { $regex: search, $options: 'i' } },
+                { customerName: { $regex: search, $options: 'i' } },
+                { address: { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        let expenseQuery = {};
+        if (shiftId) expenseQuery.shiftId = shiftId;
+        if (search) {
+            expenseQuery.description = { $regex: search, $options: 'i' };
+        }
+
+        const [allDeliveries, allExpenses] = await Promise.all([
+            Delivery.find(deliveryQuery).sort({ date: -1 }).lean(),
+            Expense.find(expenseQuery).sort({ date: -1 }).lean()
+        ]);
+
+        const formattedDeliveries = allDeliveries.map(d => ({ 
+            ...d, 
+            type: 'delivery' 
+        }));
+        
+        const formattedExpenses = allExpenses.map(e => ({
+            ...e,
+            type: 'expense',
+            invoiceNumber: 'GASTO',
+            address: e.description,
+            customerName: 'Egreso',
+            date: e.date
+        }));
+
+        let combinedData = [...formattedDeliveries, ...formattedExpenses];
+        combinedData.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        const totalDocs = combinedData.length;
+        const totalPages = Math.ceil(totalDocs / limit);
+        const startIndex = (parseInt(page) - 1) * parseInt(limit);
+        const endIndex = startIndex + parseInt(limit);
+        
+        const paginatedItems = combinedData.slice(startIndex, endIndex);
+        
+        res.json({
+            items: paginatedItems,
+            page: parseInt(page),
+            totalPages: totalPages,
+            totalDocs: totalDocs,
+            hasNextPage: endIndex < totalDocs,
+            hasPrevPage: startIndex > 0
+        });
+
+    } catch (error) {
+        console.error("Error en /api/transactions:", error);
+        res.status(500).json({ error: "Error cargando transacciones" });
+    }
+});
+
 
 module.exports = router;

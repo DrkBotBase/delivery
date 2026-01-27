@@ -7,8 +7,8 @@ const deliverySchema = new mongoose.Schema({
   },
   shiftId: { 
     type: mongoose.Schema.Types.ObjectId, 
-    ref: 'Shift' 
-  },
+    ref: 'Shift'
+  }, 
   date: {
     type: Date,
     required: true

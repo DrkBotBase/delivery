@@ -1,8 +1,9 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
 const fs = require('fs');
-require('dotenv').config();
+const { info, PORT } = require('./config');
 
 const app = express();
 
@@ -28,7 +29,9 @@ mongoose.connect(process.env.MONGODB_URI, {
 app.use('/', require('./routes/deliveries'));
 
 app.get('/route', (req, res) => {
-    res.render('route');
+    res.render('route', {
+      title: `${info.name_page} | Modo Ruta`,
+    });
 });
 
 app.get('/service-worker.js', (req, res) => {
@@ -45,7 +48,12 @@ setInterval(() => {
     .catch(err => console.error('Error en el ping:', err.message));
 }, 14 * 60 * 1000);
 
-const PORT = process.env.PORT || 3000;
+app.use((req, res, next) => {
+    res.status(404).render('404', {
+      title: `${info.name_page} | Error`,
+    });
+});
+
 app.listen(PORT, () => {
-    console.log(`Servidor corriendo en http://localhost:${PORT}`);
+    console.log(`Servidor corriendo en el puerto: ${PORT}`);
 });

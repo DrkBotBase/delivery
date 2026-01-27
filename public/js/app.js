@@ -1,12 +1,19 @@
 let cropper = null;
 let originalFile = null;
 let croppedImageBlob = null;
+let currentShiftToken = null;
 
 document.addEventListener('DOMContentLoaded', function() {
     initializeFileInput();
     setupEventListeners();
     checkPendingSync();
     addCustomStyles();
+    checkShiftStatus();
+    if(typeof checkShiftStatus === 'function') checkShiftStatus();
+    const searchInput = document.getElementById('searchInput');
+    if(searchInput && searchInput.value) {
+        // searchInput.focus(); // Opcional: enfocar si hay búsqueda
+    }
 });
 
 function addCustomStyles() {
@@ -926,4 +933,483 @@ function checkPendingSync() {
 
 async function syncPendingData() {
     console.log("Sincronizando datos pendientes...");
+}
+
+async function checkShiftStatus() {
+    try {
+        const loading = document.getElementById('shiftLoading');
+        const inactive = document.getElementById('shiftInactive');
+        const active = document.getElementById('shiftActive');
+
+        if(!loading || !inactive || !active) return;
+
+        const res = await fetch('/api/shift/current');
+        const data = await res.json();
+        
+        loading.classList.add('hidden');
+
+        if (data.active) {
+            inactive.classList.add('hidden');
+            active.classList.remove('hidden');
+            
+            document.getElementById('shiftGrandTotal').textContent = '$' + data.stats.grandTotal.toFixed(2);
+            document.getElementById('shiftBase').textContent = '$' + data.shift.baseMoney;
+            currentShiftToken = data.shift.shareToken;
+        } else {
+            inactive.classList.remove('hidden');
+            active.classList.add('hidden');
+        }
+    } catch (e) { 
+        console.error("Error verificando jornada:", e);
+    }
+}
+
+async function startShift() {
+    const { value: base } = await Swal.fire({
+        title: 'Iniciar Jornada',
+        text: '¿Con cuánto dinero (base) inicias en caja?',
+        input: 'number',
+        inputValue: 0,
+        inputAttributes: { min: 0, step: 5000 },
+        showCancelButton: true,
+        confirmButtonText: 'Iniciar Turno',
+        confirmButtonColor: '#10b981',
+        cancelButtonText: 'Cancelar'
+    });
+
+    if (base !== undefined && base !== null) {
+        try {
+            const res = await fetch('/api/shift/start', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ base: parseFloat(base) })
+            });
+            
+            const data = await res.json();
+            
+            if (data.success) {
+                await Swal.fire({
+                    icon: 'success', 
+                    title: '¡Jornada Iniciada!', 
+                    timer: 1500, 
+                    showConfirmButton: false
+                });
+                checkShiftStatus();
+            } else {
+                Swal.fire('Error', data.error || 'No se pudo iniciar', 'error');
+            }
+        } catch (error) {
+            Swal.fire('Error', 'Fallo de conexión', 'error');
+        }
+    }
+}
+
+async function endShift() {
+    const result = await Swal.fire({
+        title: '¿Cerrar Caja?',
+        text: "Se generará el reporte final y se cerrará el turno actual.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#9ca3af',
+        confirmButtonText: 'Sí, cerrar caja',
+        cancelButtonText: 'Cancelar'
+    });
+
+    if (result.isConfirmed) {
+        try {
+            const res = await fetch('/api/shift/end', { method: 'POST' });
+            if (res.ok) {
+                const data = await res.json();
+                await Swal.fire({
+                    title: 'Jornada Cerrada',
+                    html: `<p class="text-xl">Ventas Totales: <b>$${data.total}</b></p>`,
+                    icon: 'success'
+                });
+                location.reload();
+            }
+        } catch (error) {
+            Swal.fire('Error', 'No se pudo cerrar la jornada', 'error');
+        }
+    }
+}
+
+function copyToClipboard(text, btnElement) {
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => {
+            showCopyFeedback(btnElement);
+        }).catch(() => {
+            fallbackCopyTextToClipboard(text, btnElement);
+        });
+    } else {
+        fallbackCopyTextToClipboard(text, btnElement);
+    }
+}
+
+function fallbackCopyTextToClipboard(text, btnElement) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    
+    textArea.style.position = "fixed";
+    textArea.style.left = "-9999px";
+    textArea.style.top = "0";
+    document.body.appendChild(textArea);
+    
+    textArea.focus();
+    textArea.select();
+
+    try {
+        const successful = document.execCommand('copy');
+        if(successful) showCopyFeedback(btnElement);
+        else Swal.showValidationMessage('Error al copiar :(');
+    } catch (err) {
+        console.error('Error al copiar', err);
+        Swal.showValidationMessage('No se pudo copiar automáticamente');
+    }
+
+    document.body.removeChild(textArea);
+}
+
+function showCopyFeedback(btn) {
+    const originalHtml = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-check"></i> ¡Copiado!';
+    btn.classList.remove('bg-gray-800', 'hover:bg-gray-900');
+    btn.classList.add('bg-green-600');
+    
+    setTimeout(() => {
+        btn.innerHTML = originalHtml;
+        btn.classList.remove('bg-green-600');
+        btn.classList.add('bg-gray-800');
+    }, 2000);
+}
+
+function shareShift(tokenOverride = null) {
+    const tokenToUse = tokenOverride || currentShiftToken;
+
+    if (!tokenToUse) {
+        Swal.fire('Info', 'No hay token disponible para compartir', 'info');
+        return;
+    }
+    
+    const url = `${window.location.origin}/report/${tokenToUse}`;
+    
+    Swal.fire({
+        title: 'Compartir Reporte',
+        html: `
+            <div class="space-y-4">
+                <p class="text-sm text-gray-500">Enlace al reporte detallado:</p>
+                
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 flex items-center justify-between gap-2">
+                    <input type="text" value="${url}" readonly 
+                        class="w-full bg-transparent text-xs text-gray-600 font-mono focus:outline-none select-all">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <a href="https://wa.me/?text=Reporte%20de%20Jornada:%20${encodeURIComponent(url)}" target="_blank" 
+                       class="bg-[#25D366] text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-green-600 transition shadow-sm active:scale-95">
+                       <i class="fab fa-whatsapp text-xl"></i> WhatsApp
+                    </a>
+                    
+                    <button onclick="copyToClipboard('${url}', this)" 
+                       class="bg-gray-800 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-gray-900 transition shadow-sm active:scale-95">
+                       <i class="fas fa-copy"></i> Copiar
+                    </button>
+                </div>
+            </div>
+        `,
+        showConfirmButton: false,
+        showCloseButton: true,
+        customClass: { 
+            popup: 'rounded-3xl p-2' 
+        }
+    });
+}
+
+function applyFilters() {
+    const search = document.getElementById('searchInput').value;
+    const url = new URL(window.location.href);
+    
+    if(search) {
+        url.searchParams.set('search', search);
+    } else {
+        url.searchParams.delete('search');
+    }
+    
+    url.searchParams.set('page', 1);
+    window.location.href = url.toString();
+}
+
+function changePage(newPage) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('page', newPage);
+    window.location.href = url.toString();
+}
+
+function clearShiftFilter() {
+    const url = new URL(window.location.href);
+    url.searchParams.delete('shiftId');
+    window.location.href = url.toString();
+}
+
+async function addExpense() {
+    const { value: formValues } = await Swal.fire({
+        title: 'Registrar Gasto',
+        html: `
+            <div class="space-y-3">
+                <input id="swal-exp-desc" class="w-full p-3 border rounded-xl bg-gray-50" placeholder="¿En qué gastaste? (ej: Gasolina)">
+                <input id="swal-exp-amount" type="number" class="w-full p-3 border rounded-xl bg-gray-50" placeholder="Valor ($)">
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Registrar',
+        confirmButtonColor: '#ef4444',
+        preConfirm: () => {
+            return {
+                description: document.getElementById('swal-exp-desc').value,
+                amount: document.getElementById('swal-exp-amount').value
+            }
+        }
+    });
+
+    if (formValues && formValues.description && formValues.amount) {
+        try {
+            const res = await fetch('/api/expenses', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formValues)
+            });
+            
+            if (res.ok) {
+                Swal.fire({ icon: 'success', title: 'Gasto registrado', timer: 1000, showConfirmButton: false });
+                checkShiftStatus();
+            }
+        } catch (error) {
+            Swal.fire('Error', 'No se pudo guardar', 'error');
+        }
+    }
+}
+
+async function addManualDelivery() {
+    const { value: formValues } = await Swal.fire({
+        title: 'Ingreso Extra / Manual',
+        html: `
+            <div class="space-y-3">
+                <input id="swal-man-amount" type="number" class="w-full p-3 border rounded-xl bg-gray-50 text-lg font-bold text-center" placeholder="Valor ($) *Requerido">
+                <input id="swal-man-address" class="w-full p-3 border rounded-xl bg-gray-50" placeholder="Dirección (Opcional)">
+                <input id="swal-man-notes" class="w-full p-3 border rounded-xl bg-gray-50" placeholder="Nota (ej: Propina, Pedido por WhatsApp)">
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Agregar Dinero',
+        confirmButtonColor: '#10b981',
+        preConfirm: () => {
+            const amount = document.getElementById('swal-man-amount').value;
+            if (!amount) Swal.showValidationMessage('¡El valor es obligatorio!');
+            return {
+                amount: amount,
+                address: document.getElementById('swal-man-address').value,
+                notes: document.getElementById('swal-man-notes').value
+            }
+        }
+    });
+
+    if (formValues) {
+        try {
+            const res = await fetch('/api/deliveries/manual', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formValues)
+            });
+            
+            if (res.ok) {
+                Swal.fire({ icon: 'success', title: 'Agregado', timer: 1000, showConfirmButton: false });
+                setTimeout(() => location.reload(), 1000);
+            }
+        } catch (error) {
+            Swal.fire('Error', 'No se pudo guardar', 'error');
+        }
+    }
+}
+
+async function loadPage(page) {
+    const container = document.getElementById('deliveriesContainer');
+    container.style.opacity = '0.5';
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const search = urlParams.get('search') || '';
+    const shiftId = urlParams.get('shiftId') || '';
+
+    try {
+        const res = await fetch(`/api/transactions?page=${page}&search=${search}&shiftId=${shiftId}`);
+        const data = await res.json();
+        
+        renderTransactions(data.items);
+        
+        updatePaginationControls(data.page, data.totalPages);
+      
+        newUrl.searchParams.set('page', page);
+        window.history.pushState({}, '', newUrl);
+
+    } catch (error) {
+        console.error('Error cargando página:', error);
+    } finally {
+        container.style.opacity = '1';
+    }
+}
+
+function renderTransactions(items) {
+    const container = document.getElementById('deliveriesContainer');
+    
+    if (items.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-10 bg-white rounded-2xl border border-dashed border-gray-300">
+                <i class="fas fa-inbox text-4xl text-gray-300 mb-3"></i>
+                <p class="text-gray-500">No hay movimientos</p>
+            </div>`;
+        return;
+    }
+
+    window.deliveriesData = items;
+
+    container.innerHTML = items.map(item => {
+        const isExpense = item.type === 'expense';
+        
+        const borderColor = isExpense ? 'border-red-100' : 'border-gray-100';
+        const indicatorColor = isExpense ? 'bg-red-500' : 'bg-indigo-500';
+        const numColor = isExpense ? 'text-red-600' : 'text-indigo-600';
+        const amountSign = isExpense ? '-' : '';
+        const icon = isExpense ? 'fa-minus-circle' : 'fa-map-marker-alt';
+        
+        const clickAction = isExpense 
+            ? `Swal.fire('Gasto', '${item.description}: $${item.amount}', 'info')` 
+            : `openDeliveryModal('${item._id}')`;
+
+        return `
+        <div onclick="${clickAction}" 
+             class="bg-white p-4 rounded-2xl shadow-sm border ${borderColor} flex justify-between items-center active:bg-gray-50 transition cursor-pointer relative overflow-hidden">
+            
+            <div class="absolute left-0 top-0 bottom-0 w-1.5 ${indicatorColor}"></div>
+
+            <div class="pl-2">
+                <h3 class="font-bold text-gray-800 flex items-center gap-2">
+                    <span class="${numColor}">${isExpense ? 'Gasto' : '#' + item.invoiceNumber}</span>
+                </h3>
+                <p class="text-sm text-gray-500 mt-1 flex items-center gap-1">
+                    <i class="fas ${icon} text-xs text-gray-400"></i>
+                    ${item.address ? (item.address.substring(0, 25) + (item.address.length > 25 ? '...' : '')) : 'Sin detalle'}
+                </p>
+            </div>
+            
+            <div class="text-right">
+                <span class="block font-bold ${isExpense ? 'text-red-500' : 'text-gray-800'}">
+                    ${amountSign}$${item.amount.toFixed(2)}
+                </span>
+                <span class="text-[10px] text-gray-400">
+                    ${new Date(item.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                </span>
+            </div>
+        </div>
+        `;
+    }).join('');
+}
+
+function updatePaginationControls(page, totalPages) {
+    const prevBtn = document.getElementById('prevPageBtn');
+    const nextBtn = document.getElementById('nextPageBtn');
+    const pageLabel = document.getElementById('pageLabel');
+
+    if(prevBtn) {
+        prevBtn.disabled = page <= 1;
+        prevBtn.onclick = () => loadPage(page - 1);
+    }
+    if(nextBtn) {
+        nextBtn.disabled = page >= totalPages;
+        nextBtn.onclick = () => loadPage(page + 1);
+    }
+    if(pageLabel) {
+        pageLabel.textContent = `Página ${page} de ${totalPages}`;
+    }
+}
+
+function applyFilters() {
+  const search = document.getElementById('searchInput').value;
+  const url = new URL(window.location.href);
+  url.searchParams.set('search', search);
+  url.searchParams.set('page', 1); // Reset a pág 1 al buscar
+  window.location.href = url.toString();
+}
+
+function changePage(newPage) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('page', newPage);
+    window.location.href = url.toString();
+}
+
+function clearShiftFilter() {
+  const url = new URL(window.location.href);
+  url.searchParams.delete('shiftId');
+  window.location.href = url.toString();
+}
+
+async function showShiftHistory() {
+    try {
+        const res = await fetch('/api/shifts/history'); 
+        const shifts = await res.json();
+        
+        if(shifts.length === 0) {
+            Swal.fire('Info', 'No hay historial de jornadas aún', 'info');
+            return;
+        }
+
+        let htmlContent = '<div class="space-y-2 max-h-[60vh] overflow-y-auto pr-1">';
+        
+        shifts.forEach(shift => {
+            const date = new Date(shift.startTime).toLocaleDateString('es-ES', {weekday: 'short', day:'numeric', month:'short'});
+            const total = (shift.totalDeliveryAmount || 0) + (shift.baseMoney || 0);
+            
+            htmlContent += `
+                <div class="group flex items-center gap-2 p-3 bg-gray-50 rounded-xl border border-gray-200 hover:border-indigo-300 transition-colors">
+                    
+                    <div onclick="window.location.href='/?shiftId=${shift._id}'" 
+                         class="flex-1 cursor-pointer">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="font-bold text-gray-700 capitalize">${date}</p>
+                                <div class="flex items-center gap-2 text-xs">
+                                    <span class="${shift.status==='active'?'text-green-500 font-bold':'text-gray-400'}">
+                                        ${shift.status==='active'?'● Activo':'Cerrado'}
+                                    </span>
+                                    <span class="text-gray-300">|</span>
+                                    <span class="text-gray-500">Base: $${shift.baseMoney}</span>
+                                </div>
+                            </div>
+                            <span class="font-bold text-indigo-600 text-lg mr-2">$${total}</span>
+                        </div>
+                    </div>
+
+                    <button onclick="shareShift('${shift.shareToken}');" 
+                            class="w-10 h-10 flex items-center justify-center bg-white rounded-full text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 border border-gray-200 shadow-sm transition active:scale-90"
+                            title="Compartir enlace">
+                        <i class="fas fa-share-alt"></i>
+                    </button>
+
+                </div>
+            `;
+        });
+        htmlContent += '</div>';
+
+        Swal.fire({
+            title: 'Historial de Jornadas',
+            html: htmlContent,
+            showCloseButton: true,
+            showConfirmButton: false,
+            customClass: {
+                popup: 'rounded-3xl'
+            }
+        });
+
+    } catch (error) {
+        console.error(error);
+        Swal.fire('Error', 'No se pudo cargar el historial', 'error');
+    }
 }

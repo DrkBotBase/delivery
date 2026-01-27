@@ -96,7 +96,7 @@ class OCRService {
     const data = {};
 
     data.invoiceNumber = this.find([
-     //fv[-:\s]*([0-9]+)/i,
+      /fv[-:\s]*([0-9]+)/i,
       /cm[-:\s]*([0-9]+)/i
     ], text);
 

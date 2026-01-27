@@ -241,9 +241,6 @@ function openContactOptions(phone) {
     });
 }
 
-/**
- * Exportar Ruta (Mantiene tu lógica original pero con feedback visual)
- */
 function exportRoute() {
     if (!currentRoute) return;
     let exportText = `RUTA - ${new Date().toLocaleDateString()}\n----------------\n`;
