@@ -734,7 +734,7 @@ function openDeliveryModal(id) {
                 </div>
 
                 <div class="mt-6 grid grid-cols-2 gap-3">
-                    <button onclick="viewInvoice('${delivery.imageUrl}')" class="col-span-2 py-2.5 bg-gray-800 text-white rounded-xl font-medium shadow-lg shadow-gray-400/30 active:scale-95 transition">
+                    <button onclick="viewInvoice('${delivery.imageUrl || '/icons/512.png'}')" class="col-span-2 py-2.5 bg-gray-800 text-white rounded-xl font-medium shadow-lg shadow-gray-400/30 active:scale-95 transition">
                         <i class="fas fa-receipt mr-2"></i> Ver Factura Original
                     </button>
                     
