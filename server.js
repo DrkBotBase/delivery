@@ -30,12 +30,23 @@ app.use('/', require('./routes/deliveries'));
 
 app.get('/route', (req, res) => {
     res.render('route', {
+      dominio: info.dominio || '',
       title: `${info.name_page} | Modo Ruta`,
     });
 });
+app.get('/offline', (req, res) => {
+    res.render('offline', {
+      dominio: info.dominio || '',
+      title: `Sin Conexión | ${info.name_page}`,
+    });
+});
 
-app.get('/service-worker.js', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public/js/pwa.js'));
+app.get('/manifest.json', (req, res) => {
+    res.type('application/manifest+json');
+    res.sendFile(path.join(__dirname, 'public/manifest.json'));
+});
+app.get('/sw.js', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/js/sw.js'));
 });
 
 app.get('/ping', (req, res) => {
@@ -43,13 +54,14 @@ app.get('/ping', (req, res) => {
 });
 
 setInterval(() => {
-  fetch('https://delivery-cgam.onrender.com/ping')
+  fetch(info.dominio + '/ping')
     .then(res => console.log('Ping interno enviado:', res.status))
     .catch(err => console.error('Error en el ping:', err.message));
 }, 14 * 60 * 1000);
 
 app.use((req, res, next) => {
     res.status(404).render('404', {
+      dominio: info.dominio || '',
       title: `${info.name_page} | Error`,
     });
 });

@@ -71,6 +71,7 @@ router.get('/', async (req, res) => {
         const netTotal = totalDeliveriesAmount - totalExpensesAmount;
 
         res.render('layout', {
+            dominio: info.dominio || '',
             title: `${info.name_page} | Home`,
             deliveries: paginatedItems,
             total: netTotal.toFixed(2),
@@ -476,6 +477,7 @@ router.get('/report/:token', async (req, res) => {
         ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
         res.render('report', { 
+            dominio: info.dominio || '',
             title: `${info.name_page} | Reporte Jornada`,
             shift, 
             items,

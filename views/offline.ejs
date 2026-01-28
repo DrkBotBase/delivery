@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #fff;
+        }
+        
+        .offline-container {
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .offline-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        h1 {
+            font-size: 28px;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+        
+        p {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            opacity: 0.9;
+        }
+        
+        .features {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 25px 0;
+            text-align: left;
+        }
+        
+        .features h3 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .features ul {
+            list-style: none;
+        }
+        
+        .features li {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 15px;
+        }
+        
+        .features li:before {
+            content: "✓";
+            background: rgba(255, 255, 255, 0.2);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 14px 28px;
+            border-radius: 50px;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-width: 180px;
+        }
+        
+        .btn-primary {
+            background: #fff;
+            color: #667eea;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            color: #fff;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .connection-status {
+            margin-top: 25px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            font-size: 14px;
+        }
+        
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ff4757;
+            animation: blink 1.5s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        .status-dot.connected {
+            background: #2ed573;
+            animation: none;
+        }
+        
+        @media (max-width: 480px) {
+            .offline-container {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            .actions {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-container">
+        <div class="offline-icon">📡</div>
+        
+        <h1>Estás trabajando sin conexión</h1>
+        
+        <p>No hay conexión a Internet en este momento. Algunas funciones pueden no estar disponibles, pero puedes continuar trabajando con las siguientes opciones:</p>
+        
+        <div class="features">
+            <h3>📱 Funciones disponibles sin conexión:</h3>
+            <ul>
+                <li>Ver entregas recientes</li>
+                <li>Revisar historial de pedidos</li>
+                <li>Acceder a información guardada</li>
+                <li>Usar la aplicación básica</li>
+                <li>Los cambios se guardarán localmente</li>
+            </ul>
+        </div>
+        
+        <div class="actions">
+            <button class="btn-primary" onclick="window.location.href='/'">
+                <span>🏠</span>
+                Ir al inicio
+            </button>
+            
+            <button class="btn-secondary" onclick="checkConnection()">
+                <span>🔄</span>
+                Reintentar conexión
+            </button>
+        </div>
+        
+        <div class="connection-status">
+            <div class="status-indicator">
+                <span class="status-dot" id="statusDot"></span>
+                <span id="statusText">Sin conexión</span>
+            </div>
+            <div id="lastSync">Última sincronización: <span id="lastSyncTime">Cargando...</span></div>
+        </div>
+    </div>
+
+    <script>
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+        const lastSyncTime = document.getElementById('lastSyncTime');
+        
+        function checkConnection() {
+            if (navigator.onLine) {
+                updateStatus(true);
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 1500);
+            } else {
+                updateStatus(false);
+                showToast('❌ Aún sin conexión', 2000);
+            }
+        }
+        
+        function updateStatus(isOnline) {
+            if (isOnline) {
+                statusDot.classList.add('connected');
+                statusText.textContent = 'Conectado';
+                showToast('✅ ¡Conectado! Redirigiendo...', 1500);
+            } else {
+                statusDot.classList.remove('connected');
+                statusText.textContent = 'Sin conexión';
+            }
+        }
+        
+        function showToast(message, duration) {
+            const toast = document.createElement('div');
+            toast.textContent = message;
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(0, 0, 0, 0.8);
+                color: white;
+                padding: 12px 24px;
+                border-radius: 8px;
+                z-index: 10000;
+                font-size: 14px;
+                animation: toastIn 0.3s ease;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(-50%) translateY(-10px)';
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        }
+        
+        function init() {
+            updateStatus(navigator.onLine);
+            
+            window.addEventListener('online', () => updateStatus(true));
+            window.addEventListener('offline', () => updateStatus(false));
+            
+            const lastSync = localStorage.getItem('lastSync');
+            if (lastSync) {
+                const date = new Date(parseInt(lastSync));
+                lastSyncTime.textContent = date.toLocaleString();
+            } else {
+                lastSyncTime.textContent = 'No hay datos sincronizados';
+            }
+            
+            setInterval(checkConnection, 30000);
+        }
+        
+        document.addEventListener('DOMContentLoaded', init);
+        
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes toastIn {
+                from {
+                    opacity: 0;
+                    transform: translateX(-50%) translateY(-20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateX(-50%) translateY(0);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
