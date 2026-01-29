@@ -48,6 +48,7 @@
 
             <% items.forEach(item => { 
                 const isExpense = item.type === 'expense';
+                const isDelivery = item.invoiceNumber && item.invoiceNumber.toString().startsWith('CM');
                 const isManual = item.invoiceNumber && item.invoiceNumber.toString().startsWith('MANUAL');
             %>
                 <div class="bg-white p-4 rounded-2xl shadow-sm border-l-4 <%= isExpense ? 'border-red-500' : (isManual ? 'border-emerald-400' : 'border-indigo-500') %> flex justify-between items-center">
@@ -60,13 +61,13 @@
                         
                         <div class="min-w-0">
                             <p class="text-sm font-bold text-gray-800 truncate">
-                                <%= isExpense ? item.description : item.address %>
+                                <%= isExpense ? item.description : isDelivery ? item.invoiceNumber : item.notes %>
                             </p>
                             <p class="text-xs text-gray-400 flex items-center gap-1">
                                 <span><%= new Date(item.date).toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'}) %></span>
                                 <% if (!isExpense) { %>
                                     • <span class="font-mono bg-gray-100 px-1 rounded text-[10px]">
-                                        <%= isManual ? item.notes : '#' + item.invoiceNumber %>
+                                        <%= isDelivery ? item.address.split(',')[0].trim() : isManual ? item.address : '#' + item.invoiceNumber %>
                                     </span>
                                 <% } %>
                             </p>

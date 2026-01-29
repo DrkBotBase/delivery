@@ -475,7 +475,7 @@ router.get('/report/:token', async (req, res) => {
             ...deliveries.map(d => ({ ...d, type: 'delivery' })),
             ...expenses.map(e => ({ ...e, type: 'expense', date: e.date }))
         ].sort((a, b) => new Date(b.date) - new Date(a.date));
-
+        
         res.render('report', { 
             dominio: info.dominio || '',
             title: `${info.name_page} | Reporte Jornada`,

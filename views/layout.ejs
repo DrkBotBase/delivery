@@ -146,7 +146,7 @@
                         </div>
                         <div class="text-right">
                              <span class="block font-bold <%= isExpense ? 'text-red-500' : 'text-gray-800' %>">
-                                <%= isExpense ? '-' : '' %>$<%= item.amount.toFixed(2) %>
+                                <%= isExpense ? '-' : '' %>$<%= item.amount.toLocaleString('es-CO') %>
                             </span>
                             <span class="text-[10px] text-gray-400">
                                 <%= new Date(item.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) %>
