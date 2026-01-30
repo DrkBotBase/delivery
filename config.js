@@ -5,7 +5,8 @@ module.exports = {
     name_page: 'Delivery Tracker',
     desc: 'App Repartidor de MJFOOD, aplicación para repartidores de MJFOOD Menus Digitales.',
     dominio: process.env.DOMINIO || '',
-    keywords: 'Repartidores, comida, pedidos online, código QR, carta digital, MJ Food, Restaurantes Colombia, Tecnología Delivery'
+    keywords: 'Repartidores, comida, pedidos online, código QR, carta digital, MJ Food, Restaurantes Colombia, Tecnología Delivery',
+    fb_app_id: ''
   },
   PORT: process.env.PORT || 3000
 };

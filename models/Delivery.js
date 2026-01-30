@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
 
 const deliverySchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Deluser',
+    required: true
+  },
   invoiceNumber: {
     type: String,
     required: true

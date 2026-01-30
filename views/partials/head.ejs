@@ -1,16 +1,43 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#667eea">
 
 <title><%= title %></title>
-<link rel="apple-touch-icon" href="<%= dominio %>/icons/192.png">
+<meta name="description" content="<%= info.desc %>">
+<meta name="keywords" content="<%= info.keywords %>">
+<meta name="author" content="<%= info.author %>">
+<meta name="theme-color" content="<%= info.colorTheme %>">
+
+<meta name="robots" content="index, follow">
+<meta name="googlebot" content="index, follow">
+<link rel="canonical" href="<%= info.dominio %>">
+
+<meta property="og:title" content="<%= title %>">
+<meta property="og:description" content="<%= info.desc %>.">
+<meta property="og:image" content="<%= info.dominio %>/banner.jpg">
+<meta property="og:image:alt" content="<%= info.name_page %>">
+<meta property="fb:app_id" content="<%= info.fb_app_id %>">
+<meta property="og:url" content="<%= info.dominio %>">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="<%= info.name_page %>">
+<meta property="og:locale" content="es_ES">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="<%= title %>">
+<meta name="twitter:description" content="<%= info.desc %>">
+<meta name="twitter:image" content="<%= info.dominio %>/banner.jpg">
+<meta name="twitter:image:alt" content="<%= info.name_page %>">
+
+<link rel="icon" href="<%= info.dominio %>/icons/192.png" type="image/png">
+<link rel="apple-touch-icon" href="<%= info.dominio %>/icons/192.png">
 
 <link rel="manifest" href="/manifest.json">
 
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<!--  cropper -->
+
+<%- include("./seo") %>
+
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
 <style>

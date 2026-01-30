@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Crear Cuenta</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-sm bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+        <div class="bg-indigo-600 h-28 flex items-center justify-center relative">
+            <div class="absolute inset-0 bg-gradient-to-br from-indigo-600 to-purple-600 opacity-90"></div>
+            <div class="relative z-10 text-center text-white">
+                <h2 class="text-xl font-bold tracking-wide">Crear Cuenta</h2>
+                <p class="text-xs text-indigo-200">Únete a Delivery Tracker</p>
+            </div>
+        </div>
+
+        <div class="px-8 pt-6 pb-8">
+            <form id="registerForm" class="space-y-4">
+                <div class="relative">
+                    <i class="fas fa-user absolute left-4 top-3.5 text-gray-400"></i>
+                    <input type="text" name="username" placeholder="Elige un usuario" required
+                        class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                </div>
+                
+                <div class="relative">
+                    <i class="fas fa-lock absolute left-4 top-3.5 text-gray-400"></i>
+                    <input type="password" name="password" placeholder="Contraseña" required
+                        class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                </div>
+
+                <div class="relative">
+                    <i class="fas fa-check-circle absolute left-4 top-3.5 text-gray-400"></i>
+                    <input type="password" name="confirmPassword" placeholder="Confirmar contraseña" required
+                        class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                </div>
+
+                <button type="submit" 
+                    class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-indigo-500/30 transition transform active:scale-95">
+                    REGISTRARSE
+                </button>
+            </form>
+
+            <div class="mt-6 text-center">
+                <p class="text-sm text-gray-500">¿Ya tienes cuenta?</p>
+                <a href="/auth/login" class="text-indigo-600 font-bold hover:underline">Iniciar Sesión</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = Object.fromEntries(new FormData(e.target));
+            
+            if(formData.password !== formData.confirmPassword) {
+                return Swal.fire('Error', 'Las contraseñas no coinciden', 'error');
+            }
+
+            try {
+                const res = await fetch('/auth/register', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    await Swal.fire({
+                        icon: 'success',
+                        title: '¡Cuenta Creada!',
+                        text: 'Ahora puedes iniciar sesión',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    window.location.href = '/auth/login';
+                } else {
+                    throw new Error(data.message);
+                }
+            } catch (error) {
+                Swal.fire('Error', error.message || 'Error al registrar', 'error');
+            }
+        });
+    </script>
+</body>
+</html>

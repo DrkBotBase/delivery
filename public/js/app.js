@@ -465,7 +465,6 @@ function setupCropModalListeners() {
     });
 }
 
-
 function rotateImage(degrees) {
     if (cropper) {
         cropper.rotate(degrees);
@@ -624,13 +623,12 @@ async function handleFormSubmit(e) {
     try {
         const formData = new FormData(form);
 
-        if (croppedImageBlob && originalFile) {
+        if (typeof croppedImageBlob !== 'undefined' && croppedImageBlob && originalFile) {
             const fileName = originalFile.name;
             const croppedFile = new File([croppedImageBlob], fileName, {
                 type: 'image/jpeg',
                 lastModified: Date.now()
             });
-            
             formData.set('receipt', croppedFile, fileName);
         }
         
@@ -639,6 +637,8 @@ async function handleFormSubmit(e) {
             body: formData
         });
         
+        if (!checkSession(response)) return;
+
         const result = await response.json();
         
         if (result.success) {
@@ -651,8 +651,8 @@ async function handleFormSubmit(e) {
                 backdrop: 'rgba(0,0,0,0.4)'
             });
             
-            croppedImageBlob = null;
-            originalFile = null;
+            if(typeof croppedImageBlob !== 'undefined') croppedImageBlob = null;
+            if(typeof originalFile !== 'undefined') originalFile = null;
             
             setTimeout(() => {
                 location.reload();
@@ -807,7 +807,9 @@ function viewInvoice(url) {
 
 async function editDelivery(id) {
     try {
-        const delivery = await fetch(`/api/deliveries/${id}`).then(res => res.json());
+        const resGet = await fetch(`/api/deliveries/${id}`);
+        if (!checkSession(resGet)) return;
+        const delivery = await resGet.json();
         
         Swal.close();
 
@@ -845,6 +847,8 @@ async function editDelivery(id) {
                 body: JSON.stringify(formValues)
             });
 
+            if (!checkSession(response)) return;
+
             if (response.ok) {
                 Swal.fire({
                     icon: 'success',
@@ -854,10 +858,11 @@ async function editDelivery(id) {
                 }).then(() => location.reload());
             }
         } else {
-            openDeliveryModal(delivery._id);
+            if(typeof openDeliveryModal === 'function') openDeliveryModal(delivery._id);
         }
 
     } catch (error) {
+        console.error(error);
         Swal.fire('Error', 'No se pudieron cargar los datos', 'error');
     }
 }
@@ -881,6 +886,9 @@ function deleteDelivery(id) {
         if (result.isConfirmed) {
             try {
                 const response = await fetch(`/api/deliveries/${id}`, { method: 'DELETE' });
+                
+                if (!checkSession(response)) return;
+
                 if (response.ok) {
                     await Swal.fire({
                         icon: 'success',
@@ -944,6 +952,12 @@ async function checkShiftStatus() {
         if(!loading || !inactive || !active) return;
 
         const res = await fetch('/api/shift/current');
+        
+        if (res.status === 401) {
+            window.location.href = '/auth/login';
+            return;
+        }
+
         const data = await res.json();
         
         loading.classList.add('hidden');
@@ -954,7 +968,10 @@ async function checkShiftStatus() {
             
             document.getElementById('shiftGrandTotal').textContent = '$' + data.stats.grandTotal.toFixed(2);
             document.getElementById('shiftBase').textContent = '$' + data.shift.baseMoney;
-            currentShiftToken = data.shift.shareToken;
+            
+            if(typeof currentShiftToken !== 'undefined') currentShiftToken = data.shift.shareToken;
+            else window.currentShiftToken = data.shift.shareToken;
+
         } else {
             inactive.classList.remove('hidden');
             active.classList.add('hidden');
@@ -985,6 +1002,8 @@ async function startShift() {
                 body: JSON.stringify({ base: parseFloat(base) })
             });
             
+            if (!checkSession(res)) return;
+
             const data = await res.json();
             
             if (data.success) {
@@ -1019,6 +1038,9 @@ async function endShift() {
     if (result.isConfirmed) {
         try {
             const res = await fetch('/api/shift/end', { method: 'POST' });
+            
+            if (!checkSession(res)) return;
+
             if (res.ok) {
                 const data = await res.json();
                 await Swal.fire({
@@ -1179,6 +1201,8 @@ async function addExpense() {
                 body: JSON.stringify(formValues)
             });
             
+            if (!checkSession(res)) return;
+
             if (res.ok) {
                 Swal.fire({ icon: 'success', title: 'Gasto registrado', timer: 1000, showConfirmButton: false });
                 checkShiftStatus();
@@ -1221,6 +1245,8 @@ async function addManualDelivery() {
                 body: JSON.stringify(formValues)
             });
             
+            if (!checkSession(res)) return;
+
             if (res.ok) {
                 Swal.fire({ icon: 'success', title: 'Agregado', timer: 1000, showConfirmButton: false });
                 setTimeout(() => location.reload(), 1000);
@@ -1233,7 +1259,7 @@ async function addManualDelivery() {
 
 async function loadPage(page) {
     const container = document.getElementById('deliveriesContainer');
-    container.style.opacity = '0.5';
+    if(container) container.style.opacity = '0.5';
     
     const urlParams = new URLSearchParams(window.location.search);
     const search = urlParams.get('search') || '';
@@ -1241,19 +1267,22 @@ async function loadPage(page) {
 
     try {
         const res = await fetch(`/api/transactions?page=${page}&search=${search}&shiftId=${shiftId}`);
+        
+        if (!checkSession(res)) return;
+
         const data = await res.json();
         
-        renderTransactions(data.items);
-        
-        updatePaginationControls(data.page, data.totalPages);
+        if(typeof renderTransactions === 'function') renderTransactions(data.items);
+        if(typeof updatePaginationControls === 'function') updatePaginationControls(data.page, data.totalPages);
       
+        const newUrl = new URL(window.location);
         newUrl.searchParams.set('page', page);
         window.history.pushState({}, '', newUrl);
 
     } catch (error) {
         console.error('Error cargando página:', error);
     } finally {
-        container.style.opacity = '1';
+        if(container) container.style.opacity = '1';
     }
 }
 
@@ -1354,6 +1383,9 @@ function clearShiftFilter() {
 async function showShiftHistory() {
     try {
         const res = await fetch('/api/shifts/history'); 
+        
+        if (!checkSession(res)) return;
+
         const shifts = await res.json();
         
         if(shifts.length === 0) {
@@ -1412,4 +1444,41 @@ async function showShiftHistory() {
         console.error(error);
         Swal.fire('Error', 'No se pudo cargar el historial', 'error');
     }
+}
+
+function confirmLogout() {
+    Swal.fire({
+        title: '¿Cerrar Sesión?',
+        text: "¿Estás seguro que deseas salir?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#9ca3af',
+        confirmButtonText: 'Sí, salir',
+        cancelButtonText: 'Cancelar',
+        customClass: {
+            popup: 'rounded-2xl'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = '/auth/logout';
+        }
+    });
+}
+
+function checkSession(response) {
+    if (response.status === 401) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Sesión Expirada',
+            text: 'Tu sesión ha terminado. Por favor ingresa nuevamente.',
+            confirmButtonText: 'Ir al Login',
+            confirmButtonColor: '#4f46e5',
+            allowOutsideClick: false
+        }).then(() => {
+            window.location.href = '/auth/login';
+        });
+        return false;
+    }
+    return true;
 }

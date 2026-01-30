@@ -1,6 +1,7 @@
 const path = require('path');
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 
 const fs = require('fs');
 const crypto = require('crypto');
@@ -11,6 +12,7 @@ const Delivery = require('../models/Delivery');
 const Shift = require('../models/Shift');
 const Expense = require('../models/Expense');
 
+const { requireAuth } = require('../middleware/auth');
 const upload = require('../middleware/upload');
 const OCRService = require('../services/ocrService');
 const SimpleRouteService = require('../services/routeService');
@@ -18,11 +20,59 @@ const AIParserService = require('../services/AIParserService');
 
 const { info } = require('../config');
 
-router.get('/', async (req, res) => {
+router.get('/report/:token', async (req, res) => {
+    try {
+        const shift = await Shift.findOne({ shareToken: req.params.token });
+        
+        if (!shift) {
+            return res.status(404).send(`
+                <div style="text-align:center; padding:50px; font-family:sans-serif;">
+                    <h1>⚠️ Enlace no válido</h1>
+                    <p>Este reporte no existe o fue eliminado.</p>
+                </div>
+            `);
+        }
+
+        const [deliveries, expenses] = await Promise.all([
+            Delivery.find({ shiftId: shift._id }).sort({ date: -1 }).lean(),
+            Expense.find({ shiftId: shift._id }).sort({ date: -1 }).lean()
+        ]);
+
+        const totalVentas = deliveries.reduce((sum, d) => sum + d.amount, 0);
+        const totalGastos = expenses.reduce((sum, e) => sum + e.amount, 0);
+        const dineroEnCaja = (shift.baseMoney || 0) + totalVentas - totalGastos;
+
+        const items = [
+            ...deliveries.map(d => ({ ...d, type: 'delivery' })),
+            ...expenses.map(e => ({ ...e, type: 'expense', date: e.date }))
+        ].sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        res.render('report', { 
+            info,
+            title: `${info.name_page} | Reporte Jornada`,
+            shift, 
+            items,
+            stats: {
+                base: shift.baseMoney || 0,
+                ventas: totalVentas,
+                gastos: totalGastos,
+                caja: dineroEnCaja,
+                count: deliveries.length
+            }
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Error interno del servidor');
+    }
+});
+
+router.get('/', requireAuth, async (req, res) => {
     try {
         const { page = 1, limit = 10, search, shiftId } = req.query;
+        const userId = req.session.userId;
 
-        let deliveryQuery = {};
+        let deliveryQuery = { user: userId };
         if (shiftId) deliveryQuery.shiftId = shiftId;
         if (search) {
             deliveryQuery.$or = [
@@ -32,7 +82,7 @@ router.get('/', async (req, res) => {
             ];
         }
         
-        let expenseQuery = {};
+        let expenseQuery = { user: userId };
         if (shiftId) expenseQuery.shiftId = shiftId;
         if (search) {
             expenseQuery.description = { $regex: search, $options: 'i' };
@@ -70,12 +120,14 @@ router.get('/', async (req, res) => {
         const totalExpensesAmount = allExpenses.reduce((sum, e) => sum + e.amount, 0);
         const netTotal = totalDeliveriesAmount - totalExpensesAmount;
 
+        const allUserDeliveries = await Delivery.find({ user: userId });
+
         res.render('layout', {
-            dominio: info.dominio || '',
+            info,
             title: `${info.name_page} | Home`,
             deliveries: paginatedItems,
             total: netTotal.toFixed(2),
-            todayTotal: calculateTodayTotal(allDeliveries),
+            todayTotal: calculateTodayTotal(allUserDeliveries),
             pagination: {
                 totalDocs: totalDocs,
                 totalPages: Math.ceil(totalDocs / limit),
@@ -95,9 +147,9 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.get('/api/shifts/history', async (req, res) => {
+router.get('/api/shifts/history', requireAuth, async (req, res) => {
     try {
-        const shifts = await Shift.find()
+        const shifts = await Shift.find({ user: req.session.userId })
             .sort({ startTime: -1 })
             .limit(20);
         res.json(shifts);
@@ -106,38 +158,14 @@ router.get('/api/shifts/history', async (req, res) => {
     }
 });
 
-const USE_IA_OCR = process.env.IA_OCR === "true";
-async function parseWithIAFallback(ocrTxt) {
-  if (!USE_IA_OCR) {
-    return OCRService.extractDeliveryData(ocrTxt);
-  }
-  
-  try {
-    return await AIParserService.parseInvoice(ocrTxt);
-  } catch (error) {
-    console.warn('IA parsing failed, using OCR fallback:', error.message);
-    return OCRService.extractDeliveryData(ocrTxt);
-  }
-}
-function normalizeAddress(address) {
-  let fullAddress = OCRService.fixAddress(address || "NO DETECTADA");
-  
-  if (!fullAddress.toLowerCase().includes('barranquilla')) {
-    fullAddress = `${fullAddress}, Riomar, Barranquilla, Atlántico`;
-  }
-  
-  return fullAddress;
-}
-router.post('/upload', upload.single('receipt'), async (req, res) => {
+router.post('/upload', requireAuth, upload.single('receipt'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No se subió ninguna imagen' });
     }
 
     const imagePath = path.join(__dirname, '../public/uploads/', req.file.filename);
-
     const ocrText = await OCRService.extractTextFromImage(imagePath);
-    
     const parsed = await parseWithIAFallback(ocrText)
 
     if (!parsed.delivery || parsed.delivery === 0) {
@@ -155,6 +183,7 @@ router.post('/upload', upload.single('receipt'), async (req, res) => {
     }
 
     const delivery = new Delivery({
+      user: req.session.userId,
       invoiceNumber: parsed.invoiceNumber || `FAC-${Date.now()}`,
       date: dateCol,
       phone: phoneFinal,
@@ -170,7 +199,10 @@ router.post('/upload', upload.single('receipt'), async (req, res) => {
     });
     
     try {
-        const activeShift = await Shift.findOne({ status: 'active' });
+        const activeShift = await Shift.findOne({ 
+          user: req.session.userId,
+          status: 'active'
+        });
         if (activeShift) {
             delivery.shiftId = activeShift._id;
         }
@@ -193,18 +225,21 @@ router.post('/upload', upload.single('receipt'), async (req, res) => {
   }
 });
 
-router.get('/api/deliveries', async (req, res) => {
+router.get('/api/deliveries', requireAuth, async (req, res) => {
     try {
-        const deliveries = await Delivery.find().sort({ date: -1 });
+        const deliveries = await Delivery.find({ user: req.session.userId }).sort({ date: -1 });
         res.json(deliveries);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-router.get('/api/stats', async (req, res) => {
+router.get('/api/stats', requireAuth, async (req, res) => {
   try {
+    const userObjectId = new mongoose.Types.ObjectId(req.session.userId);
+
     const deliveries = await Delivery.aggregate([
+      { $match: { user: userObjectId } },
       {
         $group: {
           _id: {
@@ -241,21 +276,24 @@ router.get('/api/stats', async (req, res) => {
   }
 });
 
-router.delete('/api/deliveries/:id', async (req, res) => {
+router.delete('/api/deliveries/:id', requireAuth, async (req, res) => {
   try {
-    const delivery = await Delivery.findById(req.params.id);
+    const delivery = await Delivery.findOne({ _id: req.params.id, user: req.session.userId });
+    
     if (!delivery) {
-      return res.status(404).json({ error: 'Factura no encontrada' });
+      return res.status(404).json({ error: 'Factura no encontrada o acceso denegado' });
     }
+    
     const imagePath = path.join(
       __dirname,
       '../public',
       delivery.imageUrl
     );
     if (fs.existsSync(imagePath)) {
-      fs.unlinkSync(imagePath);
+      try { fs.unlinkSync(imagePath); } catch(e){}
     }
-    await Delivery.findByIdAndDelete(req.params.id);
+    
+    await Delivery.deleteOne({ _id: req.params.id });
     res.json({ success: true });
   } catch (error) {
     console.error("Error borrando factura:", error);
@@ -263,31 +301,34 @@ router.delete('/api/deliveries/:id', async (req, res) => {
   }
 });
 
-router.put('/api/deliveries/:id', async (req, res) => {
+router.put('/api/deliveries/:id', requireAuth, async (req, res) => {
     try {
-        const delivery = await Delivery.findByIdAndUpdate(
-            req.params.id,
+        const delivery = await Delivery.findOneAndUpdate(
+            { _id: req.params.id, user: req.session.userId },
             req.body,
             { new: true }
         );
+        if(!delivery) return res.status(404).json({error: 'No encontrado'});
         res.json(delivery);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-router.get('/api/deliveries/:id', async (req, res) => {
+router.get('/api/deliveries/:id', requireAuth, async (req, res) => {
     try {
-        const delivery = await Delivery.findById(req.params.id);
+        const delivery = await Delivery.findOne({ _id: req.params.id, user: req.session.userId });
+        if(!delivery) return res.status(404).json({error: 'No encontrado'});
         res.json(delivery);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-router.get('/api/deliveries/pending', async (req, res) => {
+router.get('/api/deliveries/pending', requireAuth, async (req, res) => {
     try {
         const deliveries = await Delivery.find({
+            user: req.session.userId,
             deliveryStatus: 'pendiente',
             date: {
                 $gte: new Date().setHours(0, 0, 0, 0),
@@ -301,7 +342,7 @@ router.get('/api/deliveries/pending', async (req, res) => {
     }
 });
 
-router.post('/api/delivery/:id/status', async (req, res) => {
+router.post('/api/delivery/:id/status', requireAuth, async (req, res) => {
     try {
         const { status } = req.body;
         const updateData = { deliveryStatus: status };
@@ -310,21 +351,22 @@ router.post('/api/delivery/:id/status', async (req, res) => {
             updateData.deliveryTime = new Date();
         }
         
-        const delivery = await Delivery.findByIdAndUpdate(
-            req.params.id,
+        const delivery = await Delivery.findOneAndUpdate(
+            { _id: req.params.id, user: req.session.userId },
             updateData,
             { new: true }
         );
         
+        if(!delivery) return res.status(404).json({error: 'No encontrado'});
         res.json(delivery);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-router.get('/api/route/start', async (req, res) => {
+router.get('/api/route/start', requireAuth, async (req, res) => {
     try {
-        let restaurant = await Restaurant.findOne();
+        let restaurant = await Restaurant.findOne(); 
         
         if (!restaurant) {
             restaurant = {
@@ -336,6 +378,7 @@ router.get('/api/route/start', async (req, res) => {
         const tomorrow = moment.tz("America/Bogota").endOf('day').toDate();
 
         const pendingDeliveries = await Delivery.find({
+            user: req.session.userId,
             deliveryStatus: 'pendiente',
             date: {
                 $gte: today,
@@ -363,35 +406,16 @@ router.get('/api/route/start', async (req, res) => {
     }
 });
 
-function calculateTodayTotal(deliveries) {
-  const todayCol = new Intl.DateTimeFormat('es-CO', {
-    timeZone: 'America/Bogota',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
-  }).format(new Date()).split('/').reverse().join('-');
-
-  return deliveries
-    .filter(d => {
-      const dCol = new Intl.DateTimeFormat('es-CO', {
-        timeZone: 'America/Bogota',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-      }).format(new Date(d.date)).split('/').reverse().join('-');
-
-      return dCol === todayCol;
-    })
-    .reduce((sum, d) => sum + d.amount, 0)
-    .toFixed(2);
-}
-
-router.post('/api/shift/start', async (req, res) => {
+router.post('/api/shift/start', requireAuth, async (req, res) => {
     try {
-        const existing = await Shift.findOne({ status: 'active' });
+        const existing = await Shift.findOne({ 
+            user: req.session.userId,
+            status: 'active' 
+        });
         if (existing) return res.status(400).json({ error: 'Ya tienes una jornada abierta' });
 
         const newShift = new Shift({
+            user: req.session.userId,
             baseMoney: req.body.base || 0,
             shareToken: crypto.randomBytes(16).toString('hex')
         });
@@ -402,9 +426,12 @@ router.post('/api/shift/start', async (req, res) => {
     }
 });
 
-router.get('/api/shift/current', async (req, res) => {
+router.get('/api/shift/current', requireAuth, async (req, res) => {
     try {
-        const shift = await Shift.findOne({ status: 'active' });
+        const shift = await Shift.findOne({ 
+            user: req.session.userId,
+            status: 'active' 
+        });
         if (!shift) return res.json({ active: false });
       
         const deliveries = await Delivery.find({ shiftId: shift._id });
@@ -430,9 +457,12 @@ router.get('/api/shift/current', async (req, res) => {
     }
 });
 
-router.post('/api/shift/end', async (req, res) => {
+router.post('/api/shift/end', requireAuth, async (req, res) => {
     try {
-        const shift = await Shift.findOne({ status: 'active' });
+        const shift = await Shift.findOne({ 
+            user: req.session.userId,
+            status: 'active' 
+        });
         if (!shift) return res.status(400).json({ error: 'No hay jornada activa' });
 
         const deliveries = await Delivery.find({ shiftId: shift._id });
@@ -449,58 +479,15 @@ router.post('/api/shift/end', async (req, res) => {
     }
 });
 
-router.get('/report/:token', async (req, res) => {
+router.post('/api/expenses', requireAuth, async (req, res) => {
     try {
-        const shift = await Shift.findOne({ shareToken: req.params.token });
-        
-        if (!shift) {
-            return res.status(404).send(`
-                <div style="text-align:center; padding:50px; font-family:sans-serif;">
-                    <h1>⚠️ Enlace no válido</h1>
-                    <p>Este reporte no existe o fue eliminado.</p>
-                </div>
-            `);
-        }
-
-        const [deliveries, expenses] = await Promise.all([
-            Delivery.find({ shiftId: shift._id }).sort({ date: -1 }).lean(),
-            Expense.find({ shiftId: shift._id }).sort({ date: -1 }).lean()
-        ]);
-
-        const totalVentas = deliveries.reduce((sum, d) => sum + d.amount, 0);
-        const totalGastos = expenses.reduce((sum, e) => sum + e.amount, 0);
-        const dineroEnCaja = (shift.baseMoney || 0) + totalVentas - totalGastos;
-
-        const items = [
-            ...deliveries.map(d => ({ ...d, type: 'delivery' })),
-            ...expenses.map(e => ({ ...e, type: 'expense', date: e.date }))
-        ].sort((a, b) => new Date(b.date) - new Date(a.date));
-        
-        res.render('report', { 
-            dominio: info.dominio || '',
-            title: `${info.name_page} | Reporte Jornada`,
-            shift, 
-            items,
-            stats: {
-                base: shift.baseMoney || 0,
-                ventas: totalVentas,
-                gastos: totalGastos,
-                caja: dineroEnCaja,
-                count: deliveries.length
-            }
+        const activeShift = await Shift.findOne({ 
+            user: req.session.userId,
+            status: 'active' 
         });
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).send('Error interno del servidor');
-    }
-});
-
-router.post('/api/expenses', async (req, res) => {
-    try {
-        const activeShift = await Shift.findOne({ status: 'active' });
         
         const expense = new Expense({
+            user: req.session.userId,
             description: req.body.description,
             amount: parseFloat(req.body.amount),
             shiftId: activeShift ? activeShift._id : null
@@ -513,11 +500,15 @@ router.post('/api/expenses', async (req, res) => {
     }
 });
 
-router.post('/api/deliveries/manual', async (req, res) => {
+router.post('/api/deliveries/manual', requireAuth, async (req, res) => {
     try {
-        const activeShift = await Shift.findOne({ status: 'active' });
+        const activeShift = await Shift.findOne({ 
+            user: req.session.userId,
+            status: 'active' 
+        });
         
         const delivery = new Delivery({
+            user: req.session.userId,
             invoiceNumber: 'MANUAL-' + Date.now().toString().slice(-4),
             date: moment.tz("America/Bogota").toDate(),
             amount: parseFloat(req.body.amount),
@@ -537,11 +528,12 @@ router.post('/api/deliveries/manual', async (req, res) => {
     }
 });
 
-router.get('/api/transactions', async (req, res) => {
+router.get('/api/transactions', requireAuth, async (req, res) => {
     try {
         const { page = 1, limit = 10, search, shiftId } = req.query;
+        const userId = req.session.userId;
 
-        let deliveryQuery = {};
+        let deliveryQuery = { user: userId };
         if (shiftId) deliveryQuery.shiftId = shiftId;
         if (search) {
             deliveryQuery.$or = [
@@ -551,7 +543,7 @@ router.get('/api/transactions', async (req, res) => {
             ];
         }
 
-        let expenseQuery = {};
+        let expenseQuery = { user: userId };
         if (shiftId) expenseQuery.shiftId = shiftId;
         if (search) {
             expenseQuery.description = { $regex: search, $options: 'i' };
@@ -601,5 +593,51 @@ router.get('/api/transactions', async (req, res) => {
     }
 });
 
+const USE_IA_OCR = process.env.IA_OCR === "true";
+async function parseWithIAFallback(ocrTxt) {
+  if (!USE_IA_OCR) {
+    return OCRService.extractDeliveryData(ocrTxt);
+  }
+  
+  try {
+    return await AIParserService.parseInvoice(ocrTxt);
+  } catch (error) {
+    console.warn('IA parsing failed, using OCR fallback:', error.message);
+    return OCRService.extractDeliveryData(ocrTxt);
+  }
+}
+
+function normalizeAddress(address) {
+  let fullAddress = OCRService.fixAddress(address || "NO DETECTADA");
+  
+  if (!fullAddress.toLowerCase().includes('barranquilla')) {
+    fullAddress = `${fullAddress}, Riomar, Barranquilla, Atlántico`;
+  }
+  
+  return fullAddress;
+}
+
+function calculateTodayTotal(deliveries) {
+  const todayCol = new Intl.DateTimeFormat('es-CO', {
+    timeZone: 'America/Bogota',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).format(new Date()).split('/').reverse().join('-');
+
+  return deliveries
+    .filter(d => {
+      const dCol = new Intl.DateTimeFormat('es-CO', {
+        timeZone: 'America/Bogota',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      }).format(new Date(d.date)).split('/').reverse().join('-');
+
+      return dCol === todayCol;
+    })
+    .reduce((sum, d) => sum + d.amount, 0)
+    .toFixed(2);
+}
 
 module.exports = router;

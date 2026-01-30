@@ -1,0 +1,62 @@
+<%
+  const baseUrl = info.dominio;
+  const nombreFinal = info.name_page;
+  const icon = baseUrl + "/icons/512.jpg";
+  const logoUrl = baseUrl + "/banner.jpg";
+%>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": "<%= baseUrl %>#webpage",
+      "url": "<%= baseUrl %>/",
+      "name": "<%= nombreFinal %>",
+      "isPartOf": {
+        "@id": "<%= baseUrl %>#website"
+      },
+      "about": {
+        "@id": "<%= baseUrl %>#organization"
+      },
+      "primaryImageOfPage": {
+        "@id": "<%= icon %>#primaryimage"
+      },
+      "image": {
+        "@id": "<%= icon %>#primaryimage"
+      },
+      "description": "<%= info.desc %>",
+      "inLanguage": "es"
+    },
+    {
+      "@type": "ImageObject",
+      "@id": "<%= icon %>#primaryimage",
+      "url": "<%= icon %>/",
+      "contentUrl": "<%= icon %>"
+    },
+    {
+      "@type": "WebSite",
+      "@id": "<%= baseUrl %>#website",
+      "url": "<%= baseUrl %>/",
+      "name": "<%= info.name_page %>",
+      "publisher": {
+        "@id": "<%= baseUrl %>#organization"
+      },
+      "inLanguage": "es"
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://mjfood.top#organization",
+      "name": "MJFOOD",
+      "url": "https://mjfood.top/",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://mjfood.top/assets/icon.png",
+        "width": 512,
+        "height": 512
+      }
+    }
+  ]
+}
+</script>
