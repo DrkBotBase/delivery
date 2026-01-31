@@ -512,12 +512,12 @@ router.post('/api/deliveries/manual', requireAuth, async (req, res) => {
             invoiceNumber: 'MANUAL-' + Date.now().toString().slice(-4),
             date: moment.tz("America/Bogota").toDate(),
             amount: parseFloat(req.body.amount),
-            address: req.body.address || "Pedido Manual / Extra",
-            customerName: "Ingreso Extra",
-            notes: req.body.notes || "Agregado manualmente",
+            address: req.body.address || "Dirección no agregada",
+            customerName: "Pedido Manual",
+            notes: req.body.notes || "Nota no agregada",
             deliveryStatus: 'pendiente',
-            imageUrl: '/icons/512.png',
-            phone: 'N/A',
+            imageUrl: '/manual.png',
+            phone: req.body.phone || '0000',
             shiftId: activeShift ? activeShift._id : null
         });
 

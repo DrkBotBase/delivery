@@ -1219,8 +1219,9 @@ async function addManualDelivery() {
         html: `
             <div class="space-y-3">
                 <input id="swal-man-amount" type="number" class="w-full p-3 border rounded-xl bg-gray-50 text-lg font-bold text-center" placeholder="Valor ($) *Requerido">
+                <input id="swal-man-phone" class="w-full p-3 border rounded-xl bg-gray-50" placeholder="Teléfono (Opcional)">
                 <input id="swal-man-address" class="w-full p-3 border rounded-xl bg-gray-50" placeholder="Dirección (Opcional)">
-                <input id="swal-man-notes" class="w-full p-3 border rounded-xl bg-gray-50" placeholder="Nota (ej: Propina, Pedido por WhatsApp)">
+                <input id="swal-man-notes" class="w-full p-3 border rounded-xl bg-gray-50" placeholder="Nota (Propina, Pedido por WhatsApp)">
             </div>
         `,
         showCancelButton: true,
@@ -1231,6 +1232,7 @@ async function addManualDelivery() {
             if (!amount) Swal.showValidationMessage('¡El valor es obligatorio!');
             return {
                 amount: amount,
+                phone: document.getElementById('swal-man-phone').value,
                 address: document.getElementById('swal-man-address').value,
                 notes: document.getElementById('swal-man-notes').value
             }
