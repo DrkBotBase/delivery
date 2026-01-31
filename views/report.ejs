@@ -23,15 +23,15 @@
             <div class="grid grid-cols-3 gap-2 text-center divide-x divide-gray-100">
                 <div>
                     <p class="text-[10px] text-gray-400 font-bold uppercase">Base</p>
-                    <p class="font-bold text-gray-600">$<%= stats.base.toLocaleString() %></p>
+                    <p class="font-bold text-gray-600">$<%= stats.base.toLocaleString('es-CO') %></p>
                 </div>
                 <div>
                     <p class="text-[10px] text-gray-400 font-bold uppercase">Ventas</p>
-                    <p class="font-bold text-emerald-600">+$<%= stats.ventas.toLocaleString() %></p>
+                    <p class="font-bold text-emerald-600">+$<%= stats.ventas.toLocaleString('es-CO') %></p>
                 </div>
                 <div>
                     <p class="text-[10px] text-gray-400 font-bold uppercase">Gastos</p>
-                    <p class="font-bold text-red-500">-$<%= stats.gastos.toLocaleString() %></p>
+                    <p class="font-bold text-red-500">-$<%= stats.gastos.toLocaleString('es-CO') %></p>
                 </div>
             </div>
         </div>
@@ -76,7 +76,7 @@
 
                     <div class="text-right pl-2">
                         <span class="block font-bold text-sm <%= isExpense ? 'text-red-500' : 'text-emerald-600' %>">
-                            <%= isExpense ? '-' : '+' %>$<%= item.amount.toLocaleString() %>
+                            <%= isExpense ? '-' : '+' %>$<%= item.amount.toLocaleString('es-CO') %>
                         </span>
                         <% if(item.notes) { %>
                             <i class="fas fa-sticky-note text-yellow-400 text-xs" title="<%= item.notes %>"></i>

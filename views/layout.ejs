@@ -85,14 +85,14 @@
                     <i class="fas fa-calendar-day"></i>
                 </div>
                 <p class="text-[10px] text-gray-400 font-bold uppercase">Hoy</p>
-                <p class="text-sm font-bold text-gray-800">$<%= todayTotal %></p>
+                <p class="text-sm font-bold text-gray-800">$<%= todayTotal.toLocaleString('es-CO') %></p>
             </div>
             <div class="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center">
                 <div class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mb-1 text-xs">
                     <i class="fas fa-coins"></i>
                 </div>
                 <p class="text-[10px] text-gray-400 font-bold uppercase">Total</p>
-                <p class="text-sm font-bold text-gray-800">$<%= total %></p>
+                <p class="text-sm font-bold text-gray-800">$<%= total.toLocaleString('es-CO') %></p>
             </div>
             <div class="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center">
                 <div class="w-8 h-8 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center mb-1 text-xs">

@@ -126,8 +126,8 @@ router.get('/', requireAuth, async (req, res) => {
             info,
             title: `${info.name_page} | Home`,
             deliveries: paginatedItems,
-            total: netTotal.toFixed(2),
-            todayTotal: calculateTodayTotal(allUserDeliveries),
+            total: netTotal,//.toFixed(2),
+            todayTotal: totalDeliveriesAmount,
             pagination: {
                 totalDocs: totalDocs,
                 totalPages: Math.ceil(totalDocs / limit),
@@ -637,7 +637,7 @@ function calculateTodayTotal(deliveries) {
       return dCol === todayCol;
     })
     .reduce((sum, d) => sum + d.amount, 0)
-    .toFixed(2);
+    //.toFixed(2);
 }
 
 module.exports = router;

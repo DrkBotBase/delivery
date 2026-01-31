@@ -734,7 +734,7 @@ function openDeliveryModal(id) {
                 </div>
 
                 <div class="mt-6 grid grid-cols-2 gap-3">
-                    <button onclick="viewInvoice('${delivery.imageUrl || '/icons/512.png'}')" class="col-span-2 py-2.5 bg-gray-800 text-white rounded-xl font-medium shadow-lg shadow-gray-400/30 active:scale-95 transition">
+                    <button onclick="viewInvoice('${delivery.imageUrl || '/manual.png'}')" class="col-span-2 py-2.5 bg-gray-800 text-white rounded-xl font-medium shadow-lg shadow-gray-400/30 active:scale-95 transition">
                         <i class="fas fa-receipt mr-2"></i> Ver Factura Original
                     </button>
                     
@@ -966,8 +966,8 @@ async function checkShiftStatus() {
             inactive.classList.add('hidden');
             active.classList.remove('hidden');
             
-            document.getElementById('shiftGrandTotal').textContent = '$' + data.stats.grandTotal.toFixed(2);
-            document.getElementById('shiftBase').textContent = '$' + data.shift.baseMoney;
+            document.getElementById('shiftGrandTotal').textContent = '$' + data.stats.grandTotal.toLocaleString('es-CO');
+            document.getElementById('shiftBase').textContent = '$' + data.shift.baseMoney.toLocaleString('es-CO');
             
             if(typeof currentShiftToken !== 'undefined') currentShiftToken = data.shift.shareToken;
             else window.currentShiftToken = data.shift.shareToken;
@@ -1331,7 +1331,7 @@ function renderTransactions(items) {
             
             <div class="text-right">
                 <span class="block font-bold ${isExpense ? 'text-red-500' : 'text-gray-800'}">
-                    ${amountSign}$${item.amount.toFixed(2)}
+                    ${amountSign}$${item.amount}
                 </span>
                 <span class="text-[10px] text-gray-400">
                     ${new Date(item.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
