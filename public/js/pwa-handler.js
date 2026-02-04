@@ -62,7 +62,7 @@ class PWAHandler {
             <div class="pwa-content">
                 <div class="pwa-icon">📱</div>
                 <div class="pwa-info">
-                    <h3>Instalar Delivery App</h3>
+                    <h3>Instalar MJFOOD Repartidor</h3>
                     <p>Instálala para acceso rápido, notificaciones y trabajar sin conexión.</p>
                 </div>
             </div>
@@ -301,7 +301,7 @@ class PWAHandler {
             <div class="pwa-modal-overlay">
                 <div class="pwa-modal">
                     <div class="pwa-modal-header">
-                        <h3>📲 Instalar Delivery App</h3>
+                        <h3>📲 Instalar MJFOOD Repartidor</h3>
                         <button class="pwa-modal-close">&times;</button>
                     </div>
                     <div class="pwa-modal-content">
@@ -334,7 +334,7 @@ class PWAHandler {
                         ` : `
                             <div class="install-step">
                                 <span class="step-number">1</span>
-                                <p><strong>Chrome/Edge:</strong> Menú ⋮ → "Instalar Delivery App"</p>
+                                <p><strong>Chrome/Edge:</strong> Menú ⋮ → "Instalar MJFOOD Repartidor"</p>
                             </div>
                             <div class="install-step">
                                 <span class="step-number">2</span>
@@ -647,7 +647,7 @@ class PWAHandler {
         if (navigator.share) {
             try {
                 await navigator.share({
-                    title: 'Delivery App',
+                    title: 'MJFOOD Repartidor',
                     text: 'Instala la app de seguimiento de entregas para una mejor experiencia',
                     url: window.location.href
                 });

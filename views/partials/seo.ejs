@@ -36,6 +36,22 @@
       "contentUrl": "<%= icon %>"
     },
     {
+      "@type": "SoftwareApplication",
+      "@id": "<%= baseUrl %>#app",
+      "name": "<%= nombreFinal %>",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web, Android, iOS",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "COP"
+      },
+      "author": {
+        "@id": "https://mjfood.top#organization"
+      },
+      "screenshot": "<%= baseUrl %>/screenshots/1.png"
+    },
+    {
       "@type": "WebSite",
       "@id": "<%= baseUrl %>#website",
       "url": "<%= baseUrl %>/",

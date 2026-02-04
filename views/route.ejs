@@ -6,7 +6,7 @@
 <body class="bg-gray-100 min-h-screen pb-32 font-sans">
     <header class="bg-indigo-600 text-white shadow-lg sticky top-0 z-40">
         <div class="max-w-md mx-auto px-4 py-3 flex items-center gap-4">
-            <a href="/" class="p-2 bg-white/20 rounded-full hover:bg-white/30 transition">
+            <a href="/panel" class="p-2 bg-white/20 rounded-full hover:bg-white/30 transition">
                 <i class="fas fa-arrow-left"></i>
             </a>
             <div>
@@ -18,9 +18,7 @@
             </button>
         </div>
     </header>
-
     <main class="max-w-md mx-auto px-4 py-4 space-y-4">
-        
         <div class="grid grid-cols-2 gap-3">
             <div class="bg-white p-3 rounded-2xl shadow-sm border border-gray-100">
                 <p class="text-xs text-gray-500 uppercase font-bold">Ganancia Est.</p>
@@ -31,7 +29,6 @@
                 <p class="text-xl font-bold text-gray-700" id="totalTime">0 min</p>
             </div>
         </div>
-
         <div>
             <div class="flex justify-between items-end mb-3 px-1">
                 <h2 class="text-lg font-bold text-gray-700">Próximas Paradas</h2>
@@ -39,7 +36,6 @@
                     <i class="fas fa-file-export mr-1"></i> Exportar
                 </button>
             </div>
-            
             <div id="deliveriesList" class="space-y-4">
                 <div class="text-center py-10 text-gray-400">
                     <i class="fas fa-spinner fa-spin text-3xl mb-3"></i>
@@ -48,26 +44,22 @@
             </div>
         </div>
     </main>
-
     <div class="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 shadow-[0_-5px_20px_rgba(0,0,0,0.1)] z-50 px-4 py-3">
         <div class="max-w-md mx-auto grid grid-cols-4 gap-3">
             <button onclick="startNavigation()" id="navBtn" disabled 
                 class="col-span-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-3 font-bold shadow-lg shadow-indigo-500/30 active:scale-95 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                 <i class="fas fa-location-arrow"></i> <span>Ir al Mapa</span>
             </button>
-            
             <button onclick="completeDelivery()" id="completeBtn" disabled
                 class="col-span-1 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl py-3 font-bold shadow-lg shadow-emerald-500/30 active:scale-95 transition flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
                 <i class="fas fa-check"></i>
             </button>
-            
             <button onclick="skipDelivery()" id="skipBtn" disabled
                 class="col-span-1 bg-gray-100 text-gray-500 hover:bg-gray-200 rounded-xl py-3 font-bold active:scale-95 transition flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed">
                 <i class="fas fa-forward"></i>
             </button>
         </div>
     </div>
-
     <script src="/js/route.js"></script>
 </body>
 </html>

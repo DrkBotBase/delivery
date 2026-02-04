@@ -1,16 +1,38 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
+const passport = require('passport');
 const User = require('../models/User');
+const { info } = require('../config');
+
+router.get('/google', passport.authenticate('google', { 
+    scope: ['profile', 'email'] 
+}));
+
+router.get('/google/callback', 
+    passport.authenticate('google', { failureRedirect: '/auth/login' }),
+    (req, res) => {
+        req.session.userId = req.user._id;
+        req.session.username = req.user.username;
+        
+        req.session.save((err) => {
+            if (err) {
+                console.error('Error guardando sesión de Google:', err);
+                return res.redirect('/auth/login');
+            }
+            res.redirect('/panel');
+        });
+    }
+);
 
 router.get('/login', (req, res) => {
     if (req.session.userId) return res.redirect('/');
-    res.render('login');
+    res.render('login', { info });
 });
 
 router.get('/register', (req, res) => {
     if (req.session.userId) return res.redirect('/');
-    res.render('register');
+    res.render('register', { info });
 });
 
 router.post('/register', async (req, res) => {
@@ -34,6 +56,7 @@ router.post('/register', async (req, res) => {
         const newUser = new User({
             username: username.trim(),
             password: hashedPassword
+            // email:
         });
         await newUser.save();
 
@@ -52,6 +75,13 @@ router.post('/login', async (req, res) => {
         const user = await User.findOne({ username });
         if (!user) {
             return res.status(401).json({ success: false, message: 'Usuario no encontrado' });
+        }
+
+        if (!user.password) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Este usuario usa inicio de sesión con Google. Por favor usa el botón de Google.' 
+            });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
@@ -78,7 +108,7 @@ router.post('/login', async (req, res) => {
 router.get('/logout', (req, res) => {
     req.session.destroy((err) => {
         if (err) console.error('Error cerrando sesión:', err);
-        res.redirect('/auth/login');
+        res.redirect('/panel');
     });
 });
 

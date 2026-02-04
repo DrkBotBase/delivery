@@ -1,8 +1,9 @@
-const CACHE_NAME = 'delivery-tracker-v2.0.0';
+const CACHE_NAME = 'delivery-tracker-v3.0.0';
 const OFFLINE_URL = '/offline';
 
 const urlsToCache = [
     '/',
+    '/panel',
     '/css/route.css',
     '/css/style.css',
     '/js/app.js',
@@ -51,6 +52,10 @@ self.addEventListener('fetch', event => {
     const { request } = event;
     const url = new URL(request.url);
     
+    if (!url.protocol.startsWith('http')) {
+        return;
+    }
+    
     if (request.method !== 'GET') {
         return;
     }
@@ -62,7 +67,8 @@ self.addEventListener('fetch', event => {
                     if (response.status === 200 && request.method === 'GET') {
                         const responseClone = response.clone();
                         caches.open(CACHE_NAME)
-                            .then(cache => cache.put(request, responseClone));
+                            .then(cache => cache.put(request, responseClone))
+                            .catch(err => console.warn('Error caching API response:', err));
                     }
                     return response;
                 })
@@ -97,9 +103,10 @@ self.addEventListener('fetch', event => {
                         fetch(request).then(response => {
                             if (response.ok) {
                                 return caches.open(CACHE_NAME)
-                                    .then(cache => cache.put(request, response));
+                                    .then(cache => cache.put(request, response))
+                                    .catch(err => console.warn('Error updating cache:', err));
                             }
-                        })
+                        }).catch(() => { /*Errores de actualización*/ })
                     );
                     return cachedResponse;
                 }
@@ -112,7 +119,8 @@ self.addEventListener('fetch', event => {
                         
                         const responseToCache = response.clone();
                         caches.open(CACHE_NAME)
-                            .then(cache => cache.put(request, responseToCache));
+                            .then(cache => cache.put(request, responseToCache))
+                            .catch(err => console.warn('Error caching response:', err));
                         
                         return response;
                     })

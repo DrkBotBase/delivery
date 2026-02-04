@@ -214,7 +214,7 @@
         </div>
         
         <div class="actions">
-            <button class="btn-primary" onclick="window.location.href='/'">
+            <button class="btn-primary" onclick="window.location.href='/panel'">
                 <span>🏠</span>
                 Ir al inicio
             </button>
@@ -243,7 +243,7 @@
             if (navigator.onLine) {
                 updateStatus(true);
                 setTimeout(() => {
-                    window.location.href = '/';
+                    window.location.href = '/panel';
                 }, 1500);
             } else {
                 updateStatus(false);

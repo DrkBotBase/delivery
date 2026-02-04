@@ -3,8 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Acceso Delivery Tracker</title>
-    <link rel="apple-touch-icon" href="https://delivery-cgam.onrender.com/icons/192.png">
+    <title><%= info.name_page %> | Ingreso</title>
+    
+    <link rel="icon" href="<%= info.dominio %>/icons/192.png" type="image/png">
+    <link rel="apple-touch-icon" href="<%= info.dominio %>/icons/192.png">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -13,7 +16,6 @@
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
-
     <div class="w-full max-w-sm bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
         <div class="bg-indigo-600 h-32 flex items-center justify-center relative">
             <div class="absolute inset-0 bg-gradient-to-br from-indigo-600 to-purple-600 opacity-90"></div>
@@ -27,35 +29,43 @@
                 </svg>
             </div>
         </div>
-
         <div class="px-8 pt-4 pb-8">
             <h3 class="text-center text-gray-700 font-bold text-lg mb-6">Iniciar Sesión</h3>
-            
             <form id="loginForm" class="space-y-5">
                 <div class="relative">
                     <i class="fas fa-user absolute left-4 top-3.5 text-gray-400"></i>
                     <input type="text" name="username" placeholder="Usuario" required
                         class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
                 </div>
-                
                 <div class="relative">
                     <i class="fas fa-lock absolute left-4 top-3.5 text-gray-400"></i>
                     <input type="password" name="password" placeholder="Contraseña" required
                         class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
                 </div>
-
                 <button type="submit" 
                     class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-indigo-500/30 transition transform active:scale-95">
                     INGRESAR
                 </button>
             </form>
+            <div class="relative my-6">
+              <div class="absolute inset-0 flex items-center">
+                <div class="w-full border-t border-gray-300"></div>
+              </div>
+              <div class="relative flex justify-center text-sm">
+                <span class="px-2 bg-white text-gray-500">O continúa con</span>
+              </div>
+            </div>
+            <a href="/auth/google" 
+                class="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-bold py-3.5 rounded-xl transition shadow-sm active:scale-95">
+              <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5" alt="Google Logo">
+              <span>Google</span>
+            </a>
             <div class="mt-6 text-center">
                 <p class="text-sm text-gray-500">¿No tienes cuenta?</p>
                 <a href="/auth/register" class="text-indigo-600 font-bold hover:underline">Regístrate aquí</a>
             </div>
         </div>
     </div>
-
     <script>
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -65,16 +75,13 @@
             const originalText = btn.textContent;
             btn.textContent = 'Verificando...';
             btn.disabled = true;
-
             try {
                 const res = await fetch('/auth/login', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(formData)
                 });
-
                 const data = await res.json();
-
                 if (data.success) {
                     const Toast = Swal.mixin({
                         toast: true,
@@ -84,7 +91,7 @@
                         timerProgressBar: true
                     });
                     await Toast.fire({ icon: 'success', title: '¡Bienvenido!' });
-                    window.location.href = '/';
+                    window.location.href = '/panel';
                 } else {
                     throw new Error(data.message);
                 }

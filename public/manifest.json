@@ -2,7 +2,8 @@
     "name": "MJFOOD Repartidor",
     "short_name": "MJFOOD Repartidor",
     "description": "Aplicación para repartidores de MJFOOD",
-    "start_url": "/",
+    "start_url": "/panel",
+    "scope": "/panel",
     "display": "standalone",
     "background_color": "#000000",
     "theme_color": "#667eea",
@@ -30,20 +31,6 @@
         "form_factor": "narrow",
         "label": "Información del Pedido"
       },
-      {
-        "src": "/screenshots/4.jpg",
-        "sizes": "1080x1920",
-        "type": "image/jpeg",
-        "form_factor": "narrow",
-        "label": "Modo Ruta"
-      },
-      {
-        "src": "/screenshots/4.jpg",
-        "sizes": "1080x1920",
-        "type": "image/jpeg",
-        "form_factor": "narrow",
-        "label": "Boton Contactar"
-      },
        {
         "src": "/screenshots/desktop-1.jpg",
         "sizes": "1920x1080",
@@ -61,7 +48,7 @@
     ],
     "icons": [
       {
-        "src": "/icons/44.png",
+        "src": "/icons/48.png",
         "sizes": "44x44",
         "type": "image/png",
         "purpose": "any"

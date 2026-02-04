@@ -67,11 +67,25 @@ router.get('/report/:token', async (req, res) => {
     }
 });
 
-router.get('/', requireAuth, async (req, res) => {
+router.get('/', (req, res) => {
+    res.render('landing', {
+      info,
+      title: `${info.name_page} | Home`,
+    });
+});
+
+router.get('/panel', requireAuth, async (req, res) => {
     try {
+        /* if (!req.session.userId) {
+          return res.render('landing', {
+            info,
+            title: `${info.name_page} | Home`
+          });
+        } */
+        
         const { page = 1, limit = 10, search, shiftId } = req.query;
         const userId = req.session.userId;
-
+        
         let deliveryQuery = { user: userId };
         if (shiftId) deliveryQuery.shiftId = shiftId;
         if (search) {
@@ -124,7 +138,7 @@ router.get('/', requireAuth, async (req, res) => {
 
         res.render('layout', {
             info,
-            title: `${info.name_page} | Home`,
+            title: `${info.name_page} | Dashboard`,
             deliveries: paginatedItems,
             total: netTotal,//.toFixed(2),
             todayTotal: totalDeliveriesAmount,
@@ -177,7 +191,7 @@ router.post('/upload', requireAuth, upload.single('receipt'), async (req, res) =
 
     const fullAddress = normalizeAddress(parsed.address);
     const dateCol = OCRService.getColombiaDate();
-    const phoneFinal = parsed.phone || "NO DETECTADO";
+    const phoneFinal = parsed.phone || "0000";
     if (parsed.phoneStatus && parsed.phoneStatus !== "ok") {
       phoneFinal = `${phoneFinal} (${parsed.phoneStatus})`;
     }

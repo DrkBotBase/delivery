@@ -7,8 +7,8 @@
 <meta name="author" content="<%= info.author %>">
 <meta name="theme-color" content="<%= info.colorTheme %>">
 
-<meta name="robots" content="index, follow">
-<meta name="googlebot" content="index, follow">
+<meta name="robots" content="noindex, nofollow">
+<meta name="googlebot" content="noindex, nofollow">
 <link rel="canonical" href="<%= info.dominio %>">
 
 <meta property="og:title" content="<%= title %>">
@@ -19,7 +19,7 @@
 <meta property="og:url" content="<%= info.dominio %>">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="<%= info.name_page %>">
-<meta property="og:locale" content="es_ES">
+<meta property="og:locale" content="es_CO">
 
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="<%= title %>">
@@ -30,13 +30,9 @@
 <link rel="icon" href="<%= info.dominio %>/icons/192.png" type="image/png">
 <link rel="apple-touch-icon" href="<%= info.dominio %>/icons/192.png">
 
-<link rel="manifest" href="/manifest.json">
-
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-<%- include("./seo") %>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>

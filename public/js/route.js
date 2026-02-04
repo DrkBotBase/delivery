@@ -112,7 +112,7 @@ function updateEmptyState() {
             <div class="text-6xl mb-4">🏁</div>
             <h3 class="text-gray-800 font-bold text-lg">¡Todo listo!</h3>
             <p>No hay entregas pendientes en la ruta.</p>
-            <a href="/" class="mt-4 inline-block text-indigo-600 font-bold">Volver al inicio</a>
+            <a href="/panel" class="mt-4 inline-block text-indigo-600 font-bold">Volver al inicio</a>
         </div>
     `;
     enableControls(false);
@@ -206,7 +206,7 @@ function advanceQueue() {
             confirmButtonText: 'Finalizar',
             confirmButtonColor: '#4f46e5'
         }).then(() => {
-            window.location.href = '/';
+            window.location.href = '/panel';
         });
         updateEmptyState();
     } else {

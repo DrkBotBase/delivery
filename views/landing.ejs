@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="es" prefix="og: https://ogp.me/ns#">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    
+    <title><%= title %></title>
+    <meta name="description" content="App gratuita para control de domicilios, gastos y cuadre de caja. Ideal para repartidores y restaurantes. Escanea facturas con IA y gestiona tus finanzas diarias.">
+    <meta name="keywords" content="app repartidores, control de caja, domicilios, gastos gasolina, ocr facturas, menu digital, mjfood, barranquilla, colombia, pwa">
+    <meta name="author" content="MJFood Menú Digital">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="<%= info.dominio %>">
+
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="<%= info.dominio %>">
+    <meta property="og:title" content="<%= info.name_page %> - Control Total de tus Domicilios">
+    <meta property="og:description" content="Olvídate del papel. Escanea facturas, registra gastos y cuadra tu caja al instante. ¡Pruébala gratis!">
+    <meta property="og:image" content="<%= info.dominio %>/banner.jpg">
+    <meta property="og:image:alt" content="<%= info.name_page %>">
+    <meta property="og:locale" content="es_CO">
+    <meta property="og:site_name" content="<%= info.name_page %>">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<%= info.name_page %> | Gestión para Domiciliarios">
+    <meta name="twitter:description" content="Controla tus entregas y tu caja en tiempo real. Escáner OCR incluido.">
+    <meta name="twitter:image" content="<%= info.dominio %>/banner.jpg">
+
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="<%= info.dominio %>/icons/192.png">
+    
+    <link rel="manifest" href="/manifest.json">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <%- include("partials/seo") %>
+    <style>
+        .hero-pattern {
+            background-color: #4f46e5;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        /* Animación suave al cargar */
+        .fade-in-up {
+            animation: fadeInUp 0.8s ease-out;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans antialiased">
+    <nav class="absolute w-full z-20 top-0 left-0 px-6 py-4">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-2 text-white font-bold text-xl drop-shadow-md">
+                <div class="w-8 h-8 bg-white text-indigo-600 rounded-lg flex items-center justify-center shadow-lg">
+                    <i class="fas fa-motorcycle"></i>
+                </div>
+                <span><%= info.name_page.split(' ')[0] %><span class="text-indigo-200"> <%= info.name_page.split(' ')[1] %></span></span>
+            </div>
+            <div>
+                <a href="/auth/login" class="text-white font-medium hover:text-indigo-200 transition mr-4 text-sm sm:text-base">Ingresar</a>
+                <a href="/auth/register" class="bg-white text-indigo-600 px-5 py-2 rounded-full font-bold shadow-lg hover:bg-gray-100 transition hidden sm:inline-block text-sm">
+                    Crear Cuenta
+                </a>
+            </div>
+        </div>
+    </nav>
+    <header class="hero-pattern relative min-h-[90vh] flex items-center rounded-b-[3rem] overflow-hidden shadow-2xl">
+        <div class="absolute inset-0 bg-gradient-to-b from-transparent to-indigo-900/80"></div>
+        <div class="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center relative z-10 pt-20">
+            <div class="text-center md:text-left space-y-6 fade-in-up">
+                <span class="inline-block bg-indigo-500/30 backdrop-blur-sm text-indigo-100 px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider border border-indigo-400/30 shadow-sm">
+                    🚀 Gestión para Domiciliarios 2.0
+                </span>
+                <h1 class="text-5xl md:text-6xl font-black text-white leading-tight drop-shadow-lg">
+                    Controla entregas y caja <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-400">en tiempo real</span>.
+                </h1>
+                <p class="text-indigo-100 text-lg md:text-xl max-w-lg mx-auto md:mx-0 font-light leading-relaxed">
+                    Olvídate del papel. Escanea facturas con IA, gestiona gastos de gasolina y comparte reportes profesionales.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start pt-4">
+                    <a href="/auth/register" class="group px-8 py-4 bg-white text-indigo-700 font-bold rounded-2xl shadow-xl shadow-indigo-900/20 hover:scale-105 transition flex items-center justify-center gap-2">
+                        <i class="fas fa-rocket group-hover:animate-pulse"></i> Empezar Gratis
+                    </a>
+                    <a href="/auth/login" class="px-8 py-4 bg-indigo-600/50 backdrop-blur-md border border-indigo-400/50 text-white font-bold rounded-2xl hover:bg-indigo-600 transition flex items-center justify-center gap-2">
+                        Ya tengo cuenta
+                    </a>
+                </div>
+                <p class="text-xs text-indigo-300 pt-2">
+                    <i class="fas fa-check-circle text-green-400 mr-1"></i> Sin tarjeta de crédito
+                    <span class="mx-2">•</span>
+                    <i class="fas fa-check-circle text-green-400 mr-1"></i> Plan gratuito disponible
+                </p>
+            </div>
+            <div class="relative hidden md:block fade-in-up" style="animation-delay: 0.2s;">
+                <div class="relative z-10 transform rotate-[-2deg] hover:rotate-0 transition duration-500 cursor-pointer">
+                    <div class="bg-white p-2 rounded-3xl shadow-2xl border-4 border-gray-800/10 overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1556742049-0cfed4f7a07d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" 
+                             alt="App Dashboard" class="rounded-2xl w-full h-auto object-cover opacity-90 hover:opacity-100 transition">
+                        <div class="absolute -bottom-6 -left-6 bg-white p-4 rounded-2xl shadow-xl flex items-center gap-3 animate-bounce border border-gray-100">
+                            <div class="bg-green-100 text-green-600 w-10 h-10 rounded-full flex items-center justify-center">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 font-bold uppercase">Caja Cuadrada</p>
+                                <p class="font-bold text-gray-800 text-lg">+$150.000</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="absolute top-10 right-10 w-64 h-64 bg-purple-500 rounded-full blur-[100px] opacity-30 animate-pulse"></div>
+                <div class="absolute -bottom-10 left-10 w-64 h-64 bg-blue-500 rounded-full blur-[100px] opacity-30 animate-pulse" style="animation-delay: 1s;"></div>
+            </div>
+        </div>
+    </header>
+    <section class="py-24 px-6 max-w-6xl mx-auto">
+        <div class="text-center mb-16 space-y-2">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-900">Todo lo que necesitas</h2>
+            <p class="text-lg text-gray-500 max-w-2xl mx-auto">Diseñado específicamente para resolver el caos de los recibos y el dinero suelto.</p>
+        </div>
+        <div class="grid md:grid-cols-3 gap-8">
+            <div class="group bg-white p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition duration-300">
+                <div class="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition">
+                    <i class="fas fa-camera"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-3 text-gray-800">Escáner OCR</h3>
+                <p class="text-gray-500 leading-relaxed text-sm">
+                    Sube una foto de la factura y nuestra Inteligencia Artificial detectará automáticamente el precio y la dirección.
+                </p>
+            </div>
+            <div class="group bg-white p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition duration-300">
+                <div class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition">
+                    <i class="fas fa-wallet"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-3 text-gray-800">Control de Caja</h3>
+                <p class="text-gray-500 leading-relaxed text-sm">
+                    Registra tu base inicial, tus ventas y tus gastos (gasolina, comida). Al final del turno, sabrás exactamente cuánto debes tener.
+                </p>
+            </div>
+            <div class="group bg-white p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition duration-300">
+                <div class="w-14 h-14 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition">
+                    <i class="fas fa-share-alt"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-3 text-gray-800">Reportes Compartibles</h3>
+                <p class="text-gray-500 leading-relaxed text-sm">
+                    Genera un enlace público permanente de tu jornada para enviarlo por WhatsApp al dueño del restaurante o a tus socios.
+                </p>
+            </div>
+        </div>
+    </section>
+    <footer class="bg-gray-900 text-white py-12 border-t border-gray-800 rounded-t-[3rem] mt-10">
+        <div class="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="text-center md:text-left">
+                <p class="font-bold text-lg"><%= info.name_page %></p>
+                <p class="text-gray-400 text-sm mt-1">Tu aliado en la ruta.</p>
+            </div>
+            <div class="flex gap-6">
+                <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-facebook"></i></a>
+                <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-whatsapp"></i></a>
+            </div>
+        </div>
+        <div class="text-center mt-8 pt-8 border-t border-gray-800">
+            <p class="opacity-50 text-xs">
+                &copy; <%= new Date().getFullYear() %> <%= info.name_page %>. Potenciado por 
+                <a href="https://mjfood.com" class="text-indigo-400 hover:underline">MJFood</a>.
+            </p>
+        </div>
+    </footer>
+    <script>
+        let waitingWorker = null;
+        let updateBanner = null;
+
+        function showUpdateBanner(worker) {
+            if (updateBanner) return;
+            
+            waitingWorker = worker;
+            
+            updateBanner = document.createElement('div');
+            updateBanner.id = 'pwa-update-banner';
+            updateBanner.className = 'pwa-update-banner';
+            updateBanner.innerHTML = `
+                <div class="update-content">
+                    <span>🔄 ¡Nueva versión disponible!</span>
+                    <p>Actualiza para obtener las últimas mejoras.</p>
+                </div>
+                <div class="update-actions">
+                    <button id="update-later" class="btn-text">Más tarde</button>
+                    <button id="update-now" class="btn-primary">Actualizar</button>
+                </div>
+            `;
+            
+            document.body.appendChild(updateBanner);
+            
+            const style = document.createElement('style');
+            style.textContent = `
+                .pwa-update-banner {
+                    position: fixed;
+                    bottom: 80px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    width: min(90%, 400px);
+                    background: #2d3748;
+                    color: white;
+                    padding: 16px 20px;
+                    border-radius: 12px;
+                    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+                    z-index: 9998;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                    animation: slideUp 0.5s ease;
+                }
+                
+                .update-content span {
+                    font-weight: 600;
+                    font-size: 15px;
+                    display: block;
+                    margin-bottom: 4px;
+                }
+                
+                .update-content p {
+                    margin: 0;
+                    font-size: 13px;
+                    opacity: 0.9;
+                }
+                
+                .update-actions {
+                    display: flex;
+                    gap: 10px;
+                    justify-content: flex-end;
+                }
+                
+                #update-later, #update-now {
+                    padding: 8px 16px;
+                    border-radius: 6px;
+                    font-size: 13px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    border: none;
+                    transition: all 0.2s;
+                }
+                
+                #update-later {
+                    background: transparent;
+                    color: #a0aec0;
+                }
+                
+                #update-later:hover {
+                    background: rgba(255,255,255,0.1);
+                }
+                
+                #update-now {
+                    background: #38a169;
+                    color: white;
+                }
+                
+                #update-now:hover {
+                    background: #2f855a;
+                    transform: translateY(-1px);
+                }
+                
+                @keyframes slideUp {
+                    from {
+                        opacity: 0;
+                        transform: translate(-50%, 20px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translate(-50%, 0);
+                    }
+                }
+            `;
+            
+            if (!document.querySelector('#update-banner-styles')) {
+                style.id = 'update-banner-styles';
+                document.head.appendChild(style);
+            }
+            
+            document.getElementById('update-now').addEventListener('click', () => {
+                waitingWorker.postMessage({ type: 'SKIP_WAITING' });
+                updateBanner.remove();
+                updateBanner = null;
+            });
+            
+            document.getElementById('update-later').addEventListener('click', () => {
+                updateBanner.remove();
+                updateBanner = null;
+            });
+        }
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', async () => {
+                try {
+                    const registration = await navigator.serviceWorker.register('/sw.js');
+                    //console.log('✅ Service Worker registrado:', registration.scope);
+                    
+                    if (registration.waiting) {
+                        showUpdateBanner(registration.waiting);
+                    }
+                    
+                    registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                showUpdateBanner(newWorker);
+                            }
+                        });
+                    });
+                } catch (error) {
+                    console.error('❌ Error registrando Service Worker:', error);
+                }
+            });
+            
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                //console.log('🔄 Nuevo Service Worker activado, recargando...');
+                window.location.reload();
+            });
+        }
+        
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+            document.documentElement.setAttribute('data-pwa-installed', 'true');
+            //console.log('📱 App ejecutándose como PWA instalada');
+        }
+    </script>
+    <script src="/js/pwa-handler.js"></script>
+</body>
+</html>

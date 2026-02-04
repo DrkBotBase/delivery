@@ -1366,7 +1366,7 @@ function applyFilters() {
   const search = document.getElementById('searchInput').value;
   const url = new URL(window.location.href);
   url.searchParams.set('search', search);
-  url.searchParams.set('page', 1); // Reset a pág 1 al buscar
+  url.searchParams.set('page', 1);
   window.location.href = url.toString();
 }
 
