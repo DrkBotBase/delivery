@@ -1,14 +1,20 @@
-const CACHE_NAME = 'delivery-tracker-v3.0.0';
-const OFFLINE_URL = '/offline';
+const CACHE_NAME = 'mjfood-repartidor-v4.0.0';
 
 const urlsToCache = [
     '/',
     '/panel',
+    '/route',
+    '/auth/login',
+    '/auth/register',
+    '/offline',
     '/css/route.css',
     '/css/style.css',
     '/js/app.js',
+    '/js/route.js',
     '/js/pwa-handler.js',
     '/manifest.json',
+    '/banner.jpg',
+    '/manual.png',
     '/icons/192.png',
     '/icons/512.png'
 ];
@@ -89,7 +95,7 @@ self.addEventListener('fetch', event => {
     if (request.mode === 'navigate') {
         event.respondWith(
             fetch(request)
-                .catch(() => caches.match(OFFLINE_URL))
+                .catch(() => caches.match('/offline'))
                 .then(response => response || caches.match('/'))
         );
         return;
