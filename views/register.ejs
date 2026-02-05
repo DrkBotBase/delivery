@@ -51,48 +51,17 @@
                 <span class="px-2 bg-white text-gray-500">O continúa con</span>
               </div>
             </div>
-            <a href="/auth/google" 
-                class="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-bold py-3.5 rounded-xl transition shadow-sm active:scale-95">
-              <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5" alt="Google Logo">
-              <span>Google</span>
-            </a>
+            <button type="button" onclick="startGoogleLogin()" 
+               class="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-bold py-3.5 rounded-xl transition shadow-sm active:scale-95">
+                <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5" alt="Google Logo">
+                <span>Google</span>
+            </button>
             <div class="mt-6 text-center">
                 <p class="text-sm text-gray-500">¿Ya tienes cuenta?</p>
                 <a href="/auth/login" class="text-indigo-600 font-bold hover:underline">Iniciar Sesión</a>
             </div>
         </div>
     </div>
-    <script>
-        document.getElementById('registerForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = Object.fromEntries(new FormData(e.target));
-            
-            if(formData.password !== formData.confirmPassword) {
-                return Swal.fire('Error', 'Las contraseñas no coinciden', 'error');
-            }
-            try {
-                const res = await fetch('/auth/register', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(formData)
-                });
-                const data = await res.json();
-                if (data.success) {
-                    await Swal.fire({
-                        icon: 'success',
-                        title: '¡Cuenta Creada!',
-                        text: 'Ahora puedes iniciar sesión',
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
-                    window.location.href = '/auth/login';
-                } else {
-                    throw new Error(data.message);
-                }
-            } catch (error) {
-                Swal.fire('Error', error.message || 'Error al registrar', 'error');
-            }
-        });
-    </script>
+    <script src="/js/auth.js"></script>
 </body>
 </html>

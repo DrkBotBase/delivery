@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mjfood-repartidor-v4.0.0';
+const CACHE_NAME = 'mjfood-repartidor-v4.0.1';
 
 const urlsToCache = [
     '/',
@@ -10,6 +10,7 @@ const urlsToCache = [
     '/css/route.css',
     '/css/style.css',
     '/js/app.js',
+    '/js/auth.js',
     '/js/route.js',
     '/js/pwa-handler.js',
     '/manifest.json',
@@ -60,6 +61,10 @@ self.addEventListener('fetch', event => {
     
     if (!url.protocol.startsWith('http')) {
         return;
+    }
+    
+    if (url.pathname.startsWith('/auth/')) {
+        return; 
     }
     
     if (request.method !== 'GET') {

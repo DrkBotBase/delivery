@@ -15,23 +15,30 @@ router.get('/google/callback',
         req.session.userId = req.user._id;
         req.session.username = req.user.username;
         
-        req.session.save((err) => {
-            if (err) {
-                console.error('Error guardando sesión de Google:', err);
-                return res.redirect('/auth/login');
-            }
-            res.redirect('/panel');
-        });
+        res.send(`
+            <!DOCTYPE html>
+            <html><body>
+            <script>
+                if (window.opener) {
+                    window.opener.postMessage('google_login_success', '*');
+                    window.close();
+                }
+                else {
+                    window.location.href = '/panel';
+                }
+            </script>
+            </body></html>
+        `);
     }
 );
 
 router.get('/login', (req, res) => {
-    if (req.session.userId) return res.redirect('/');
+    if (req.session.userId) return res.redirect('/panel');
     res.render('login', { info });
 });
 
 router.get('/register', (req, res) => {
-    if (req.session.userId) return res.redirect('/');
+    if (req.session.userId) return res.redirect('/panel');
     res.render('register', { info });
 });
 
