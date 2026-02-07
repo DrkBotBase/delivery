@@ -63,6 +63,7 @@ app.get('/route', requireAuth, (req, res) => {
     res.render('route', {
       info,
       title: `${info.name_page} | Modo Ruta`,
+      key: process.env.MAPS_KEY || ''
     });
 });
 
