@@ -1,5 +1,11 @@
 let currentRoute = null;
 let currentDeliveryIndex = 0;
+// variables map
+let map = null;
+let directionsService = null;
+let directionsRenderer = null;
+let driverMarker = null;
+let watchId = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     startRoute();
@@ -103,6 +109,11 @@ function renderRouteUI() {
     const activeCard = listContainer.children[currentDeliveryIndex];
     if (activeCard) {
         activeCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    
+    if (currentDeliveryIndex < currentRoute.deliveries.length) {
+        const activeDelivery = currentRoute.deliveries[currentDeliveryIndex];
+        updateMapRoute(activeDelivery.address); 
     }
 }
 
@@ -264,5 +275,110 @@ function exportRoute() {
         title: 'Ruta descargada',
         showConfirmButton: false,
         timer: 1500
+    });
+}
+
+window.initMap = function() {
+    const mapElement = document.getElementById("internal-map");
+    
+    if (!mapElement) {
+        console.error("ERROR CRÍTICO: No encontré el div con id='internal-map'. Revisa tu HTML.");
+        return;
+    }
+
+    try {
+        directionsService = new google.maps.DirectionsService();
+        directionsRenderer = new google.maps.DirectionsRenderer({
+            suppressMarkers: true, // marcadires A, B
+            polylineOptions: {
+                strokeColor: "#4f46e5",
+                strokeWeight: 5,
+                opacity: 0.7
+            }
+        });
+
+        map = new google.maps.Map(mapElement, {
+            zoom: 15,
+            center: { lat: 11.0258331, lng: -74.8622956 },
+            disableDefaultUI: true,
+            zoomControl: false,
+        });
+
+        directionsRenderer.setMap(map);
+
+        console.log("Mapa creado con éxito. Iniciando GPS...");
+        startLiveTracking();
+
+    } catch (error) {
+        console.error("Error al crear el mapa de Google:", error);
+    }
+};
+
+function startLiveTracking() {
+    if (!navigator.geolocation) return;
+
+    const options = {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+    };
+
+    watchId = navigator.geolocation.watchPosition(
+        updateDriverPosition,
+        (err) => console.warn("Error GPS:", err.message),
+        options
+    );
+}
+
+function updateDriverPosition(position) {
+    if (!map) return;
+
+    const newPos = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude
+    };
+
+    if (!driverMarker) {
+        const pngIcon = {
+            url: "/icons/moto.png",
+            scaledSize: new google.maps.Size(30, 30), 
+            anchor: new google.maps.Point(15, 15) 
+        };
+
+        driverMarker = new google.maps.Marker({
+            position: newPos,
+            map: map,
+            icon: pngIcon,
+            title: "Repartidor",
+            // optimize: false
+        });
+        
+        map.panTo(newPos);
+        
+    } else {
+        driverMarker.setPosition(newPos);
+    }
+}
+
+function updateMapRoute(destinationAddress) {
+    if (!map || !driverMarker || !destinationAddress) {
+        console.log("Esperando mapa o ubicación para trazar ruta...");
+        return;
+    }
+
+    const myLocation = driverMarker.getPosition();
+
+    const request = {
+        origin: myLocation,
+        destination: destinationAddress + ", Barranquilla",
+        travelMode: google.maps.TravelMode.DRIVING
+    };
+
+    directionsService.route(request, (result, status) => {
+        if (status === google.maps.DirectionsStatus.OK) {
+            directionsRenderer.setDirections(result);
+        } else {
+            console.warn('No se pudo trazar la ruta:', status);
+        }
     });
 }
