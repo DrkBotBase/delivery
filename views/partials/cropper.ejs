@@ -1,8 +1,27 @@
 <div class="bg-white rounded-3xl shadow-md p-5 border border-indigo-50 relative overflow-hidden">
     <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 to-purple-500"></div>
     <h2 class="text-lg font-bold mb-4 flex items-center text-gray-800">
-        <i class="fas fa-camera text-indigo-500 mr-2"></i> Nueva Entrega
+        <i class="fas fa-camera text-indigo-500 mr-2"></i> Nueva Factura
     </h2>
+    <div class="bg-white p-4 rounded-2xl shadow-sm border border-indigo-100 mb-4">
+        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">
+            Importar (FV-)
+        </label>
+        <div class="flex gap-2">
+            <div class="relative flex-1">
+                <span class="absolute left-3 top-3 text-gray-400 font-bold">FV-</span>
+                <input type="number" id="vinappInput" 
+                    class="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none font-bold text-lg"
+                    placeholder="9638">
+            </div>
+            <button onclick="importFromVinApp()" 
+                id="btnVinApp"
+                class="bg-indigo-600 text-white px-4 rounded-xl hover:bg-indigo-700 transition flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                <i class="fas fa-cloud-download-alt text-xl"></i>
+            </button>
+        </div>
+    </div>
+<!-- cropper 
     <form id="uploadForm" enctype="multipart/form-data" class="space-y-4">
         <div>
             <label class="block w-full cursor-pointer bg-gray-50 hover:bg-gray-100 border-2 border-dashed border-gray-300 hover:border-indigo-400 rounded-xl p-6 transition text-center group">
@@ -22,9 +41,10 @@
             <div id="spinner" class="hidden animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
         </button>
     </form>
+-->
 </div>
 
-<!-- cropper -->
+<!-- cropper 
 <div id="cropModal" class="hidden fixed inset-0 z-50 overflow-auto bg-black bg-opacity-50">
     <div class="flex items-center justify-center min-h-screen p-4">
         <div class="bg-white rounded-3xl shadow-xl w-full max-w-4xl">
@@ -98,3 +118,4 @@
         </div>
     </div>
 </div>
+-->

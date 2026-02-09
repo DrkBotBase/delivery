@@ -16,7 +16,6 @@ function startGoogleLogin() {
         }
     });
 }
-
 document.getElementById("loginForm").addEventListener("submit", async e => {
     e.preventDefault();
     const loginData = Object.fromEntries(new FormData(e.target));

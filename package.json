@@ -1,6 +1,6 @@
 {
   "name": "MJFOOD Repartidor",
-  "version": "4.0.0",
+  "version": "5.0.0",
   "description": "Aplicación para repartidores de MJFOOD",
   "main": "server.js",
   "scripts": {
@@ -21,8 +21,6 @@
     "mongoose": "^7.0.0",
     "multer": "^2.0.2",
     "openai": "^6.16.0",
-    "passport": "^0.7.0",
-    "passport-google-oauth20": "^2.0.0",
     "tesseract.js": "^4.0.2"
   },
   "devDependencies": {

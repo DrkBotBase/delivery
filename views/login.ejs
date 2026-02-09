@@ -3,16 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="referrer" content="no-referrer-when-downgrade">
     <title><%= info.name_page %> | Ingreso</title>
-    
     <link rel="icon" href="<%= info.dominio %>/icons/192.png" type="image/png">
-    <link rel="apple-touch-icon" href="<%= info.dominio %>/icons/192.png">
-
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        async function handleGoogleLogin(response) {
+            try {
+                const btnDiv = document.querySelector('.g_id_signin');
+                if(btnDiv) btnDiv.style.opacity = '0.5';
+
+                const res = await fetch('/auth/google/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ credential: response.credential })
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    window.location.href = '/panel';
+                } else {
+                    Swal.fire('Error', 'No se pudo verificar la cuenta', 'error');
+                }
+            } catch (error) {
+                console.error(error);
+                Swal.fire('Error', 'Error de conexión', 'error');
+            }
+        }
+    </script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         body { -webkit-tap-highlight-color: transparent; }
+        .g_id_signin iframe { margin: 0 auto !important; display: block !important; }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
@@ -20,8 +45,10 @@
         <div class="bg-indigo-600 h-32 flex items-center justify-center relative">
             <div class="absolute inset-0 bg-gradient-to-br from-indigo-600 to-purple-600 opacity-90"></div>
             <div class="relative z-10 text-center text-white">
-                <div class="text-4xl mb-2">🏍️</div>
-                <h2 class="text-xl font-bold tracking-wide">Delivery Tracker</h2>
+                <div class="text-4xl mb-2">
+                  <i class="fas fa-motorcycle"></i>
+                </div>
+                <h2 class="text-xl font-bold tracking-wide"><%= info.name_page %></h2>
             </div>
             <div class="absolute bottom-0 w-full overflow-hidden leading-[0]">
                 <svg class="relative block w-[calc(100%+1.3px)] h-[30px]" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
@@ -55,17 +82,30 @@
                 <span class="px-2 bg-white text-gray-500">O continúa con</span>
               </div>
             </div>
-            <button type="button" onclick="startGoogleLogin()" 
-               class="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-bold py-3.5 rounded-xl transition shadow-sm active:scale-95">
-                <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5" alt="Google Logo">
-                <span>Google</span>
-            </button>
+            <div class="flex flex-col items-center justify-center w-full mt-4">
+                <div id="g_id_onload"
+                     data-client_id="<%= key %>" 
+                     data-context="signin"
+                     data-ux_mode="popup"
+                     data-callback="handleGoogleLogin"
+                     data-auto_prompt="false">
+                </div>
+                <div class="g_id_signin"
+                     data-type="standard"
+                     data-shape="rectangular"
+                     data-theme="outline"
+                     data-text="signin_with"
+                     data-size="large"
+                     data-logo_alignment="left"
+                     data-width="250">
+                </div>
+            </div>
             <div class="mt-6 text-center">
                 <p class="text-sm text-gray-500">¿No tienes cuenta?</p>
                 <a href="/auth/register" class="text-indigo-600 font-bold hover:underline">Regístrate aquí</a>
             </div>
         </div>
     </div>
-  <script src="/js/auth.js"></script>
+    <script src="/js/auth.js"></script>
 </body>
 </html>

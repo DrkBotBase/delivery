@@ -1,45 +1,63 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
-const passport = require('passport');
 const User = require('../models/User');
 const { info } = require('../config');
+const { OAuth2Client } = require('google-auth-library');
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-router.get('/google', passport.authenticate('google', { 
-    scope: ['profile', 'email'] 
-}));
+router.post('/google/verify', async (req, res) => {
+    try {
+        const { credential } = req.body;
 
-router.get('/google/callback', 
-    passport.authenticate('google', { failureRedirect: '/auth/login' }),
-    (req, res) => {
-        req.session.userId = req.user._id;
-        req.session.username = req.user.username;
+        const ticket = await client.verifyIdToken({
+            idToken: credential,
+            audience: process.env.GOOGLE_CLIENT_ID,
+        });
+        const payload = ticket.getPayload();
         
-        res.send(`
-            <!DOCTYPE html>
-            <html><body>
-            <script>
-                if (window.opener) {
-                    window.opener.postMessage('google_login_success', '*');
-                    window.close();
-                }
-                else {
-                    window.location.href = '/panel';
-                }
-            </script>
-            </body></html>
-        `);
+        let user = await User.findOne({ googleId: payload.sub });
+
+        if (!user) {
+            user = await User.findOne({ email: payload.email });
+            if (user) {
+                user.googleId = payload.sub;
+                await user.save();
+            } else {
+                user = new User({
+                    username: payload.name,
+                    email: payload.email,
+                    googleId: payload.sub
+                });
+                await user.save();
+            }
+        }
+
+        req.session.userId = user._id;
+        req.session.username = user.username;
+
+        res.json({ success: true });
+
+    } catch (error) {
+        console.error('Error Google Verify:', error);
+        res.status(400).json({ success: false, error: 'Token inválido' });
     }
-);
+});
 
 router.get('/login', (req, res) => {
     if (req.session.userId) return res.redirect('/panel');
-    res.render('login', { info });
+    res.render('login', {
+      info,
+      key: process.env.GOOGLE_CLIENT_ID || ''
+    });
 });
 
 router.get('/register', (req, res) => {
     if (req.session.userId) return res.redirect('/panel');
-    res.render('register', { info });
+    res.render('register', { 
+      info,
+      key: process.env.GOOGLE_CLIENT_ID || ''
+    });
 });
 
 router.post('/register', async (req, res) => {

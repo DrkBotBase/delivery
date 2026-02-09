@@ -6,8 +6,6 @@ const mongoose = require('mongoose');
 const path = require('path');
 const fs = require('fs');
 const session = require('express-session');
-const passport = require('passport');
-require('./config/passport')
 
 const { info, PORT } = require('./config');
 const { requireAuth } = require('./middleware/auth'); 
@@ -25,8 +23,6 @@ app.use(session({
         maxAge: 24 * 60 * 60 * 1000
     }
 }));
-app.use(passport.initialize());
-app.use(passport.session());
 
 const uploadsDir = path.join(__dirname, 'public/uploads');
 if (!fs.existsSync(uploadsDir)) {

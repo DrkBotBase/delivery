@@ -1404,7 +1404,7 @@ async function showShiftHistory() {
             htmlContent += `
                 <div class="group flex items-center gap-2 p-3 bg-gray-50 rounded-xl border border-gray-200 hover:border-indigo-300 transition-colors">
                     
-                    <div onclick="window.location.href='/?shiftId=${shift._id}'" 
+                    <div onclick="window.location.href='/panel/?shiftId=${shift._id}'" 
                          class="flex-1 cursor-pointer">
                         <div class="flex justify-between items-center">
                             <div>
@@ -1484,3 +1484,55 @@ function checkSession(response) {
     }
     return true;
 }
+
+// Nueva funcion
+async function importFromVinApp() {
+    const input = document.getElementById('vinappInput');
+    const btn = document.getElementById('btnVinApp');
+    const number = input.value.trim();
+
+    if (!number) {
+        return Swal.fire('Espera', 'Número de factura requerido', 'warning');
+    }
+
+    const originalContent = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    btn.disabled = true;
+
+    try {
+        const res = await fetch('/api/deliveries/import-vinapp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ invoiceNumber: number })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+            input.value = '';
+            
+            await Swal.fire({
+                icon: 'success',
+                title: '¡Encontrada!',
+                text: `${data.delivery.address} - ${data.delivery.customerName}`,
+                timer: 1500,
+                showConfirmButton: false
+            });
+            
+            editDelivery(data.delivery._id); 
+        } else {
+            Swal.fire('Error', data.error, 'error');
+        }
+
+    } catch (error) {
+        Swal.fire('Error', 'Fallo de conexión', 'error');
+    } finally {
+        btn.innerHTML = originalContent;
+        btn.disabled = false;
+    }
+}
+document.getElementById('vinappInput')?.addEventListener('keypress', function (e) {
+    if (e.key === 'Enter') {
+        importFromVinApp();
+    }
+});

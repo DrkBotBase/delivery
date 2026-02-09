@@ -135,13 +135,12 @@ router.get('/panel', requireAuth, async (req, res) => {
         const netTotal = totalDeliveriesAmount - totalExpensesAmount;
 
         const allUserDeliveries = await Delivery.find({ user: userId });
-
         res.render('layout', {
             info,
             title: `${info.name_page} | Dashboard`,
             deliveries: paginatedItems,
             total: netTotal,//.toFixed(2),
-            todayTotal: totalDeliveriesAmount,
+            todayTotal: calculateTodayTotal(allUserDeliveries),
             pagination: {
                 totalDocs: totalDocs,
                 totalPages: Math.ceil(totalDocs / limit),
@@ -653,5 +652,39 @@ function calculateTodayTotal(deliveries) {
     .reduce((sum, d) => sum + d.amount, 0)
     //.toFixed(2);
 }
+
+const VinAppService = require('../services/vinappService');
+router.post('/api/deliveries/import-vinapp', requireAuth, async (req, res) => {
+    try {
+        const { invoiceNumber } = req.body;
+        if (!invoiceNumber) {
+            return res.status(400).json({ success: false, error: 'Falta el número de factura' });
+        }
+        const deliveryData = await VinAppService.getOrderByNumber(invoiceNumber);
+        if (!deliveryData) {
+            return res.status(404).json({ success: false, error: 'Factura no encontrada' });
+        }
+        const existing = await Delivery.findOne({ 
+            invoiceNumber: deliveryData.invoiceNumber,
+            user: req.session.userId 
+        });
+        if (existing) {
+            return res.status(409).json({ success: false, error: 'Esta factura ya fue importada' });
+        }
+        const activeShift = await Shift.findOne({ user: req.session.userId, status: 'active' });
+        deliveryData.user = req.session.userId;
+        deliveryData.shiftId = activeShift ? activeShift._id : null;
+        const newDelivery = new Delivery(deliveryData);
+        await newDelivery.save();
+        res.json({ 
+            success: true, 
+            delivery: newDelivery,
+            message: 'Importado correctamente'
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, error: 'Error al conectar con API' });
+    }
+});
 
 module.exports = router;
