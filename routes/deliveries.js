@@ -523,6 +523,7 @@ router.post('/api/deliveries/manual', requireAuth, async (req, res) => {
         const delivery = new Delivery({
             user: req.session.userId,
             invoiceNumber: 'MANUAL-' + Date.now().toString().slice(-4),
+            numberComanda: Date.now().toString().slice(-4),
             date: moment.tz("America/Bogota").toDate(),
             amount: parseFloat(req.body.amount),
             address: req.body.address || "Dirección no agregada",
@@ -657,7 +658,6 @@ const VinAppService = require('../services/vinappService');
 router.post('/api/deliveries/import-vinapp', requireAuth, async (req, res) => {
     try {
         const { invoiceNumber } = req.body;
-        console.log(invoiceNumber)
         if (!invoiceNumber) {
             return res.status(400).json({ success: false, error: 'Falta el número de factura' });
         }
