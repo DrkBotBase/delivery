@@ -45,7 +45,7 @@ router.get('/report/:token', async (req, res) => {
         const items = [
             ...deliveries.map(d => ({ ...d, type: 'delivery' })),
             ...expenses.map(e => ({ ...e, type: 'expense', date: e.date }))
-        ].sort((a, b) => new Date(b.date) - new Date(a.date));
+        ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         
         res.render('report', { 
             info,
@@ -122,7 +122,7 @@ router.get('/panel', requireAuth, async (req, res) => {
         }));
 
         let combinedData = [...formattedDeliveries, ...formattedExpenses];
-        combinedData.sort((a, b) => new Date(b.date) - new Date(a.date));
+        combinedData.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
         const totalDocs = combinedData.length;
         const startIndex = (parseInt(page) - 1) * parseInt(limit);
@@ -657,6 +657,7 @@ const VinAppService = require('../services/vinappService');
 router.post('/api/deliveries/import-vinapp', requireAuth, async (req, res) => {
     try {
         const { invoiceNumber } = req.body;
+        console.log(invoiceNumber)
         if (!invoiceNumber) {
             return res.status(400).json({ success: false, error: 'Falta el número de factura' });
         }

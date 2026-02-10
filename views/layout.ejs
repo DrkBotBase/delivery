@@ -132,6 +132,7 @@
             <div id="deliveriesContainer" class="space-y-3 pb-4 transition-opacity duration-200">
                 <% deliveries.forEach(item => { 
                     const isExpense = item.type === 'expense';
+                    const isDelivery = item.invoiceNumber && item.invoiceNumber.toString().startsWith('FV');
                 %>
                     <div onclick="<%= isExpense ? `Swal.fire('Gasto', '${item.description}: $${item.amount}', 'info')` : `openDeliveryModal('${item._id}')` %>" 
                          class="bg-white p-4 rounded-2xl shadow-sm border <%= isExpense ? 'border-red-100' : 'border-gray-100' %> flex justify-between items-center active:bg-gray-50 transition cursor-pointer relative overflow-hidden group">
@@ -139,12 +140,14 @@
                         <div class="pl-2">
                             <h3 class="font-bold text-gray-800 flex items-center gap-2">
                                 <span class="<%= isExpense ? 'text-red-600' : 'text-indigo-600' %>">
-                                    <%= isExpense ? 'Gasto' : '#' + item.invoiceNumber %>
+                                    <%= isExpense ? 'Gasto' : isDelivery ? `#${item.invoiceNumber} | ${item.numberComanda || item.notes}` : item.invoiceNumber.split('-')[0] %>
                                 </span>
                             </h3>
                             <p class="text-sm text-gray-500 mt-1 flex items-center gap-1">
                                 <i class="fas <%= isExpense ? 'fa-minus-circle' : 'fa-map-marker-alt' %> text-xs text-gray-400"></i>
-                                <%= item.address ? (item.address.substring(0, 25) + (item.address.length > 25 ? '...' : '')) : 'Sin detalle' %>
+                                <%= item.address && !item.address.startsWith('Dirección') 
+                                    ? (item.address.length > 25 ? item.address.substring(0, 25) + '...' : item.address)
+                                    : (item.notes || item.address || 'Sin información disponible') %>
                             </p>
                         </div>
                         <div class="text-right">

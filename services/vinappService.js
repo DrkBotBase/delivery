@@ -47,7 +47,8 @@ class VinAppService {
         const cleanTotal = parseFloat(vinData.total.replace(/\./g, '').replace(',', '.'));
         const paymentType = vinData.id_type_forma_pago == 38 ? 'Transferencia' : 'Efectivo';
         return {
-            invoiceNumber: `CM: ${vinData.consecutivo_comanda}`,
+            invoiceNumber: vinData.consecutive_invoice_pos,
+            numberComanda: `CM: ${vinData.consecutivo_comanda}`,
             customerName: vinData.name || 'Cliente',
             address: vinData.address || 'Sin dirección',
             phone: vinData.phone || '0000',

@@ -695,7 +695,7 @@ function openDeliveryModal(id) {
             <div class="text-left">
                 <div class="flex justify-between items-start mb-4 border-b pb-3">
                     <div>
-                        <h2 class="text-2xl font-bold text-gray-800">#${delivery.invoiceNumber}</h2>
+                        <h2 class="text-2xl font-bold text-gray-800">#${delivery.numberComanda || delivery.invoiceNumber}</h2>
                         <p class="text-sm text-gray-500 capitalize">${fecha} - ${hora}</p>
                     </div>
                     <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-bold mr-5">
