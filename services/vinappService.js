@@ -24,6 +24,8 @@ class VinAppService {
             if (!response.ok) {
                 throw new Error(`Fallo de autenticación: ${response.statusText}`);
             }
+            
+            const data = await response.json();
 
             if (data && data.token) {
                 this.token = data.token;
