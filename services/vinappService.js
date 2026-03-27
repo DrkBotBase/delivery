@@ -7,7 +7,7 @@ class VinAppService {
       this.password = process.env.VINAPP_PASS;
       this.companyId = process.env.VINAPP_COMPANY_ID;
       this.pointId = process.env.VINAPP_POINT_ID;
-        this.token = null; 
+      this.token = null; 
     }
 
   async login() {
