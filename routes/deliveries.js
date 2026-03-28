@@ -525,7 +525,7 @@ router.post('/api/deliveries/manual', requireAuth, async (req, res) => {
         const delivery = new Delivery({
             user: req.session.userId,
             invoiceNumber: 'MANUAL-' + Date.now().toString().slice(-4),
-            idOrder: 0000,
+            idOrder: 0,
             numberComanda: Date.now().toString().slice(-4),
             date: moment.tz("America/Bogota").toDate(),
             amount: parseFloat(req.body.amount),
