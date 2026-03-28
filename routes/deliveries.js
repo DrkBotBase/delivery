@@ -7,16 +7,16 @@ const fs = require('fs');
 const crypto = require('crypto');
 const moment = require('moment-timezone');
 
-const Restaurant = require('../models/Restaurant');
+//const Restaurant = require('../models/Restaurant');
 const Delivery = require('../models/Delivery');
 const Shift = require('../models/Shift');
 const Expense = require('../models/Expense');
 
 const { requireAuth } = require('../middleware/auth');
-const upload = require('../middleware/upload');
-const OCRService = require('../services/ocrService');
-const SimpleRouteService = require('../services/routeService');
-const AIParserService = require('../services/AIParserService');
+//const upload = require('../middleware/upload');
+//const OCRService = require('../services/ocrService');
+//const SimpleRouteService = require('../services/routeService');
+//const AIParserService = require('../services/AIParserService');
 
 const { info } = require('../config');
 
@@ -170,7 +170,7 @@ router.get('/api/shifts/history', requireAuth, async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
-
+/*
 router.post('/upload', requireAuth, upload.single('receipt'), async (req, res) => {
   try {
     if (!req.file) {
@@ -237,7 +237,7 @@ router.post('/upload', requireAuth, upload.single('receipt'), async (req, res) =
     res.status(500).json({ error: 'Error procesando factura' });
   }
 });
-
+*/
 router.get('/api/deliveries', requireAuth, async (req, res) => {
     try {
         const deliveries = await Delivery.find({ user: req.session.userId }).sort({ date: -1 });
@@ -376,7 +376,7 @@ router.post('/api/delivery/:id/status', requireAuth, async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
-
+/*
 router.get('/api/route/start', requireAuth, async (req, res) => {
     try {
         let restaurant = await Restaurant.findOne(); 
@@ -418,7 +418,7 @@ router.get('/api/route/start', requireAuth, async (req, res) => {
         });
     }
 });
-
+*/
 router.post('/api/shift/start', requireAuth, async (req, res) => {
     try {
         const existing = await Shift.findOne({ 
@@ -523,6 +523,7 @@ router.post('/api/deliveries/manual', requireAuth, async (req, res) => {
         const delivery = new Delivery({
             user: req.session.userId,
             invoiceNumber: 'MANUAL-' + Date.now().toString().slice(-4),
+            idOrder: 0000,
             numberComanda: Date.now().toString().slice(-4),
             date: moment.tz("America/Bogota").toDate(),
             amount: parseFloat(req.body.amount),
@@ -606,7 +607,7 @@ router.get('/api/transactions', requireAuth, async (req, res) => {
         res.status(500).json({ error: "Error cargando transacciones" });
     }
 });
-
+/*
 const USE_IA_OCR = process.env.IA_OCR === "true";
 async function parseWithIAFallback(ocrTxt) {
   if (!USE_IA_OCR) {
@@ -630,7 +631,7 @@ function normalizeAddress(address) {
   
   return fullAddress;
 }
-
+*/
 function calculateTodayTotal(deliveries) {
   const todayCol = new Intl.DateTimeFormat('es-CO', {
     timeZone: 'America/Bogota',

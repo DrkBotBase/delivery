@@ -1,4 +1,4 @@
-const Tesseract = require('tesseract.js');
+/*const Tesseract = require('tesseract.js');
 
 class OCRService {
   static async extractTextFromImage(imagePath) {
@@ -137,4 +137,4 @@ class OCRService {
   }
 }
 
-module.exports = OCRService;
+module.exports = OCRService;*/

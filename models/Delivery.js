@@ -14,6 +14,10 @@ const deliverySchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  idOrder: {
+    type: Number,
+    required: true
+  },
   shiftId: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'Shift'

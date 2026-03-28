@@ -103,6 +103,7 @@ class VinAppService {
         return {
             invoiceNumber: vinData.consecutive_invoice_pos,
             numberComanda: `CM: ${vinData.consecutivo_comanda}`,
+            idOrder: vinData.id_order,
             customerName: vinData.name || 'Cliente',
             address: vinData.address || 'Sin dirección',
             phone: vinData.phone || '0000',

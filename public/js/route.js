@@ -66,14 +66,11 @@ function renderRouteUI() {
 
     currentRoute.deliveries.forEach((delivery, index) => {
         const isActive = index === currentDeliveryIndex;
-        const isCompleted = index < currentDeliveryIndex;
         
         const card = document.createElement('div');
         let cardClasses = 'relative p-4 rounded-2xl border transition-all duration-300 ';
         if (isActive) {
             cardClasses += 'bg-white active-card-glow border-indigo-500 z-10 scale-[1.02]';
-        } else if (isCompleted) {
-            cardClasses += 'bg-gray-50 border-gray-100 opacity-60 grayscale';
         } else {
             cardClasses += 'bg-white border-gray-100 shadow-sm';
         }
@@ -84,7 +81,6 @@ function renderRouteUI() {
                     #${index + 1} - Factura ${delivery.invoiceNumber}
                 </span>
                 ${isActive ? '<span class="bg-indigo-100 text-indigo-700 text-xs px-2 py-1 rounded-full font-bold animate-pulse">EN CURSO</span>' : ''}
-                ${isCompleted ? '<span class="text-green-500"><i class="fas fa-check-circle"></i></span>' : ''}
             </div>
             
             <div class="space-y-1 text-sm">
@@ -106,12 +102,13 @@ function renderRouteUI() {
         `;
         listContainer.appendChild(card);
     });
-    const activeCard = listContainer.children[currentDeliveryIndex];
-    if (activeCard) {
-        activeCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
     
     if (currentDeliveryIndex < currentRoute.deliveries.length) {
+        const activeCard = listContainer.children[currentDeliveryIndex];
+        if (activeCard) {
+            activeCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        
         const activeDelivery = currentRoute.deliveries[currentDeliveryIndex];
         updateMapRoute(activeDelivery.address); 
     }
@@ -130,9 +127,13 @@ function updateEmptyState() {
 }
 
 function enableControls(enable) {
-    document.getElementById('navBtn').disabled = !enable;
-    document.getElementById('completeBtn').disabled = !enable;
-    document.getElementById('skipBtn').disabled = !enable;
+    const navBtn = document.getElementById('navBtn');
+    const completeBtn = document.getElementById('completeBtn');
+    const skipBtn = document.getElementById('skipBtn');
+    
+    if (navBtn) navBtn.disabled = !enable;
+    if (completeBtn) completeBtn.disabled = !enable;
+    if (skipBtn) skipBtn.disabled = !enable;
 }
 
 /**
@@ -142,7 +143,7 @@ function startNavigation() {
     if (!currentRoute || currentDeliveryIndex >= currentRoute.deliveries.length) return;
     
     const delivery = currentRoute.deliveries[currentDeliveryIndex];
-    const address = encodeURIComponent(delivery.address + ", Barranquilla");
+    const address = encodeURIComponent(delivery.address);
     
     const url = `https://www.google.com/maps/search/?api=1&query=${address}`;
     
@@ -183,7 +184,28 @@ async function completeDelivery() {
                 backdrop: false,
                 position: 'top'
             });
-            advanceQueue();
+            
+            currentRoute.deliveries.splice(currentDeliveryIndex, 1);
+            
+            if (currentRoute.deliveries.length === 0) {
+                Swal.fire({
+                    title: '¡Ruta Completada!',
+                    text: 'Has entregado todos los pedidos.',
+                    icon: 'success',
+                    confirmButtonText: 'Finalizar',
+                    confirmButtonColor: '#4f46e5'
+                }).then(() => {
+                    window.location.href = '/panel';
+                });
+                updateEmptyState();
+            } else {
+                if (currentDeliveryIndex >= currentRoute.deliveries.length) {
+                    currentDeliveryIndex = currentRoute.deliveries.length - 1;
+                }
+                renderRouteUI();
+            }
+        } else {
+            throw new Error('Error en la respuesta del servidor');
         }
     } catch (error) {
         Swal.fire('Error', 'No se pudo actualizar el estado', 'error');
@@ -191,9 +213,20 @@ async function completeDelivery() {
 }
 
 async function skipDelivery() {
+    if (!currentRoute || currentDeliveryIndex >= currentRoute.deliveries.length - 1) {
+        Swal.fire({
+            title: 'No se puede saltar',
+            text: 'Esta es la última entrega de la ruta',
+            icon: 'info',
+            timer: 1500,
+            showConfirmButton: false
+        });
+        return;
+    }
+    
     const result = await Swal.fire({
         title: '¿Saltar entrega?',
-        text: "Pasarás a la siguiente de la lista",
+        text: "Esta entrega se moverá detrás de la siguiente",
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#6b7280',
@@ -202,27 +235,30 @@ async function skipDelivery() {
     });
 
     if (result.isConfirmed) {
-        advanceQueue();
+        moveCurrentDeliveryBehindNext();
     }
 }
 
-function advanceQueue() {
-    currentDeliveryIndex++;
-    
-    if (currentDeliveryIndex >= currentRoute.deliveries.length) {
-        Swal.fire({
-            title: '¡Ruta Completada!',
-            text: 'Has entregado todos los pedidos.',
-            icon: 'success',
-            confirmButtonText: 'Finalizar',
-            confirmButtonColor: '#4f46e5'
-        }).then(() => {
-            window.location.href = '/panel';
-        });
-        updateEmptyState();
-    } else {
-        renderRouteUI();
+function moveCurrentDeliveryBehindNext() {
+    if (!currentRoute || currentDeliveryIndex >= currentRoute.deliveries.length - 1) {
+        return;
     }
+    
+    const currentDelivery = currentRoute.deliveries[currentDeliveryIndex];
+    const nextDelivery = currentRoute.deliveries[currentDeliveryIndex + 1];
+    
+    currentRoute.deliveries[currentDeliveryIndex] = nextDelivery;
+    currentRoute.deliveries[currentDeliveryIndex + 1] = currentDelivery;
+    
+    renderRouteUI();
+    
+    Swal.fire({
+        title: 'Entrega reordenada',
+        text: `Factura #${currentDelivery.invoiceNumber} movida detrás de #${nextDelivery.invoiceNumber}`,
+        icon: 'info',
+        timer: 2000,
+        showConfirmButton: false
+    });
 }
 
 function openContactOptions(phone) {
@@ -289,7 +325,7 @@ window.initMap = function() {
     try {
         directionsService = new google.maps.DirectionsService();
         directionsRenderer = new google.maps.DirectionsRenderer({
-            suppressMarkers: true, // marcadires A, B
+            suppressMarkers: true,
             polylineOptions: {
                 strokeColor: "#4f46e5",
                 strokeWeight: 5,
@@ -350,7 +386,6 @@ function updateDriverPosition(position) {
             map: map,
             icon: pngIcon,
             title: "Repartidor",
-            // optimize: false
         });
         
         map.panTo(newPos);

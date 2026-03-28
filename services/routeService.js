@@ -1,4 +1,4 @@
-class SimpleRouteService {
+/*class SimpleRouteService {
   static async createRoute(restaurantAddress, deliveries) {
     const route = deliveries.map((delivery, index) => {
       return {
@@ -38,4 +38,4 @@ class SimpleRouteService {
   }
 };
 
-module.exports = SimpleRouteService;
+module.exports = SimpleRouteService;*/

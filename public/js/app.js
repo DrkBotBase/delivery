@@ -1,13 +1,13 @@
-let cropper = null;
-let originalFile = null;
-let croppedImageBlob = null;
+//let cropper = null;
+//let originalFile = null;
+//let croppedImageBlob = null;
 let currentShiftToken = null;
 
 document.addEventListener('DOMContentLoaded', function() {
-    initializeFileInput();
-    setupEventListeners();
+    //initializeFileInput();
+    //setupEventListeners();
     checkPendingSync();
-    addCustomStyles();
+    //addCustomStyles();
     checkShiftStatus();
     if(typeof checkShiftStatus === 'function') checkShiftStatus();
     const searchInput = document.getElementById('searchInput');
@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // searchInput.focus(); // Opcional: enfocar si hay búsqueda
     }
 });
-
+/*
 function addCustomStyles() {
     if (document.getElementById('cropper-styles')) return;
     
@@ -677,7 +677,7 @@ async function handleFormSubmit(e) {
         btnElement.classList.remove('opacity-75');
     }
 }
-
+*/
 function openDeliveryModal(id) {
     const delivery = window.deliveriesData.find(d => d._id === id);
     
