@@ -376,7 +376,7 @@ router.post('/api/delivery/:id/status', requireAuth, async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
-/*
+
 router.get('/api/route/start', requireAuth, async (req, res) => {
     try {
         let restaurant = await Restaurant.findOne(); 
@@ -418,7 +418,7 @@ router.get('/api/route/start', requireAuth, async (req, res) => {
         });
     }
 });
-*/
+
 router.post('/api/shift/start', requireAuth, async (req, res) => {
     try {
         const existing = await Shift.findOne({ 
