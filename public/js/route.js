@@ -13,21 +13,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function startRoute() {
     const listContainer = document.getElementById('deliveriesList');
-    
     try {
         const response = await fetch('/api/route/start');
         const data = await response.json();
+        
         if (!data.success) {
             throw new Error(data.message || 'Error al cargar');
         }
+        
         if (!data.deliveries || data.deliveries.length === 0) {
             updateEmptyState();
             return;
         }
-        currentRoute = data;
-        currentDeliveryIndex = 0; 
         
-        renderRouteUI();
+        currentRoute = data;
+        currentDeliveryIndex = 0;
+        
+        if (driverMarker) {
+            await optimizeRouteFromCurrentLocation();
+        } else {
+            renderRouteUI();
+        }
+        
         enableControls(true);
         
         const Toast = Swal.mixin({
@@ -36,7 +43,7 @@ async function startRoute() {
             showConfirmButton: false,
             timer: 2000
         });
-        Toast.fire({ icon: 'success', title: 'Ruta actualizada' });
+        Toast.fire({ icon: 'success', title: 'Ruta cargada' });
 
     } catch (error) {
         console.error('Error:', error);
@@ -49,6 +56,51 @@ async function startRoute() {
             </div>
         `;
     }
+}
+
+async function optimizeRouteFromCurrentLocation() {
+    if (!driverMarker || !currentRoute.deliveries.length) return;
+    
+    const currentLocation = driverMarker.getPosition();
+    
+    const deliveriesWithDistance = await Promise.all(
+        currentRoute.deliveries.map(async (delivery) => {
+            const distance = await calculateDistance(
+                currentLocation.lat(), 
+                currentLocation.lng(),
+                delivery.address
+            );
+            return { ...delivery, distance };
+        })
+    );
+    
+    deliveriesWithDistance.sort((a, b) => a.distance - b.distance);
+    
+    currentRoute.deliveries = deliveriesWithDistance.map(({ distance, ...delivery }) => delivery);
+    currentDeliveryIndex = 0;
+    
+    renderRouteUI();
+}
+
+function calculateDistance(lat, lng, address) {
+    return new Promise((resolve) => {
+        const service = new google.maps.DistanceMatrixService();
+        service.getDistanceMatrix(
+            {
+                origins: [{ lat, lng }],
+                destinations: [address],
+                travelMode: google.maps.TravelMode.DRIVING,
+                unitSystem: google.maps.UnitSystem.METRIC,
+            },
+            (response, status) => {
+                if (status === 'OK' && response.rows[0].elements[0].status === 'OK') {
+                    resolve(response.rows[0].elements[0].distance.value); // distancia en metros
+                } else {
+                    resolve(999999);
+                }
+            }
+        );
+    });
 }
 
 function renderRouteUI() {

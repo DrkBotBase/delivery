@@ -379,14 +379,6 @@ router.post('/api/delivery/:id/status', requireAuth, async (req, res) => {
 
 router.get('/api/route/start', requireAuth, async (req, res) => {
     try {
-        let restaurant = await Restaurant.findOne(); 
-        
-        if (!restaurant) {
-            restaurant = {
-                name: 'Mi Restaurante',
-                address: 'Eduardo Santos, Barranquilla, Atlántico'
-            };
-        }
         const today = moment.tz("America/Bogota").startOf('day').toDate();
         const tomorrow = moment.tz("America/Bogota").endOf('day').toDate();
 
@@ -399,15 +391,21 @@ router.get('/api/route/start', requireAuth, async (req, res) => {
             }
         });
 
-        const route = await SimpleRouteService.createRoute(
-            restaurant.address,
-            pendingDeliveries
-        );
+        if (!pendingDeliveries || pendingDeliveries.length === 0) {
+            return res.json({
+                success: true,
+                deliveries: [],
+                totalEstimatedTime: 0,
+                pendingCount: 0
+            });
+        }
 
         res.json({
             success: true,
-            ...route,
-            pendingCount: pendingDeliveries.length
+            deliveries: pendingDeliveries,
+            totalEstimatedTime: calculateEstimatedTime(pendingDeliveries),
+            pendingCount: pendingDeliveries.length,
+            optimizeEnabled: false
         });
         
     } catch (error) {
@@ -418,6 +416,10 @@ router.get('/api/route/start', requireAuth, async (req, res) => {
         });
     }
 });
+function calculateEstimatedTime(deliveries) {
+    const TIME_PER_DELIVERY = 5;
+    return deliveries.length * TIME_PER_DELIVERY;
+}
 
 router.post('/api/shift/start', requireAuth, async (req, res) => {
     try {
