@@ -18,6 +18,12 @@ const deliverySchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+  pointId: {
+    type: Number
+  },
+  restaurantName: {
+    type: String
+  },
   shiftId: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'Shift'

@@ -11,4 +11,4 @@ const shiftSchema = new mongoose.Schema({
     note: String
 });
 
-module.exports = mongoose.model('Shift', shiftSchema);
+module.exports = mongoose.model('Delshift', shiftSchema);

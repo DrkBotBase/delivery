@@ -1,5 +1,11 @@
 const mongoose = require('mongoose');
 
+const restaurantSchema = new mongoose.Schema({
+    companyId: { type: Number, required: true },
+    pointId: { type: Number, required: true },
+    name: { type: String, default: 'Restaurante Vinculado' }
+}, { _id: false });
+
 const userSchema = new mongoose.Schema({
     username: { 
         type: String, 
@@ -18,6 +24,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         unique: true,
         sparse: true
+    },
+    linkedRestaurants: {
+        type: [restaurantSchema],
+        default: []
     },
     createdAt: { type: Date, default: Date.now }
 });

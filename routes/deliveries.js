@@ -7,17 +7,12 @@ const fs = require('fs');
 const crypto = require('crypto');
 const moment = require('moment-timezone');
 
-//const Restaurant = require('../models/Restaurant');
 const Delivery = require('../models/Delivery');
 const Shift = require('../models/Shift');
 const Expense = require('../models/Expense');
+const User = require('../models/User');
 
 const { requireAuth } = require('../middleware/auth');
-//const upload = require('../middleware/upload');
-//const OCRService = require('../services/ocrService');
-//const SimpleRouteService = require('../services/routeService');
-//const AIParserService = require('../services/AIParserService');
-
 const { info } = require('../config');
 
 router.get('/report/:token', async (req, res) => {
@@ -76,13 +71,6 @@ router.get('/', (req, res) => {
 
 router.get('/panel', requireAuth, async (req, res) => {
     try {
-        /* if (!req.session.userId) {
-          return res.render('landing', {
-            info,
-            title: `${info.name_page} | Home`
-          });
-        } */
-        
         const { page = 1, limit = 10, search, shiftId } = req.query;
         const userId = req.session.userId;
         
@@ -139,7 +127,7 @@ router.get('/panel', requireAuth, async (req, res) => {
             info,
             title: `${info.name_page} | Dashboard`,
             deliveries: paginatedItems,
-            total: netTotal,//.toFixed(2),
+            total: netTotal,
             todayTotal: calculateTodayTotal(allUserDeliveries),
             pagination: {
                 totalDocs: totalDocs,
@@ -170,74 +158,7 @@ router.get('/api/shifts/history', requireAuth, async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
-/*
-router.post('/upload', requireAuth, upload.single('receipt'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No se subió ninguna imagen' });
-    }
 
-    const imagePath = path.join(__dirname, '../public/uploads/', req.file.filename);
-    const ocrText = await OCRService.extractTextFromImage(imagePath);
-    const parsed = await parseWithIAFallback(ocrText)
-
-    if (!parsed.delivery || parsed.delivery === 0) {
-      return res.status(400).json({
-        error: 'No se pudo detectar el valor del domicilio',
-        ocrText
-      });
-    }
-
-    const fullAddress = normalizeAddress(parsed.address);
-    const dateCol = OCRService.getColombiaDate();
-    const phoneFinal = parsed.phone || "0000";
-    if (parsed.phoneStatus && parsed.phoneStatus !== "ok") {
-      phoneFinal = `${phoneFinal} (${parsed.phoneStatus})`;
-    }
-
-    const delivery = new Delivery({
-      user: req.session.userId,
-      invoiceNumber: parsed.invoiceNumber || `FAC-${Date.now()}`,
-      date: dateCol,
-      phone: phoneFinal,
-      address: fullAddress,
-      amount: parsed.delivery,
-      customerName: parsed.customerName || "cliente",
-      subtotal: parsed.subtotal || 0,
-      total: parsed.total || 0,
-      imageUrl: `/uploads/${req.file.filename}`,
-      ocrText,
-      notes: req.body.notes,
-      deliveryStatus: 'pendiente'
-    });
-    
-    try {
-        const activeShift = await Shift.findOne({ 
-          user: req.session.userId,
-          status: 'active'
-        });
-        if (activeShift) {
-            delivery.shiftId = activeShift._id;
-        }
-    } catch (err) {
-        console.error("No se pudo vincular a jornada:", err);
-    }
-
-    await delivery.save();
-
-    res.json({
-      success: true,
-      delivery,
-      parsed,
-      message: 'Factura procesada correctamente'
-    });
-
-  } catch (error) {
-    console.error("Error OCR/IA:", error);
-    res.status(500).json({ error: 'Error procesando factura' });
-  }
-});
-*/
 router.get('/api/deliveries', requireAuth, async (req, res) => {
     try {
         const deliveries = await Delivery.find({ user: req.session.userId }).sort({ date: -1 });
@@ -609,31 +530,7 @@ router.get('/api/transactions', requireAuth, async (req, res) => {
         res.status(500).json({ error: "Error cargando transacciones" });
     }
 });
-/*
-const USE_IA_OCR = process.env.IA_OCR === "true";
-async function parseWithIAFallback(ocrTxt) {
-  if (!USE_IA_OCR) {
-    return OCRService.extractDeliveryData(ocrTxt);
-  }
-  
-  try {
-    return await AIParserService.parseInvoice(ocrTxt);
-  } catch (error) {
-    console.warn('IA parsing failed, using OCR fallback:', error.message);
-    return OCRService.extractDeliveryData(ocrTxt);
-  }
-}
 
-function normalizeAddress(address) {
-  let fullAddress = OCRService.fixAddress(address || "NO DETECTADA");
-  
-  if (!fullAddress.toLowerCase().includes('barranquilla')) {
-    fullAddress = `${fullAddress}, Riomar, Barranquilla, Atlántico`;
-  }
-  
-  return fullAddress;
-}
-*/
 function calculateTodayTotal(deliveries) {
   const todayCol = new Intl.DateTimeFormat('es-CO', {
     timeZone: 'America/Bogota',
@@ -653,40 +550,112 @@ function calculateTodayTotal(deliveries) {
 
       return dCol === todayCol;
     })
-    .reduce((sum, d) => sum + d.amount, 0)
-    //.toFixed(2);
+    .reduce((sum, d) => sum + d.amount, 0);
 }
+
+router.post('/api/users/link-restaurant', requireAuth, async (req, res) => {
+    try {
+        const { companyId, pointId, name } = req.body;
+        
+        if (!companyId || !pointId) {
+            return res.status(400).json({ success: false, error: 'Código de vinculación inválido.' });
+        }
+
+        const user = await User.findById(req.session.userId);
+
+        if (!user) {
+            return res.status(404).json({ success: false, error: 'Usuario no encontrado.' });
+        }
+
+        const exists = user.linkedRestaurants.some(r => r.pointId == pointId && r.companyId == companyId);
+        
+        if (exists) {
+            return res.json({ success: true, message: 'Ya estabas vinculado a este restaurante.' });
+        }
+
+        user.linkedRestaurants.push({ 
+            companyId: Number(companyId), 
+            pointId: Number(pointId), 
+            name: name || `Restaurante ${pointId}` 
+        });
+        
+        await user.save();
+
+        res.json({ success: true, message: 'Restaurante vinculado correctamente.' });
+    } catch (error) {
+        console.error('Error al vincular restaurante:', error);
+        res.status(500).json({ success: false, error: 'Error al vincular el restaurante.' });
+    }
+});
 
 const VinAppService = require('../services/vinappService');
 router.post('/api/deliveries/import-vinapp', requireAuth, async (req, res) => {
     try {
         const { invoiceNumber } = req.body;
+        
         if (!invoiceNumber) {
             return res.status(400).json({ success: false, error: 'Falta el número de factura' });
         }
-        const deliveryData = await VinAppService.getOrderByNumber(invoiceNumber);
-        if (!deliveryData) {
-            return res.status(404).json({ success: false, error: 'Factura no encontrada' });
+
+        const user = await User.findById(req.session.userId);
+
+        if (!user.linkedRestaurants || user.linkedRestaurants.length === 0) {
+            return res.status(403).json({ 
+                success: false, 
+                error: 'NO_RESTAURANTS',
+                message: 'No tienes ningún restaurante vinculado. Ingresa tu código de vinculación primero.'
+            });
         }
+
+        let deliveryData = null;
+        let foundRestaurantName = '';
+        let foundPointId = null;
+
+        for (const rest of user.linkedRestaurants) {
+            deliveryData = await VinAppService.getOrderByNumber(invoiceNumber, rest.companyId, rest.pointId);
+            
+            if (deliveryData) {
+                foundRestaurantName = rest.name;
+                foundPointId = rest.pointId;
+                break;
+            }
+        }
+
+        if (!deliveryData) {
+            return res.status(404).json({ 
+                success: false, 
+                error: 'Factura no encontrada en ninguno de tus restaurantes hoy.' 
+            });
+        }
+
         const existing = await Delivery.findOne({ 
             invoiceNumber: deliveryData.invoiceNumber,
             user: req.session.userId 
         });
+        
         if (existing) {
             return res.status(409).json({ success: false, error: 'Esta factura ya fue importada' });
         }
+
         const activeShift = await Shift.findOne({ user: req.session.userId, status: 'active' });
+        
         deliveryData.user = req.session.userId;
         deliveryData.shiftId = activeShift ? activeShift._id : null;
+        
+        deliveryData.pointId = foundPointId;
+        deliveryData.restaurantName = foundRestaurantName;
+        deliveryData.notes = `${foundRestaurantName} - ${deliveryData.notes || ''}`;
+
         const newDelivery = new Delivery(deliveryData);
         await newDelivery.save();
+        
         res.json({ 
             success: true, 
             delivery: newDelivery,
             message: 'Importado correctamente'
         });
     } catch (error) {
-        console.error(error);
+        console.error('Error import-vinapp:', error);
         res.status(500).json({ success: false, error: 'Error al conectar con API' });
     }
 });

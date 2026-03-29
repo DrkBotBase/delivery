@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col font-sans text-gray-800">
+
+    <header class="bg-indigo-600 text-white p-4 shadow-md">
+        <div class="max-w-2xl mx-auto flex items-center justify-center gap-2">
+            <i class="fas fa-store text-2xl"></i>
+            <h1 class="text-xl font-bold tracking-wide">Portal para Restaurantes</h1>
+        </div>
+    </header>
+
+    <main class="flex-grow flex items-center justify-center p-4">
+        <div class="max-w-md w-full bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+            
+            <div class="p-8">
+                <div class="text-center mb-8">
+                    <div class="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                        <i class="fas fa-link"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Generar Código de Vinculación</h2>
+                    <p class="text-sm text-gray-500">
+                        Obtén el código de tu restaurante para que tus domiciliarios puedan sincronizar sus facturas automáticamente.
+                    </p>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">
+                            Número de orden de cualquier pedido
+                        </label>
+                        <div class="relative">
+                            <i class="fas fa-hashtag absolute left-4 top-3.5 text-gray-400"></i>
+                            <input type="number" id="globalIdInput" 
+                                class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none font-bold text-lg transition"
+                                placeholder="Ej: 14175025">
+                        </div>
+                        <p class="text-[10px] text-gray-400 mt-2 italic">
+                            * Busca el número de orden en el panel de tu sistema VinApp en Ordenes y abre detalles de cualquier pedido.
+                        </p>
+                    </div>
+
+                    <button onclick="generateCode()" id="btnGenerate"
+                        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-indigo-500/30 transition active:scale-95 flex justify-center items-center gap-2">
+                        <i class="fas fa-search"></i> Generar Código
+                    </button>
+                </div>
+
+                <div id="resultSection" class="hidden mt-8 pt-8 border-t border-gray-100">
+                    <h3 class="text-center text-sm font-bold text-gray-500 uppercase mb-4">Tu Código de Restaurante</h3>
+                    
+                    <div class="bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-6 text-center relative">
+                        <p id="restaurantNameLabel" class="text-emerald-800 font-bold mb-2 text-sm">Cargando...</p>
+                        <h1 id="codeDisplay" class="text-4xl font-black text-emerald-600 tracking-wider font-mono">
+                            0000-0000
+                        </h1>
+                        
+                        <button onclick="copyCode()" id="btnCopy"
+                            class="mt-4 bg-white border border-emerald-200 text-emerald-700 hover:bg-emerald-100 px-6 py-2 rounded-full font-bold text-sm transition shadow-sm flex items-center justify-center gap-2 mx-auto">
+                            <i class="fas fa-copy"></i> Copiar Código
+                        </button>
+                    </div>
+
+                    <p class="text-center text-xs text-gray-500 mt-4">
+                        Comparte este código con tus domiciliarios para que lo ingresen en su aplicación.
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+        async function generateCode() {
+            const input = document.getElementById('globalIdInput');
+            const btn = document.getElementById('btnGenerate');
+            const resultSection = document.getElementById('resultSection');
+            const id = input.value.trim();
+
+            if (!id) {
+                return Swal.fire('Error', 'Debes ingresar el ID de un pedido.', 'warning');
+            }
+
+            const originalBtn = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Buscando...';
+            btn.disabled = true;
+            resultSection.classList.add('hidden');
+
+            try {
+                const res = await fetch('/tools/generate-link-code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ globalId: id })
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    document.getElementById('restaurantNameLabel').textContent = data.restName;
+                    document.getElementById('codeDisplay').textContent = data.linkCode;
+                    
+                    resultSection.classList.remove('hidden');
+                    resultSection.classList.add('animate-fade-in-up');
+                    
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Código Generado!',
+                        text: `Restaurante: ${data.restName}`,
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                } else {
+                    Swal.fire('Error', data.error, 'error');
+                }
+            } catch (error) {
+                Swal.fire('Error', 'Fallo de conexión', 'error');
+            } finally {
+                btn.innerHTML = originalBtn;
+                btn.disabled = false;
+            }
+        }
+
+        function copyCode() {
+            const code = document.getElementById('codeDisplay').textContent;
+            const btn = document.getElementById('btnCopy');
+            
+            navigator.clipboard.writeText(code).then(() => {
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check"></i> ¡Copiado!';
+                btn.classList.replace('text-emerald-700', 'text-white');
+                btn.classList.replace('bg-white', 'bg-emerald-600');
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalHtml;
+                    btn.classList.replace('text-white', 'text-emerald-700');
+                    btn.classList.replace('bg-emerald-600', 'bg-white');
+                }, 2000);
+            }).catch(err => {
+                Swal.fire('Error', 'No se pudo copiar el código', 'error');
+            });
+        }
+    </script>
+
+    <style>
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up {
+            animation: fadeInUp 0.5s ease-out forwards;
+        }
+    </style>
+</body>
+</html>

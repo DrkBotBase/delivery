@@ -64,6 +64,7 @@ app.get('/route', requireAuth, (req, res) => {
 });
 
 app.use('/', require('./routes/deliveries'));
+app.use('/tools', require('./routes/tools'));
 
 setInterval(() => {
   fetch((info.dominio || `http://localhost:${PORT}`) + '/ping')

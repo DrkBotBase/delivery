@@ -1,19 +1,17 @@
 const moment = require('moment-timezone');
 
 class VinAppService {
-  constructor() {
-      this.baseUrl = process.env.VINAPP_URL;
-      this.email = process.env.VINAPP_USER;
-      this.password = process.env.VINAPP_PASS;
-      this.companyId = process.env.VINAPP_COMPANY_ID;
-      this.pointId = process.env.VINAPP_POINT_ID;
-      this.token = null; 
+    constructor() {
+        this.baseUrl = process.env.VINAPP_URL;
+        this.email = process.env.VINAPP_USER;
+        this.password = process.env.VINAPP_PASS;
+        this.token = null; 
     }
 
-  async login() {
-    try {
-      const response = await fetch(`${this.baseUrl}/api/authenticate`, {
-        method: 'POST',
+    async login() {
+        try {
+            const response = await fetch(`${this.baseUrl}/api/authenticate`, {
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     email: this.email,
@@ -38,19 +36,19 @@ class VinAppService {
             throw error;
         }
     }
-
-    async getOrderByNumber(invoiceNumber) {
+    
+    async getOrderByNumber(invoiceNumber, companyId, pointId) {
         try {
             if (!this.token) {
                 await this.login();
             }
 
-            return await this._executeOrderRequest(invoiceNumber);
+            return await this._executeOrderRequest(invoiceNumber, companyId, pointId);
         } catch (error) {
             if (error.message.includes('401')) {
                 console.warn('⚠️ Token vencido detectado. Reintentando con nuevo login...');
                 await this.login();
-                return await this._executeOrderRequest(invoiceNumber);
+                return await this._executeOrderRequest(invoiceNumber, companyId, pointId);
             }
             
             console.error('❌ Error en VAS:', error);
@@ -58,13 +56,13 @@ class VinAppService {
         }
     }
 
-    async _executeOrderRequest(invoiceNumber) {
+    async _executeOrderRequest(invoiceNumber, companyId, pointId) {
         const today = moment().tz("America/Bogota").format('YYYY-MM-DD');
         const payload = {
             inicio: today,
             fin: today,
-            id_company: this.companyId,
-            id_point: this.pointId,
+            id_company: companyId,
+            id_point: pointId,
             id_status_filtro: 10
         };
 
@@ -93,13 +91,25 @@ class VinAppService {
             order.consecutive_invoice_pos.toString().endsWith(invoiceNumber)
         );
 
-        return targetOrder ? this.mapToDelivery(targetOrder) : null;
+        if (!targetOrder) return null;
+
+        let shippingCost = 0;
+        try {
+            const publicRes = await fetch(`${this.baseUrl}/api/orders/get-data/${targetOrder.id_order}`);
+            const publicData = await publicRes.json();
+            if (publicData && publicData.shipping) {
+                shippingCost = parseFloat(publicData.shipping);
+            }
+        } catch (err) {
+            console.warn('No se pudo obtener el valor del domicilio público');
+        }
+
+        return this.mapToDelivery(targetOrder, shippingCost);
     }
 
-    mapToDelivery(vinData) {
-        const cleanTotal = parseFloat(vinData.total.replace(/\./g, '').replace(',', '.'));
+    mapToDelivery(vinData, shippingCost) {
+        const cleanTotal = parseFloat((vinData.total || '0').replace(/\./g, '').replace(',', '.'));
         const paymentType = vinData.id_type_forma_pago == 38 ? 'Transferencia' : 'Efectivo';
-        
         return {
             invoiceNumber: vinData.consecutive_invoice_pos,
             numberComanda: `CM: ${vinData.consecutivo_comanda}`,
@@ -108,12 +118,12 @@ class VinAppService {
             address: vinData.address || 'Sin dirección',
             phone: vinData.phone || '0000',
             date: moment(vinData.created_at).toDate(),
-            amount: 0, 
-            subtotal: cleanTotal, 
+            amount: shippingCost,
+            subtotal: cleanTotal > shippingCost ? cleanTotal - shippingCost : cleanTotal, 
             total: cleanTotal,
             notes: paymentType,
             deliveryStatus: 'pendiente',
-            imageUrl: '/manual.png',
+            imageUrl: '/icons/192.png',
             pointsEarned: Math.floor(cleanTotal / 1000) 
         };
     }
