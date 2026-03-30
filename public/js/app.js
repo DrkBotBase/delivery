@@ -1004,72 +1004,80 @@ async function viewDigitalInvoice(idOrder) {
     });
 
     try {
-        const response = await fetch(`https://beta.vinapp.co/api/orders/get-data/${idOrder}`);
-        const data = await response.json();
+        const response = await fetch(`/api/deliveries/ticket/${idOrder}`);
+        
+        if (!checkSession(response)) return; 
 
-        if (!data || !data.id_order) {
-            return Swal.fire('Error', 'No se pudo obtener el detalle de la factura.', 'error');
+        const result = await response.json();
+
+        if (!result.success || !result.ticket) {
+            return Swal.fire('Error', result.error || 'No se pudo obtener el detalle de la factura.', 'error');
         }
+
+        const t = result.ticket;
 
         const formatMoney = (amount) => new Intl.NumberFormat('es-CO').format(amount);
         const formatDate = (dateString) => {
             const date = new Date(dateString);
             return date.toLocaleString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
         };
-        const getPaymentMethod = (id) => {
-            const methods = { 37: "Efectivo/Datafono", 38: "Transferencia", 39: "Transferencia", 40: "Nequi", 41: "RappiPay" };
-            return methods[id] || "Otro";
-        };
-
-        const documentNumber = data.document && data.document[0] ? data.document[0].document_number : 'N/A';
-        const paymentMethod = getPaymentMethod(data.id_type_forma_pago);
-        const shipping = parseFloat(data.shipping || 0);
-        const total = parseFloat(data.total || 0);
-        const subtotal = total - shipping;
-        const valorPagado = parseFloat(data.valor_forma_pago) || total;
 
         let productsHTML = '';
-        if (data.details && data.details.length > 0) {
-            data.details.forEach(detail => {
-                const quantity = detail.quantity;
-                const unitPrice = parseFloat(detail.value);
-                const subtotalProduct = unitPrice * quantity;
-                
+        t.products.forEach(p => {
+            productsHTML += `
+                <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+                    <span style="flex: 2; text-align: left; padding-right: 5px;">${p.name}</span>
+                    <span style="width: 25px; text-align: center;">${p.quantity}</span>
+                    <span style="width: 55px; text-align: right;">$${formatMoney(p.unitPrice)}</span>
+                    <span style="width: 60px; text-align: right; font-weight: bold;">$${formatMoney(p.subtotal)}</span>
+                </div>
+            `;
+            if (p.observations) {
                 productsHTML += `
-                    <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
-                        <span style="flex: 2; text-align: left; padding-right: 5px;">${detail.name_product}</span>
-                        <span style="width: 25px; text-align: center;">${quantity}</span>
-                        <span style="width: 55px; text-align: right;">$${formatMoney(unitPrice)}</span>
-                        <span style="width: 60px; text-align: right; font-weight: bold;">$${formatMoney(subtotalProduct)}</span>
+                    <div style="font-size: 10px; color: #666; text-align: left; padding-left: 10px; margin-bottom: 8px;">
+                        📝 ${p.observations}
                     </div>
                 `;
-                if (detail.observations) {
-                    productsHTML += `
-                        <div style="font-size: 10px; color: #666; text-align: left; padding-left: 10px; margin-bottom: 8px;">
-                            📝 ${detail.observations}
-                        </div>
-                    `;
-                }
+            }
+        });
+
+        let paymentHTML = '';
+        if (t.financials.payments.length === 1) {
+            paymentHTML += `
+                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>Método pago:</span> <span>${t.financials.payments[0].method}</span></div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>Paga con:</span> <span>$${formatMoney(t.financials.payments[0].amount)}</span></div>
+            `;
+        } else {
+            t.financials.payments.forEach((pay, index) => {
+                paymentHTML += `
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>Pago ${index + 1} (${pay.method}):</span> <span>$${formatMoney(pay.amount)}</span></div>
+                `;
             });
+        }
+
+        if (t.financials.change > 0) {
+            paymentHTML += `
+                <div style="display: flex; justify-content: space-between; margin-bottom: 4px; font-weight: bold;"><span>Cambio:</span> <span>$${formatMoney(t.financials.change)}</span></div>
+            `;
         }
 
         const ticketHTML = `
             <div id="print-ticket-area" style="font-family: 'Courier New', monospace; color: #000; padding: 10px; max-width: 380px; margin: 0 auto; background: #fff; line-height: 1.2;">
                 <div style="text-align: center; border-bottom: 1px dashed #ccc; padding-bottom: 10px; margin-bottom: 10px;">
                     <h2 style="font-size: 18px; margin: 0 0 5px 0; letter-spacing: 2px;">📋 FACTURA</h2>
-                    <div style="font-size: 14px; font-weight: bold;">${data.point ? data.point.name : 'Restaurante'}</div>
-                    <div style="font-size: 11px; color: #666;">${data.point ? data.point.direccion : ''}</div>
-                    <div style="font-size: 11px; color: #666;">Tel: ${data.point ? data.point.telefono_pedidos : ''}</div>
+                    <div style="font-size: 14px; font-weight: bold;">${t.restaurant.name}</div>
+                    <div style="font-size: 11px; color: #666;">${t.restaurant.address}</div>
+                    <div style="font-size: 11px; color: #666;">Tel: ${t.restaurant.phone}</div>
                 </div>
 
                 <div style="font-size: 12px; text-align: left; margin-bottom: 10px;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><b>Factura:</b> <span>${documentNumber}</span></div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><b>Pedido #:</b> <span>${data.id_order}</span></div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><b>Fecha:</b> <span>${formatDate(data.created_at)}</span></div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><b>Factura:</b> <span>${t.order.invoiceNumber}</span></div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><b>Pedido #:</b> <span>${t.order.id}</span></div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><b>Fecha:</b> <span>${formatDate(t.order.date)}</span></div>
                     <div style="border-top: 1px dashed #ccc; margin: 8px 0;"></div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><b>Cliente:</b> <span>${data.client ? data.client.name : ''}</span></div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><b>Teléfono:</b> <span>${data.client ? data.client.phone : ''}</span></div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><b>Dirección:</b> <span style="text-align: right; max-width: 65%;">${data.address}</span></div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><b>Cliente:</b> <span>${t.customer.name}</span></div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><b>Teléfono:</b> <span>${t.customer.phone}</span></div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><b>Dirección:</b> <span style="text-align: right; max-width: 65%;">${t.customer.address}</span></div>
                 </div>
 
                 <div style="border-top: 1px dashed #ccc; margin: 8px 0;"></div>
@@ -1087,19 +1095,17 @@ async function viewDigitalInvoice(idOrder) {
                 <div style="border-top: 1px dashed #ccc; margin: 8px 0;"></div>
 
                 <div style="font-size: 13px; text-align: left;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>SUBTOTAL:</span> <span>$${formatMoney(subtotal)}</span></div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>DOMICILIO:</span> <span>$${formatMoney(shipping)}</span></div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>SUBTOTAL:</span> <span>$${formatMoney(t.financials.subtotal)}</span></div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>DOMICILIO:</span> <span>$${formatMoney(t.financials.shipping)}</span></div>
                     <div style="display: flex; justify-content: space-between; font-size: 16px; font-weight: bold; border-top: 1px solid #000; margin-top: 6px; padding-top: 6px;">
-                        <span>TOTAL:</span> <span>$${formatMoney(total)}</span>
+                        <span>TOTAL:</span> <span>$${formatMoney(t.financials.total)}</span>
                     </div>
                 </div>
 
                 <div style="border-top: 1px dashed #ccc; margin: 8px 0;"></div>
 
                 <div style="font-size: 12px; text-align: left;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>Método pago:</span> <span>${paymentMethod}</span></div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>Paga con:</span> <span>$${formatMoney(valorPagado)}</span></div>
-                    ${valorPagado > total ? `<div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>Cambio:</span> <span>$${formatMoney(valorPagado - total)}</span></div>` : ''}
+                    ${paymentHTML}
                 </div>
 
                 <div style="border-top: 1px dashed #ccc; margin: 8px 0;"></div>

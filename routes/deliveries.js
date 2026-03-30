@@ -660,4 +660,97 @@ router.post('/api/deliveries/import-vinapp', requireAuth, async (req, res) => {
     }
 });
 
+router.get('/api/deliveries/ticket/:idOrder', requireAuth, async (req, res) => {
+    try {
+        const { idOrder } = req.params;
+        
+        if (!idOrder) {
+            return res.status(400).json({ success: false, error: 'Falta el ID de la orden' });
+        }
+
+        const URL = process.env.VINAPP_URL;
+        const response = await fetch(`${URL}/api/orders/get-data/${idOrder}`);
+        
+        if (!response.ok) {
+            throw new Error(`Error en API VinApp: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+
+        if (!data || !data.id_order) {
+            return res.status(404).json({ success: false, error: 'Factura no encontrada.' });
+        }
+
+        const getPaymentMethod = (id) => {
+            const methods = { 37: "Efectivo", 38: "Transferencia", 39: "Transferencia", 40: "Nequi", 41: "RappiPay" };
+            return methods[id] || "Otro";
+        };
+
+        const shipping = parseFloat(data.shipping || 0);
+        const total = parseFloat(data.total || 0);
+        const subtotal = total - shipping;
+
+        let payments = [];
+        let totalPaid = 0;
+
+        const method1Amount = parseFloat(data.valor_forma_pago) || total;
+        totalPaid += method1Amount;
+        payments.push({
+            method: getPaymentMethod(data.id_type_forma_pago),
+            amount: method1Amount
+        });
+
+        if (data.id_type_forma_pago_secundaria && data.valor_forma_pago_secundaria) {
+            const method2Amount = parseFloat(data.valor_forma_pago_secundaria);
+            totalPaid += method2Amount;
+            payments.push({
+                method: getPaymentMethod(data.id_type_forma_pago_secundaria),
+                amount: method2Amount
+            });
+        }
+
+        const change = totalPaid > total ? totalPaid - total : 0;
+
+        const products = (data.details || []).map(detail => ({
+            name: detail.name_product,
+            quantity: detail.quantity,
+            unitPrice: parseFloat(detail.value),
+            subtotal: parseFloat(detail.value) * detail.quantity,
+            observations: detail.observations || ''
+        }));
+
+        const cleanTicket = {
+            restaurant: {
+                name: data.point ? data.point.name : 'Restaurante',
+                address: data.point ? data.point.direccion : '',
+                phone: data.point ? data.point.telefono_pedidos : ''
+            },
+            order: {
+                invoiceNumber: data.document && data.document[0] ? data.document[0].document_number : 'N/A',
+                id: data.id_order,
+                date: data.created_at,
+            },
+            customer: {
+                name: data.client ? data.client.name : '',
+                phone: data.client ? data.client.phone : '',
+                address: data.address || ''
+            },
+            financials: {
+                subtotal,
+                shipping,
+                total,
+                payments,
+                totalPaid,
+                change
+            },
+            products
+        };
+
+        res.json({ success: true, ticket: cleanTicket });
+    } catch (error) {
+        console.error('Error obteniendo ticket digital:', error);
+        res.status(500).json({ success: false, error: 'No se pudo cargar la información del ticket.' });
+    }
+});
+
 module.exports = router;

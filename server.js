@@ -1,33 +1,36 @@
 require('dotenv').config();
 const express = require('express');
-const app = express();
-app.set('trust proxy', 1); 
 const mongoose = require('mongoose');
+const session = require('express-session');
+const MongoStore = require('connect-mongo');
 const path = require('path');
 const fs = require('fs');
-const session = require('express-session');
 
 const { info, PORT } = require('./config');
 const { requireAuth } = require('./middleware/auth'); 
+const app = express();
+
+const sessionMiddleware = session({
+  secret: process.env.SECRET_KEY || 'secreto_super_seguro_dev',
+  resave: false,
+  saveUninitialized: false,
+  store: MongoStore.create({
+    mongoUrl: process.env.MONGODB_URI,
+    collectionName: "sessions",
+    ttl: 24 * 60 * 60
+  }),
+  cookie: { 
+    secure: process.env.NODE_ENV === "production",
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000
+  }
+});
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
-app.use(session({
-    secret: process.env.SECRET_KEY || 'secreto_super_seguro_dev',
-    resave: false,
-    saveUninitialized: false,
-    cookie: { 
-        secure: false,
-        httpOnly: true,
-        maxAge: 24 * 60 * 60 * 1000
-    }
-}));
-
-const uploadsDir = path.join(__dirname, 'public/uploads');
-if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir, { recursive: true });
-}
+app.set("trust proxy", 1);
+app.use(sessionMiddleware);
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));

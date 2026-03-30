@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mjfood-repartidor-v5.1';
+const CACHE_NAME = 'mjfood-repartidor-v6.1';
 
 const urlsToCache = [
     '/',
@@ -15,8 +15,7 @@ const urlsToCache = [
     '/js/pwa-handler.js',
     '/manifest.json',
     '/banner.jpg',
-    '/manual.png',
-    '/icons/192.png',
+    '/icons/144.png',
     '/icons/512.png'
 ];
 
