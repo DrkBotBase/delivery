@@ -50,7 +50,7 @@ function openDeliveryModal(id) {
                     </div>
 
                     <div class="bg-indigo-50 p-3 rounded-xl border border-indigo-100 cursor-pointer active:scale-95 transition"
-                         onclick="openContactOptions('${delivery.phone}')">
+                         onclick="openContactOptions('${delivery.phone}', '${delivery.customerName || 'Cliente'}')">
                         <label class="text-xs font-bold text-indigo-400 uppercase">Teléfono</label>
                         <p class="font-bold text-indigo-700 text-lg flex items-center justify-between">
                             ${delivery.phone}
@@ -68,10 +68,10 @@ function openDeliveryModal(id) {
                 <div class="mt-6 grid grid-cols-2 gap-3">
                     ${(delivery.idOrder && delivery.idOrder !== 0 && delivery.idOrder !== '0') 
                         ? `<button onclick="viewDigitalInvoice('${delivery.idOrder}')" class="col-span-2 py-2.5 bg-gray-800 text-white rounded-xl font-bold shadow-lg shadow-gray-400/30 active:scale-95 transition">
-                             <i class="fas fa-receipt mr-2"></i> Ver Ticket Digital
+                             <i class="fas fa-receipt mr-2"></i> Ver Factura
                            </button>` 
-                        : `<button onclick="viewInvoice('/icons/192.png')" class="col-span-2 py-2.5 bg-gray-800 text-white rounded-xl font-bold shadow-lg shadow-gray-400/30 active:scale-95 transition">
-                             <i class="fas fa-image mr-2"></i> Ver Recibo Manual
+                        : `<button class="col-span-2 py-2.5 bg-gray-800 text-white rounded-xl font-bold shadow-lg shadow-gray-400/30 active:scale-95 transition">
+                             <i class="fas fa-image mr-2"></i> Pedido Manual
                            </button>`
                     }
                     
@@ -93,35 +93,58 @@ function openDeliveryModal(id) {
     });
 }
 
-function openContactOptions(phone) {
+function openContactOptions(phone, name) {
     let cleanPhone = phone.replace(/\D/g, ''); 
+    if (!cleanPhone.startsWith('57')) cleanPhone = '57' + cleanPhone;
 
-    if (!cleanPhone.startsWith('57')) {
-        cleanPhone = '57' + cleanPhone;
-    }
+    const displayPhone = `+${cleanPhone.substring(0,2)} ${cleanPhone.substring(2,5)} ${cleanPhone.substring(5,8)} ${cleanPhone.substring(8)}`;
 
     Swal.fire({
-        title: 'Contactar Cliente',
-        text: `+${cleanPhone}`,
-        showCancelButton: true,
-        showDenyButton: true,
-        confirmButtonText: '<i class="fab fa-whatsapp text-xl"></i> WhatsApp',
-        denyButtonText: '<i class="fas fa-phone-alt text-xl"></i> Llamar',
-        cancelButtonText: 'Cancelar',
-        confirmButtonColor: '#25D366',
-        denyButtonColor: '#4f46e5',
+        html: `
+            <div class="text-center mb-6 mt-2">
+                <div class="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 shadow-inner">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <h2 class="text-2xl font-black text-gray-800">${name}</h2>
+                <p class="text-lg font-bold text-gray-500 mt-1 tracking-wider">${displayPhone}</p>
+            </div>
+
+            <div class="space-y-3">
+                <button onclick="window.open('https://wa.me/${cleanPhone}', '_blank'); Swal.close();"
+                    class="w-full bg-[#e8fbf0] hover:bg-[#d1f7e1] border border-[#bcefd1] text-[#0d9446] p-4 rounded-2xl flex items-center gap-4 transition active:scale-95 shadow-sm">
+                    <div class="w-12 h-12 bg-[#25D366] text-white rounded-full flex items-center justify-center text-3xl shadow-md">
+                        <i class="fab fa-whatsapp"></i>
+                    </div>
+                    <div class="text-left flex-1">
+                        <h3 class="font-bold text-lg leading-tight">WhatsApp</h3>
+                        <p class="text-xs opacity-80 mt-0.5">Enviar mensaje directo</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-full bg-white/50 flex items-center justify-center">
+                        <i class="fas fa-chevron-right opacity-60"></i>
+                    </div>
+                </button>
+
+                <button onclick="window.location.href='tel:+${cleanPhone}'; Swal.close();"
+                    class="w-full bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 text-indigo-700 p-4 rounded-2xl flex items-center gap-4 transition active:scale-95 shadow-sm">
+                    <div class="w-12 h-12 bg-indigo-600 text-white rounded-full flex items-center justify-center text-xl shadow-md transform -rotate-12">
+                        <i class="fas fa-phone"></i>
+                    </div>
+                    <div class="text-left flex-1">
+                        <h3 class="font-bold text-lg leading-tight">Llamada</h3>
+                        <p class="text-xs opacity-80 mt-0.5">Llamada de voz tradicional</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-full bg-white/50 flex items-center justify-center">
+                        <i class="fas fa-chevron-right opacity-60"></i>
+                    </div>
+                </button>
+            </div>
+        `,
+        showConfirmButton: false,
+        showCloseButton: true,
         customClass: {
-            popup: 'rounded-2xl',
-            actions: 'flex-col gap-3 w-full',
-            confirmButton: 'py-2 rounded-xl font-bold text-lg',
-            denyButton: 'py-2 rounded-xl font-bold text-lg order-2',
-            cancelButton: 'text-gray-400 font-medium order-3'
-        }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            window.location.href = `https://wa.me/${cleanPhone}`;
-        } else if (result.isDenied) {
-            window.location.href = `tel:+${cleanPhone}`;
+            popup: 'rounded-[2.5rem] p-6 pb-8',
+            htmlContainer: 'm-0',
+            closeButton: 'focus:outline-none text-gray-400 hover:text-gray-600 mt-2 mr-2'
         }
     });
 }
@@ -482,32 +505,6 @@ function shareShift(tokenOverride = null) {
             popup: 'rounded-3xl p-2' 
         }
     });
-}
-
-function applyFilters() {
-    const search = document.getElementById('searchInput').value;
-    const url = new URL(window.location.href);
-    
-    if(search) {
-        url.searchParams.set('search', search);
-    } else {
-        url.searchParams.delete('search');
-    }
-    
-    url.searchParams.set('page', 1);
-    window.location.href = url.toString();
-}
-
-function changePage(newPage) {
-    const url = new URL(window.location.href);
-    url.searchParams.set('page', newPage);
-    window.location.href = url.toString();
-}
-
-function clearShiftFilter() {
-    const url = new URL(window.location.href);
-    url.searchParams.delete('shiftId');
-    window.location.href = url.toString();
 }
 
 async function addExpense() {
@@ -919,6 +916,9 @@ async function importFromVinApp() {
                 }
             }
         }
+        else if (data.error === 'SUBSCRIPTION_EXPIRED') {
+            Swal.fire('Error', data.message || 'Suscripción Expirada', 'error');
+        }
         else {
             Swal.fire('Error', data.error || 'Ocurrió un error', 'error');
         }
@@ -1040,12 +1040,12 @@ async function viewDigitalInvoice(idOrder) {
                 `;
             }
         });
-
+        
         let paymentHTML = '';
         if (t.financials.payments.length === 1) {
             paymentHTML += `
                 <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>Método pago:</span> <span>${t.financials.payments[0].method}</span></div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>Paga con:</span> <span>$${formatMoney(t.financials.payments[0].amount)}</span></div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>Paga con:</span> <span>$${formatMoney(t.financials.customerGivenAmount)}</span></div>
             `;
         } else {
             t.financials.payments.forEach((pay, index) => {
@@ -1053,14 +1053,20 @@ async function viewDigitalInvoice(idOrder) {
                     <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>Pago ${index + 1} (${pay.method}):</span> <span>$${formatMoney(pay.amount)}</span></div>
                 `;
             });
+            
+            if (t.financials.customerGivenAmount > t.financials.totalPaid) {
+                 paymentHTML += `
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>Efectivo recibido:</span> <span>$${formatMoney(t.financials.customerGivenAmount)}</span></div>
+                `;
+            }
         }
-
+        
         if (t.financials.change > 0) {
             paymentHTML += `
-                <div style="display: flex; justify-content: space-between; margin-bottom: 4px; font-weight: bold;"><span>Cambio:</span> <span>$${formatMoney(t.financials.change)}</span></div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 4px; font-weight: bold;"><span>Cambio a devolver:</span> <span>$${formatMoney(t.financials.change)}</span></div>
             `;
         }
-
+        
         const ticketHTML = `
             <div id="print-ticket-area" style="font-family: 'Courier New', monospace; color: #000; padding: 10px; max-width: 380px; margin: 0 auto; background: #fff; line-height: 1.2;">
                 <div style="text-align: center; border-bottom: 1px dashed #ccc; padding-bottom: 10px; margin-bottom: 10px;">

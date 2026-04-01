@@ -42,7 +42,6 @@
             background-color: #4f46e5;
             background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
         }
-        /* Animación suave al cargar */
         .fade-in-up {
             animation: fadeInUp 0.8s ease-out;
         }
@@ -83,7 +82,7 @@
                     Sincroniza tus entregas <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-400">al instante</span>.
                 </h1>
                 <p class="text-indigo-100 text-base sm:text-lg md:text-xl max-w-lg mx-auto md:mx-0 font-light leading-relaxed">
-                    Solo digita el número de factura. Obtenemos la dirección, el teléfono y el valor del domicilio directamente del restaurante en segundos.
+                    Solo digita el número de factura. Obtendras la factura con los datos completos en segundos.
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start pt-4">
                     <a href="/auth/register" class="group px-8 py-4 bg-white text-indigo-700 font-bold rounded-2xl shadow-xl shadow-indigo-900/20 hover:scale-105 transition flex items-center justify-center gap-2">
@@ -140,7 +139,7 @@
                 </div>
                 <h3 class="text-lg md:text-xl font-bold mb-2 md:mb-3 text-gray-800">Conexión Directa</h3>
                 <p class="text-gray-500 leading-relaxed text-sm">
-                    Vincúlate al sistema de tu restaurante usando su código seguro. Ingresa el número de tu ticket y la app descargará la dirección y el valor del domicilio.
+                    Vincúlate al sistema de tu restaurante usando su código seguro. Ingresa el número de la factura y la app descargará todos los datos.
                 </p>
             </div>
             <div class="group bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition duration-300">
@@ -158,22 +157,53 @@
                 </div>
                 <h3 class="text-lg md:text-xl font-bold mb-2 md:mb-3 text-gray-800">Tickets Digitales POS</h3>
                 <p class="text-gray-500 leading-relaxed text-sm">
-                    Visualiza y genera recibos electrónicos detallados de cada entrega. Imprímelos fácilmente si cuentas con una mini impresora térmica.
+                    Visualiza y genera recibos electrónicos detallados de cada entrega.
+                </p>
+            </div>
+            <div class="group bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition duration-300">
+                <div class="w-12 h-12 md:w-14 md:h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center text-xl md:text-2xl mb-4 md:mb-6 group-hover:scale-110 transition">
+                    <i class="fas fa-map-marked-alt"></i>
+                </div>
+                <h3 class="text-lg md:text-xl font-bold mb-2 md:mb-3 text-gray-800">Modo Ruta</h3>
+                <p class="text-gray-500 leading-relaxed text-sm">
+                    Entra al modo ruta y podrás ver los pedidos pendientes a realizar.
+                </p>
+            </div>
+            <div class="group bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition duration-300">
+                <div class="w-12 h-12 md:w-14 md:h-14 bg-yellow-50 text-yellow-600 rounded-2xl flex items-center justify-center text-xl md:text-2xl mb-4 md:mb-6 group-hover:scale-110 transition">
+                    <i class="fa-solid fa-share-nodes"></i>
+                </div>
+                <h3 class="text-lg md:text-xl font-bold mb-2 md:mb-3 text-gray-800">Jornada</h3>
+                <p class="text-gray-500 leading-relaxed text-sm">
+                    Comparte el reporte de tu jornada donde encontraras el historial de pedidos entregados, tus ganancias y gastos.
+                </p>
+            </div>
+            <div class="group bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition duration-300">
+                <div class="w-12 h-12 md:w-14 md:h-14 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center text-xl md:text-2xl mb-4 md:mb-6 group-hover:scale-110 transition">
+                    <i class="fa-solid fa-mobile"></i>
+                </div>
+                <h3 class="text-lg md:text-xl font-bold mb-2 md:mb-3 text-gray-800">Contacto</h3>
+                <p class="text-gray-500 leading-relaxed text-sm">
+                    Desde el modal del pedido y en modo ruta contacta de forma rapida al cliente directamente por llamada o WhatsApp solo con tocar un boton.
                 </p>
             </div>
         </div>
     </section>
-
-    <section class="bg-indigo-50 py-12 md:py-16 px-6 md:mt-4 rounded-[2rem] md:rounded-[3rem] max-w-5xl mx-auto mb-10 border border-indigo-100">
-        <div class="text-center flex flex-col items-center">
-            <div class="w-14 h-14 md:w-16 md:h-16 bg-white text-indigo-600 rounded-full flex items-center justify-center text-xl md:text-2xl mb-4 shadow-sm">
-                <i class="fas fa-store"></i>
+   
+    <section class="py-20 md:py-24 px-6 max-w-6xl mx-auto">
+        <div class="grid md:grid-cols-3 gap-6 md:gap-8">
+            <div class="group hero-pattern p-6 md:p-8 rounded-3xl shadow-sm border border-purple-100 hover:shadow-xl hover:-translate-y-1 transition duration-300">
+                <div class="w-12 h-12 md:w-14 md:h-14 bg-white text-black rounded-2xl flex items-center justify-center text-xl md:text-2xl mb-4 md:mb-6 group-hover:scale-110 transition">
+                    <i class="fa-solid fa-store text-indigo-600"></i>
+                </div>
+                <h3 class="text-lg md:text-xl font-bold mb-2 md:mb-3 text-white">Eres un restaurante?</h3>
+                <p class="text-white leading-relaxed text-sm mb-2">
+                    Si eres un restaurante, genera tu codigo unico para que tus domiciliarios se vinculen y puedan hacer uso de las facturas digitales.
+                </p>
+                <button onclick="window.open('https://wa.me/573046793853?text=Hola,%0AQuisiera%20obtener%20el%20codigo%20de%20mi%20restaurante.', '_blank');" class="col-span-2 p-3 bg-gray-800 text-white rounded-xl font-bold shadow-lg shadow-gray-400/30 active:scale-95 transition">
+                  Obtener Codigo
+                </button>
             </div>
-            <h3 class="text-xl md:text-2xl font-bold text-gray-900 mb-2">¿Eres dueño de un restaurante?</h3>
-            <p class="text-sm md:text-base text-gray-600 mb-6 max-w-md">Facilítale la vida a tus domiciliarios. Genera el código de vinculación de tu local en un solo paso.</p>
-            <a href="/tools/restaurant" class="bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-700 transition shadow-md text-sm md:text-base">
-                Obtener código de restaurante
-            </a>
         </div>
     </section>
 
@@ -183,14 +213,10 @@
                 <p class="font-bold text-lg"><%= info.name_page %></p>
                 <p class="text-gray-400 text-sm mt-1">El aliado perfecto para tu ruta.</p>
             </div>
-            <div class="flex gap-4 md:gap-6 items-center">
-                <a href="/tools/restaurant" class="text-gray-400 hover:text-white transition text-xs md:text-sm bg-gray-800 px-3 py-1 rounded-full border border-gray-700">
-                    Portal Restaurantes
-                </a>
-                <span class="text-gray-700 hidden sm:inline">|</span>
+            <!--<div class="flex gap-4 md:gap-6 items-center">
                 <a href="#" class="text-gray-400 hover:text-white transition text-lg"><i class="fab fa-facebook"></i></a>
                 <a href="#" class="text-gray-400 hover:text-white transition text-lg"><i class="fab fa-instagram"></i></a>
-            </div>
+            </div>-->
         </div>
         <div class="text-center mt-8 pt-8 border-t border-gray-800">
             <p class="opacity-50 text-xs">

@@ -7,6 +7,7 @@ const fs = require('fs');
 const crypto = require('crypto');
 const moment = require('moment-timezone');
 
+const Restaurant = require('../models/Restaurant');
 const Delivery = require('../models/Delivery');
 const Shift = require('../models/Shift');
 const Expense = require('../models/Expense');
@@ -80,6 +81,8 @@ router.get('/panel', requireAuth, async (req, res) => {
             deliveryQuery.$or = [
                 { invoiceNumber: { $regex: search, $options: 'i' } },
                 { customerName: { $regex: search, $options: 'i' } },
+                { phone: { $regex: search, $options: 'i' } },
+                { notes: { $regex: search, $options: 'i' } },
                 { address: { $regex: search, $options: 'i' } }
             ];
         }
@@ -628,6 +631,28 @@ router.post('/api/deliveries/import-vinapp', requireAuth, async (req, res) => {
             });
         }
 
+        const restaurantAccount = await Restaurant.findOne({ pointId: foundPointId });
+
+        if (restaurantAccount) {
+            if (restaurantAccount.availableScans <= 0 || restaurantAccount.status === 'suspended') {
+                
+                if (restaurantAccount.status !== 'suspended') {
+                    restaurantAccount.status = 'suspended';
+                    await restaurantAccount.save();
+                }
+
+                return res.status(403).json({
+                    success: false,
+                    error: 'NO_BALANCE',
+                    message: `El restaurante "${foundRestaurantName}" se ha quedado sin saldo de escaneos. Dile a la administración que recargue su cuenta.`
+                });
+            }
+
+            restaurantAccount.availableScans -= 1;
+            restaurantAccount.totalScans += 1;
+            await restaurantAccount.save();
+        }
+
         const existing = await Delivery.findOne({ 
             invoiceNumber: deliveryData.invoiceNumber,
             user: req.session.userId 
@@ -690,26 +715,33 @@ router.get('/api/deliveries/ticket/:idOrder', requireAuth, async (req, res) => {
         const total = parseFloat(data.total || 0);
         const subtotal = total - shipping;
 
-        let payments = [];
-        let totalPaid = 0;
+        let rawPayWith = parseFloat(data.pay_with) || 0;
+        
+        if (rawPayWith > 0 && rawPayWith <= 500) {
+            rawPayWith = rawPayWith * 1000;
+        }
 
+        let payments = [];
         const method1Amount = parseFloat(data.valor_forma_pago) || total;
-        totalPaid += method1Amount;
         payments.push({
             method: getPaymentMethod(data.id_type_forma_pago),
             amount: method1Amount
         });
 
+        let sumOfMethods = method1Amount;
+
         if (data.id_type_forma_pago_secundaria && data.valor_forma_pago_secundaria) {
             const method2Amount = parseFloat(data.valor_forma_pago_secundaria);
-            totalPaid += method2Amount;
+            sumOfMethods += method2Amount;
             payments.push({
                 method: getPaymentMethod(data.id_type_forma_pago_secundaria),
                 amount: method2Amount
             });
         }
 
-        const change = totalPaid > total ? totalPaid - total : 0;
+        let customerGivenAmount = rawPayWith > sumOfMethods ? rawPayWith : sumOfMethods;
+        
+        const change = customerGivenAmount > total ? customerGivenAmount - total : 0;
 
         const products = (data.details || []).map(detail => ({
             name: detail.name_product,
@@ -740,17 +772,54 @@ router.get('/api/deliveries/ticket/:idOrder', requireAuth, async (req, res) => {
                 shipping,
                 total,
                 payments,
-                totalPaid,
+                totalPaid: sumOfMethods, 
+                customerGivenAmount,
                 change
             },
             products
         };
-
+        
         res.json({ success: true, ticket: cleanTicket });
     } catch (error) {
         console.error('Error obteniendo ticket digital:', error);
         res.status(500).json({ success: false, error: 'No se pudo cargar la información del ticket.' });
     }
+});
+
+// restaurant panel
+router.get('/restaurante/login', (req, res) => {
+    res.render('restaurante-login');
+});
+
+router.post('/api/restaurante/login', async (req, res) => {
+    try {
+        const { linkCode, password } = req.body;
+        if (!linkCode || !password) {
+            return res.status(400).json({ error: 'Faltan datos' });
+        }
+
+        const pointId = linkCode.split('-')[1];
+        const restaurant = await Restaurant.findOne({ pointId: pointId, password: password });
+        
+        if (!restaurant) {
+            return res.status(401).json({ error: 'Código o contraseña incorrectos' });
+        }
+
+        req.session.restaurantId = restaurant._id;
+        res.json({ success: true });
+
+    } catch (error) {
+        res.status(500).json({ error: 'Error del servidor' });
+    }
+});
+
+router.get('/restaurante/panel', async (req, res) => {
+    if (!req.session.restaurantId) {
+        return res.redirect('/restaurante/login');
+    }
+
+    const restaurant = await Restaurant.findById(req.session.restaurantId);
+    res.render('restaurante-dashboard', { restaurant });
 });
 
 module.exports = router;
