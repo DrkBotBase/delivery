@@ -869,7 +869,7 @@ async function importFromVinApp() {
                     <p class="text-xs text-gray-400 mb-2">Pídele el código de vinculación al restaurante.</p>
                 `,
                 input: 'text',
-                inputPlaceholder: 'Ej: 8224-1640',
+                inputPlaceholder: 'Ej: 5678-1234',
                 icon: 'lock',
                 showCancelButton: true,
                 confirmButtonText: 'Vincular',
@@ -880,7 +880,7 @@ async function importFromVinApp() {
             if (linkCode) {
                 const parts = linkCode.split('-');
                 if (parts.length !== 2) {
-                    return Swal.fire('Error', 'El código debe tener el formato NUMERO-NUMERO (ej: 8224-1640)', 'error');
+                    return Swal.fire('Error', 'El código debe tener el formato NUMERO-NUMERO (ej: 5678-1234)', 'error');
                 }
 
                 const companyId = parts[0].trim();
@@ -916,15 +916,92 @@ async function importFromVinApp() {
                 }
             }
         }
-        else if (data.error === 'SUBSCRIPTION_EXPIRED') {
-            Swal.fire('Error', data.message || 'Suscripción Expirada', 'error');
+        
+        else if (data.error === 'RESTAURANT_NOT_FOUND') {
+            Swal.fire({
+                icon: 'error',
+                title: 'Restaurante No Registrado',
+                html: `
+                    <p class="mb-2">${data.message}</p>
+                    <p class="text-sm text-gray-400 mt-3">Pídele al administrador del restaurante que se registre en el sistema.</p>
+                `,
+                confirmButtonText: 'Entendido',
+                confirmButtonColor: '#4f46e5'
+            });
         }
+        
+        else if (data.error === 'NO_BALANCE') {
+            Swal.fire({
+                icon: 'error',
+                title: 'Sin saldo disponible',
+                html: `
+                    <p class="mb-2">${data.message}</p>
+                    <p class="text-sm text-gray-500 mt-3">Contacta al administrador del restaurante para recargar saldo.</p>
+                `,
+                confirmButtonText: 'Entendido',
+                confirmButtonColor: '#f59e0b'
+            });
+        }
+        
+        else if (data.error === 'Esta factura ya fue importada') {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Factura duplicada',
+                html: `
+                    <p>${data.error}</p>
+                    <p class="text-sm text-gray-500 mt-2">Ya has importado esta factura anteriormente.</p>
+                `,
+                confirmButtonText: 'Aceptar',
+                confirmButtonColor: '#f59e0b'
+            });
+        }
+        
+        else if (data.error && data.error.includes('Factura no encontrada')) {
+            Swal.fire({
+                icon: 'info',
+                title: 'Factura no encontrada',
+                html: `
+                    <p>${data.error}</p>
+                    <p class="text-sm text-gray-500 mt-2">Verifica que el número de factura sea correcto 
+                    y que corresponda a un pedido de hoy en tus restaurantes vinculados.</p>
+                `,
+                confirmButtonText: 'Reintentar',
+                confirmButtonColor: '#4f46e5'
+            });
+        }
+        
+        else if (data.error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error en la importación',
+                html: `
+                    <p class="mb-2">${data.error}</p>
+                    ${data.message ? `<p class="text-sm text-gray-500">${data.message}</p>` : ''}
+                `,
+                confirmButtonText: 'Aceptar',
+                confirmButtonColor: '#ef4444'
+            });
+        }
+        
         else {
-            Swal.fire('Error', data.error || 'Ocurrió un error', 'error');
+            Swal.fire({
+                icon: 'error',
+                title: 'Error inesperado',
+                text: data.message || 'Ocurrió un error al procesar la solicitud',
+                confirmButtonText: 'Aceptar',
+                confirmButtonColor: '#ef4444'
+            });
         }
+        
     } catch (error) {
         console.error("Error importando:", error);
-        Swal.fire('Error', 'Fallo de conexión', 'error');
+        Swal.fire({
+            icon: 'error',
+            title: 'Error de conexión',
+            text: 'No se pudo conectar con el servidor. Verifica tu conexión a internet.',
+            confirmButtonText: 'Reintentar',
+            confirmButtonColor: '#ef4444'
+        });
     } finally {
         btn.innerHTML = originalContent;
         btn.disabled = false;

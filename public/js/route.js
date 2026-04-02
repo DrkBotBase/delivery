@@ -144,7 +144,7 @@ function startNavigation() {
     if (!currentRoute || currentDeliveryIndex >= currentRoute.deliveries.length) return;
     
     const delivery = currentRoute.deliveries[currentDeliveryIndex];
-    const addressQuery = encodeURIComponent(delivery.address + ", Barranquilla"); 
+    const addressQuery = encodeURIComponent(delivery.address); 
     
     Swal.fire({
         html: `

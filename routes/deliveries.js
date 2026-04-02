@@ -606,7 +606,7 @@ router.post('/api/deliveries/import-vinapp', requireAuth, async (req, res) => {
             return res.status(403).json({ 
                 success: false, 
                 error: 'NO_RESTAURANTS',
-                message: 'No tienes ningún restaurante vinculado. Ingresa tu código de vinculación primero.'
+                message: 'No tienes ningún restaurante vinculado. Ingresa el código de vinculación primero.'
             });
         }
 
@@ -633,25 +633,31 @@ router.post('/api/deliveries/import-vinapp', requireAuth, async (req, res) => {
 
         const restaurantAccount = await Restaurant.findOne({ pointId: foundPointId });
 
-        if (restaurantAccount) {
-            if (restaurantAccount.availableScans <= 0 || restaurantAccount.status === 'suspended') {
-                
-                if (restaurantAccount.status !== 'suspended') {
-                    restaurantAccount.status = 'suspended';
-                    await restaurantAccount.save();
-                }
+        if (!restaurantAccount) {
+            return res.status(403).json({
+                success: false,
+                error: 'RESTAURANT_NOT_FOUND',
+                message: `No se encontró una cuenta activa para el restaurante "${foundRestaurantName}".`
+            });
+        }
 
-                return res.status(403).json({
-                    success: false,
-                    error: 'NO_BALANCE',
-                    message: `El restaurante "${foundRestaurantName}" se ha quedado sin saldo de escaneos. Dile a la administración que recargue su cuenta.`
-                });
+        if (restaurantAccount.availableScans <= 0 || restaurantAccount.status === 'suspended') {
+            
+            if (restaurantAccount.status !== 'suspended') {
+                restaurantAccount.status = 'suspended';
+                await restaurantAccount.save();
             }
 
-            restaurantAccount.availableScans -= 1;
-            restaurantAccount.totalScans += 1;
-            await restaurantAccount.save();
+            return res.status(403).json({
+                success: false,
+                error: 'NO_BALANCE',
+                message: `El restaurante "${foundRestaurantName}" se ha quedado sin saldo de escaneos. Dile a la administración que recargue su cuenta.`
+            });
         }
+
+        restaurantAccount.availableScans -= 1;
+        restaurantAccount.totalScans += 1;
+        await restaurantAccount.save();
 
         const existing = await Delivery.findOne({ 
             invoiceNumber: deliveryData.invoiceNumber,
@@ -680,7 +686,6 @@ router.post('/api/deliveries/import-vinapp', requireAuth, async (req, res) => {
             message: 'Importado correctamente'
         });
     } catch (error) {
-        console.error('Error import-vinapp:', error);
         res.status(500).json({ success: false, error: 'Error al conectar con API' });
     }
 });
