@@ -29,7 +29,7 @@
                 <p class="text-6xl font-black text-emerald-600 mb-2"><%= restaurant.availableScans %></p>
                 <p class="text-sm text-gray-500 mb-6">En tu bolsa prepago</p>
                 
-                <button onclick="alert('Pronto conectaremos MercadoPago/Wompi para recargar facturas.')" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl shadow-lg transition">
+                <button data-nombre="<%= restaurant.name %>" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl shadow-lg transition btn-recargar">
                     <i class="fas fa-plus-circle"></i> Recargar Bolsa
                 </button>
             </div>
@@ -66,6 +66,11 @@
                 icon: 'info'
             });
         }
+        document.querySelector('.btn-recargar').onclick = function() {
+            let nombre = this.dataset.nombre;
+            let url = `https://wa.me/573046793853?text=Hola,%0APara%20hacer%20una%20recarga%20al%20restaurante%20${encodeURIComponent(nombre)}`;
+            window.open(url, '_blank');
+        };
     </script>
 </body>
 </html>
