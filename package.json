@@ -1,6 +1,6 @@
 {
   "name": "MJFOOD Repartidor",
-  "version": "6.4",
+  "version": "6.4.0",
   "description": "Aplicación para repartidores de MJFOOD",
   "type": "commonjs",
   "main": "server.js",

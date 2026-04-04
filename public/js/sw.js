@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mjfood-repartidor-v6.4';
+const CACHE_NAME = 'mjfood-repartidor-v6.4.0';
 
 const urlsToCache = [
     '/',
