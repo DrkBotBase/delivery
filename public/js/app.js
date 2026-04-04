@@ -1205,61 +1205,57 @@ async function viewDigitalInvoice(idOrder) {
             showCloseButton: true,
             showCancelButton: true,
             showConfirmButton: true,
-            confirmButtonText: '<i class="fas fa-print"></i> Imprimir',
+            // CAMBIAMOS EL BOTÓN AQUÍ
+            confirmButtonText: '<i class="fab fa-whatsapp text-lg"></i> Enviar Factura',
             cancelButtonText: 'Cerrar',
-            confirmButtonColor: '#059669',
+            confirmButtonColor: '#25D366', // Color verde de WhatsApp
             cancelButtonColor: '#6b7280',
             background: '#f3f4f6',
             width: 'auto',
             customClass: {
                 htmlContainer: 'm-0 p-0',
-                popup: 'rounded-2xl p-4',
-                confirmButton: 'w-full mb-2',
-                cancelButton: 'w-full'
+                popup: 'rounded-3xl p-4 shadow-xl',
+                confirmButton: 'w-full mb-2 py-3 rounded-xl font-bold shadow-md shadow-green-500/30 text-white',
+                cancelButton: 'w-full py-3 rounded-xl font-bold'
             },
             buttonsStyling: true
-        }).then((result) => {
+        }).then(async (result) => {
             if (result.isConfirmed) {
-                printTicketData(ticketHTML);
+                Swal.fire({
+                    title: 'Generando PDF...',
+                    text: 'Enviando al WhatsApp del cliente',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+
+                try {
+                    const sendRes = await fetch(`/api/deliveries/send-ticket/${idOrder}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ ticket: t })
+                    });
+
+                    const sendData = await sendRes.json();
+
+                    if (sendData.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Enviado!',
+                            text: 'El cliente recibió la factura en formato PDF.',
+                            timer: 2000,
+                            showConfirmButton: false,
+                            customClass: { popup: 'rounded-2xl' }
+                        });
+                    } else {
+                        Swal.fire('Aviso', sendData.error || 'Función no disponible', 'warning');
+                    }
+                } catch (err) {
+                    Swal.fire('Error', 'No se pudo conectar con el servidor para enviar la factura.', 'error');
+                }
             }
         });
-
     } catch (error) {
         console.error("Error cargando ticket:", error);
         Swal.fire('Error', 'No se pudo cargar la información del ticket. Intenta de nuevo.', 'error');
     }
-}
-
-function printTicketData(htmlContent) {
-    const printWindow = window.open('', '_blank', 'width=400,height=600');
-    printWindow.document.write(`
-        <html>
-            <head>
-                <title>Imprimir Factura</title>
-                <style>
-                    body { 
-                        margin: 0; 
-                        padding: 10px; 
-                        display: flex; 
-                        justify-content: center; 
-                    }
-                    @media print {
-                        body { margin: 0; padding: 0; }
-                        /* POS (58mm/80mm) */
-                        @page { margin: 0; } 
-                    }
-                </style>
-            </head>
-            <body>
-                ${htmlContent}
-                <script>
-                    window.onload = () => {
-                        window.print();
-                        setTimeout(() => window.close(), 500);
-                    };
-                </script>
-            </body>
-        </html>
-    `);
-    printWindow.document.close();
 }
