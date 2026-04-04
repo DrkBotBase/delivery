@@ -898,7 +898,7 @@ router.post('/api/deliveries/send-ticket/:idOrder', requireAuth, async (req, res
         doc.moveDown(0.3);
         doc.fontSize(9)
            .font('Helvetica')
-           .text('Generado por', { align: 'center' });
+           .text('Generada por', { align: 'center' });
         doc.fontSize(11)
            .font('Helvetica-Bold')
            .text('MJFOOD', { align: 'center' });
@@ -924,7 +924,7 @@ router.post('/api/deliveries/send-ticket/:idOrder', requireAuth, async (req, res
         doc.fontSize(8)
            .font('Helvetica');
         
-        doc.text(`Factura: ${ticket.order.invoiceNumber}`, 15, doc.y, { continued: true })
+        doc.text(`Factura: ${ticket.order.invoiceNumber.split('-')[1]}`, 15, doc.y, { continued: true })
            .text(`   Pedido #: ${ticket.order.id}`, { align: 'right' });
         
         doc.text(`Fecha: ${formatDate(ticket.order.date)}`);
@@ -1073,7 +1073,7 @@ router.post('/api/deliveries/send-ticket/:idOrder', requireAuth, async (req, res
            .moveDown(0.3)
            .fontSize(7)
            .font('Helvetica-Bold')
-           .text('Delivery Tracker', { align: 'center' })
+           .text('Delivery by: MJFOOD', { align: 'center' })
            .moveDown(0.3)
            /*.fontSize(6)
            .font('Helvetica-Oblique')

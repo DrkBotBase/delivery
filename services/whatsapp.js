@@ -126,12 +126,13 @@ module.exports = {
             cleanPhone = '57' + cleanPhone; 
         }
         
+        let numberFact = invoiceNumber.split('-')[1];
         const jid = `${cleanPhone}@s.whatsapp.net`;
         await sock.sendMessage(jid, {
             document: pdfBuffer,
             mimetype: 'application/pdf',
-            fileName: `Factura_${invoiceNumber}.pdf`,
-            caption: `¡Hola! Aquí tienes el detalle digital de tu pedido (Factura #${invoiceNumber}).\n\n✨ ¡Gracias por preferirnos!`
+            fileName: `Factura_${numberFact}.pdf`,
+            caption: `¡Hola! Aquí tienes el detalle de tu pedido (Factura #${numberFact}).\n\n✨ ¡Gracias por preferirnos!`
         });
     },
     
