@@ -111,7 +111,7 @@ class VinAppService {
 
     mapToDelivery(vinData, shippingCost) {
         const cleanTotal = parseFloat((vinData.total || '0').replace(/\./g, '').replace(',', '.'));
-        const paymentType = vinData.id_type_forma_pago == 38 ? 'Transferencia' : 'Efectivo';
+        const paymentType = vinData.id_type_forma_pago == 37 ? 'Efectivo' : 'Transferencia';
         return {
             invoiceNumber: vinData.document_number || vinData.consecutive_invoice_pos,
             numberComanda: `CM: ${vinData.consecutivo_comanda}`,

@@ -69,6 +69,24 @@ if (registerForm) {
         e.preventDefault();
         const registerData = Object.fromEntries(new FormData(e.target));
 
+        if (registerData.username && registerData.username.includes(" ")) {
+            return Swal.fire({
+                icon: "error",
+                title: "Error de validación",
+                text: "El nombre de usuario no puede contener espacios",
+                confirmButtonColor: "#4f46e5"
+            });
+        }
+
+        if (!registerData.username || registerData.username.trim() === "") {
+            return Swal.fire({
+                icon: "error",
+                title: "Error de validación",
+                text: "El nombre de usuario es obligatorio",
+                confirmButtonColor: "#4f46e5"
+            });
+        }
+
         if (registerData.password !== registerData.confirmPassword) {
             return Swal.fire("Error", "Las contraseñas no coinciden", "error");
         }
