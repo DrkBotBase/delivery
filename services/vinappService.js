@@ -87,6 +87,8 @@ class VinAppService {
         const orders = Array.isArray(data) ? data : (data.data || []);
         
         const targetOrder = orders.find(order => 
+            order.document_number && 
+            order.document_number.toString().endsWith(invoiceNumber) ||
             order.consecutive_invoice_pos && 
             order.consecutive_invoice_pos.toString().endsWith(invoiceNumber)
         );
@@ -111,7 +113,7 @@ class VinAppService {
         const cleanTotal = parseFloat((vinData.total || '0').replace(/\./g, '').replace(',', '.'));
         const paymentType = vinData.id_type_forma_pago == 38 ? 'Transferencia' : 'Efectivo';
         return {
-            invoiceNumber: vinData.consecutive_invoice_pos,
+            invoiceNumber: vinData.document_number || vinData.consecutive_invoice_pos,
             numberComanda: `CM: ${vinData.consecutivo_comanda}`,
             idOrder: vinData.id_order,
             customerName: vinData.name || 'Cliente',

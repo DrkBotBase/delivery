@@ -1205,10 +1205,9 @@ async function viewDigitalInvoice(idOrder) {
             showCloseButton: true,
             showCancelButton: true,
             showConfirmButton: true,
-            // CAMBIAMOS EL BOTÓN AQUÍ
             confirmButtonText: '<i class="fab fa-whatsapp text-lg"></i> Enviar Factura',
             cancelButtonText: 'Cerrar',
-            confirmButtonColor: '#25D366', // Color verde de WhatsApp
+            confirmButtonColor: '#25D366',
             cancelButtonColor: '#6b7280',
             background: '#f3f4f6',
             width: 'auto',
