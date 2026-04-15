@@ -171,7 +171,7 @@ function startNavigation() {
                     </div>
                 </button>
 
-                <button onclick="window.open('https://maps.google.com/?q=${addressQuery}', '_blank'); Swal.close();"
+                <button onclick="window.open('https://www.google.com/maps/search/?api=1&query=${addressQuery}', '_blank'); Swal.close();"
                     class="w-full bg-red-50 hover:bg-red-100 border border-red-100 text-red-600 p-4 rounded-2xl flex items-center gap-4 transition active:scale-95 shadow-sm">
                     <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-2xl shadow-sm text-red-500">
                         <i class="fas fa-map-marker-alt"></i>
