@@ -3,326 +3,359 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
     <title><%= title %></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        delivery: {
+                            primary: '#FF5722',
+                            secondary: '#2D3436',
+                            asphalt: '#f1f5f9',
+                            grid: '#e2e8f0'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap');
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            color: #fff;
+            font-family: 'Outfit', sans-serif;
+            touch-action: none;
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
         }
-        
-        .offline-container {
-            text-align: center;
-            max-width: 500px;
-            width: 100%;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 40px 30px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+        canvas {
+            background-color: #f1f5f9;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);
         }
-        
-        .offline-icon {
-            font-size: 80px;
-            margin-bottom: 20px;
-            animation: pulse 2s infinite;
+        .score-pop {
+            animation: pop 0.3s ease-out;
         }
-        
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
         }
-        
-        h1 {
-            font-size: 28px;
-            margin-bottom: 15px;
-            font-weight: 700;
+        #gameOverlay {
+            backdrop-filter: blur(8px);
         }
-        
-        p {
-            font-size: 16px;
-            line-height: 1.6;
-            margin-bottom: 25px;
-            opacity: 0.9;
+        .status-pulse {
+            animation: pulse-simple 2s infinite;
         }
-        
-        .features {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 12px;
-            padding: 20px;
-            margin: 25px 0;
-            text-align: left;
-        }
-        
-        .features h3 {
-            font-size: 18px;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .features ul {
-            list-style: none;
-        }
-        
-        .features li {
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 15px;
-        }
-        
-        .features li:before {
-            content: "✓";
-            background: rgba(255, 255, 255, 0.2);
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            flex-shrink: 0;
-        }
-        
-        .actions {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        
-        button {
-            padding: 14px 28px;
-            border-radius: 50px;
-            border: none;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            min-width: 180px;
-        }
-        
-        .btn-primary {
-            background: #fff;
-            color: #667eea;
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-        }
-        
-        .btn-secondary {
-            background: transparent;
-            color: #fff;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-        }
-        
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(255, 255, 255, 0.5);
-        }
-        
-        .connection-status {
-            margin-top: 25px;
-            padding: 15px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            font-size: 14px;
-        }
-        
-        .status-indicator {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-        
-        .status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #ff4757;
-            animation: blink 1.5s infinite;
-        }
-        
-        @keyframes blink {
+        @keyframes pulse-simple {
             0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-        
-        .status-dot.connected {
-            background: #2ed573;
-            animation: none;
-        }
-        
-        @media (max-width: 480px) {
-            .offline-container {
-                padding: 30px 20px;
-            }
-            
-            h1 {
-                font-size: 24px;
-            }
-            
-            .actions {
-                flex-direction: column;
-            }
-            
-            button {
-                width: 100%;
-            }
+            50% { opacity: 0.5; }
         }
     </style>
 </head>
-<body>
-    <div class="offline-container">
-        <div class="offline-icon">📡</div>
-        
-        <h1>Estás trabajando sin conexión</h1>
-        
-        <p>No hay conexión a Internet en este momento. Algunas funciones pueden no estar disponibles, pero puedes continuar trabajando con las siguientes opciones:</p>
-        
-        <div class="features">
-            <h3>📱 Funciones disponibles sin conexión:</h3>
-            <ul>
-                <li>Ver entregas recientes</li>
-                <li>Revisar historial de pedidos</li>
-                <li>Acceder a información guardada</li>
-                <li>Usar la aplicación básica</li>
-                <li>Los cambios se guardarán localmente</li>
-            </ul>
+<body class="bg-delivery-secondary min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-md w-full bg-white rounded-[2.5rem] overflow-hidden shadow-2xl transition-all border-4 border-white/10">
+        <div class="bg-delivery-primary p-6 text-white text-center relative">
+            <h1 class="text-3xl font-black italic tracking-tighter uppercase">Delivery Rush</h1>
+            <p id="headerStatus" class="text-orange-100 text-[10px] font-bold opacity-80 uppercase tracking-widest">Modo Offline</p>
         </div>
-        
-        <div class="actions">
-            <button class="btn-primary" onclick="window.location.href='/panel'">
-                <span>🏠</span>
-                Ir al inicio
-            </button>
-            
-            <button class="btn-secondary" onclick="checkConnection()">
-                <span>🔄</span>
-                Reintentar conexión
-            </button>
-        </div>
-        
-        <div class="connection-status">
-            <div class="status-indicator">
-                <span class="status-dot" id="statusDot"></span>
-                <span id="statusText">Sin conexión</span>
+        <div class="flex justify-around bg-gray-50 py-4 border-b border-gray-100">
+            <div class="text-center">
+                <p class="text-[10px] uppercase font-black text-gray-400">Ganancias</p>
+                <p id="scoreValue" class="text-2xl font-black text-delivery-primary leading-none">$0</p>
             </div>
-            <div id="lastSync">Última sincronización: <span id="lastSyncTime">Cargando...</span></div>
+            <div class="text-center border-l border-gray-200 pl-8">
+                <p class="text-[10px] uppercase font-black text-gray-400">Récord</p>
+                <p id="highScoreValue" class="text-2xl font-black text-delivery-secondary leading-none">$0</p>
+            </div>
+        </div>
+        <div class="p-4 relative">
+            <canvas id="gameCanvas" width="340" height="340" class="rounded-3xl w-full h-auto border-2 border-gray-100"></canvas>
+            <div id="gameOverlay" class="absolute inset-0 bg-black/70 flex flex-col items-center justify-center text-white m-4 rounded-3xl hidden z-20">
+                <div id="overlayContent" class="text-center p-8"></div>
+            </div>
+        </div>
+        <div class="px-6 pb-6 space-y-3">
+            <div class="flex gap-2">
+                <button id="retryBtn" class="flex-1 bg-delivery-secondary text-white font-black py-4 rounded-2xl active:scale-95 transition-all flex items-center justify-center gap-2 shadow-lg">
+                    📡 Reintentar
+                </button>
+                <button id="homeBtn" class="bg-gray-100 text-delivery-secondary font-black px-4 rounded-2xl active:scale-95 transition-all flex items-center justify-center gap-2 border border-gray-200">
+                    🏠 Inicio
+                </button>
+                <button id="resetBtn" class="w-12 bg-gray-50 text-gray-400 rounded-2xl active:scale-95 flex items-center justify-center text-lg border border-gray-100">
+                    🔄
+                </button>
+            </div>
+            <div class="bg-gray-50 rounded-2xl p-3 border border-gray-100 text-center">
+                <span id="statusMsg" class="text-xs font-medium">⚡ Esperando conexión... Juega mientras tanto</span>
+            </div>
         </div>
     </div>
-
     <script>
-        const statusDot = document.getElementById('statusDot');
-        const statusText = document.getElementById('statusText');
-        const lastSyncTime = document.getElementById('lastSyncTime');
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreSpan = document.getElementById('scoreValue');
+        const highScoreSpan = document.getElementById('highScoreValue');
+        const overlay = document.getElementById('gameOverlay');
+        const overlayContent = document.getElementById('overlayContent');
+        const statusMsgSpan = document.getElementById('statusMsg');
+        const retryBtn = document.getElementById('retryBtn');
+        const homeBtn = document.getElementById('homeBtn');
+        const resetBtn = document.getElementById('resetBtn');
+
+        const GRID_SIZE = 17;
+        const CELL_SIZE = canvas.width / GRID_SIZE;
         
-        function checkConnection() {
-            if (navigator.onLine) {
-                updateStatus(true);
-                setTimeout(() => {
-                    window.location.href = '/panel';
-                }, 1500);
-            } else {
-                updateStatus(false);
-                showToast('❌ Aún sin conexión', 2000);
-            }
-        }
+        const FOOD_MENU = [
+            { icon: '🍣', points: 20, weight: 1 },
+            { icon: '🍕', points: 10, weight: 3 },
+            { icon: '🍔', points: 10, weight: 3 },
+            { icon: '🍦', points: 5, weight: 5 }
+        ];
         
-        function updateStatus(isOnline) {
+        let snake = [{x: 8, y: 8}, {x: 7, y: 8}, {x: 6, y: 8}];
+        let direction = 'RIGHT';
+        let nextDirection = 'RIGHT';
+        let food = null;
+        let score = 0;
+        let highScore = localStorage.getItem('deliveryScoreV2') || 0;
+        let gameLoop = null;
+        let isGameOver = false;
+        let pendingRedirect = false;
+
+        highScoreSpan.innerText = `$${highScore}`;
+
+        function updateConnectionUI(isOnline) {
             if (isOnline) {
-                statusDot.classList.add('connected');
-                statusText.textContent = 'Conectado';
-                showToast('✅ ¡Conectado! Redirigiendo...', 1500);
+                pendingRedirect = true;
+                statusMsgSpan.innerHTML = "✅ ¡Conexión recuperada! Se redirigirá al terminar partida.";
+                statusMsgSpan.className = "text-green-600 text-xs font-bold";
+                
+                if (isGameOver) {
+                    performRedirect();
+                }
             } else {
-                statusDot.classList.remove('connected');
-                statusText.textContent = 'Sin conexión';
+                pendingRedirect = false;
+                statusMsgSpan.innerHTML = "⚠️ Sin conexión. Sigue jugando mientras se restablece.";
+                statusMsgSpan.className = "text-amber-600 text-xs font-medium";
             }
         }
-        
-        function showToast(message, duration) {
-            const toast = document.createElement('div');
-            toast.textContent = message;
-            toast.style.cssText = `
-                position: fixed;
-                top: 20px;
-                left: 50%;
-                transform: translateX(-50%);
-                background: rgba(0, 0, 0, 0.8);
-                color: white;
-                padding: 12px 24px;
-                border-radius: 8px;
-                z-index: 10000;
-                font-size: 14px;
-                animation: toastIn 0.3s ease;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            `;
-            
-            document.body.appendChild(toast);
-            
+
+        function performRedirect() {
+            statusMsgSpan.innerHTML = "🚀 Redirigiendo al panel...";
             setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateX(-50%) translateY(-10px)';
-                setTimeout(() => toast.remove(), 300);
-            }, duration);
+                if (navigator.onLine) {
+                    window.location.href = '/panel';
+                }
+            }, 1000);
         }
-        
-        function init() {
-            updateStatus(navigator.onLine);
-            
-            window.addEventListener('online', () => updateStatus(true));
-            window.addEventListener('offline', () => updateStatus(false));
-            
-            const lastSync = localStorage.getItem('lastSync');
-            if (lastSync) {
-                const date = new Date(parseInt(lastSync));
-                lastSyncTime.textContent = date.toLocaleString();
+
+        function manualRetry() {
+            if (navigator.onLine) {
+                updateConnectionUI(true);
+                performRedirect();
             } else {
-                lastSyncTime.textContent = 'No hay datos sincronizados';
+                statusMsgSpan.innerHTML = "🔄 Sigo sin conexión. Revisa tu red o WiFi.";
+                statusMsgSpan.className = "text-red-500 text-xs font-bold";
+                setTimeout(() => {
+                    if (!navigator.onLine) updateConnectionUI(false);
+                }, 2500);
             }
+        }
+
+        homeBtn.addEventListener('click', () => {
+            if (navigator.onLine) {
+                window.location.href = '/panel';
+            } else {
+                statusMsgSpan.innerHTML = "🔌 Sin conexión, no se puede navegar al inicio.";
+                statusMsgSpan.className = "text-red-500 text-xs font-bold";
+                setTimeout(() => {
+                    if (!navigator.onLine) updateConnectionUI(false);
+                }, 3000);
+            }
+        });
+
+        retryBtn.addEventListener('click', manualRetry);
+        window.addEventListener('online', () => updateConnectionUI(true));
+        window.addEventListener('offline', () => updateConnectionUI(false));
+
+        function getRandomFood() {
+            const pool = [];
+            FOOD_MENU.forEach(item => { for(let i=0; i<item.weight; i++) pool.push(item); });
+            const type = pool[Math.floor(Math.random() * pool.length)];
+            let x, y;
+            while(true) {
+                x = Math.floor(Math.random() * GRID_SIZE);
+                y = Math.floor(Math.random() * GRID_SIZE);
+                if (!snake.some(s => s.x === x && s.y === y)) break;
+            }
+            return { x, y, ...type };
+        }
+
+        function drawGrid() {
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= GRID_SIZE; i++) {
+                ctx.beginPath();
+                ctx.moveTo(i * CELL_SIZE, 0); ctx.lineTo(i * CELL_SIZE, canvas.height);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(0, i * CELL_SIZE); ctx.lineTo(canvas.width, i * CELL_SIZE);
+                ctx.stroke();
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawGrid();
+            if (food) {
+                ctx.font = `${CELL_SIZE * 0.8}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.shadowColor = 'rgba(0,0,0,0.1)';
+                ctx.shadowBlur = 4;
+                ctx.fillText(food.icon, food.x * CELL_SIZE + CELL_SIZE/2, food.y * CELL_SIZE + CELL_SIZE/2 + 2);
+                ctx.shadowBlur = 0;
+            }
+            snake.forEach((segment, index) => {
+                if (index === 0) {
+                    ctx.font = `${CELL_SIZE * 0.9}px Arial`;
+                    ctx.fillText('🏍️', segment.x * CELL_SIZE + CELL_SIZE/2, segment.y * CELL_SIZE + CELL_SIZE/2);
+                } else {
+                    const pad = 4;
+                    ctx.fillStyle = '#E67E22'; 
+                    ctx.beginPath();
+                    ctx.roundRect(segment.x * CELL_SIZE + pad, segment.y * CELL_SIZE + pad, CELL_SIZE - pad*2, CELL_SIZE - pad*2, 4);
+                    ctx.fill();
+                    ctx.fillStyle = '#D35400';
+                    ctx.fillRect(segment.x * CELL_SIZE + pad, segment.y * CELL_SIZE + CELL_SIZE/2 - 1, CELL_SIZE - pad*2, 2);
+                }
+            });
+        }
+
+        function update() {
+            direction = nextDirection;
+            const head = { ...snake[0] };
+            if (direction === 'UP') head.y--;
+            if (direction === 'DOWN') head.y++;
+            if (direction === 'LEFT') head.x--;
+            if (direction === 'RIGHT') head.x++;
+
+            if (head.x < 0 || head.x >= GRID_SIZE || head.y < 0 || head.y >= GRID_SIZE || 
+                snake.some(s => s.x === head.x && s.y === head.y)) {
+                gameOver();
+                return;
+            }
+
+            snake.unshift(head);
+            if (head.x === food.x && head.y === food.y) {
+                score += food.points;
+                scoreSpan.innerText = `$${score}`;
+                scoreSpan.classList.add('score-pop');
+                setTimeout(() => scoreSpan.classList.remove('score-pop'), 300);
+                if (score > highScore) {
+                    highScore = score;
+                    highScoreSpan.innerText = `$${highScore}`;
+                    localStorage.setItem('deliveryScoreV2', highScore);
+                }
+                food = getRandomFood();
+            } else {
+                snake.pop();
+            }
+            draw();
+        }
+
+        function gameOver() {
+            isGameOver = true;
+            clearInterval(gameLoop);
             
-            setInterval(checkConnection, 30000);
+            if (pendingRedirect && navigator.onLine) {
+                performRedirect();
+                return;
+            }
+
+            overlay.classList.remove('hidden');
+            overlayContent.innerHTML = `
+                <div class="text-6xl mb-4">🛑</div>
+                <h2 class="text-2xl font-black mb-2 leading-tight text-white">¡Uy! Se cayó el pedido.</h2>
+                <p class="text-gray-200 mb-6 text-sm italic">Intenta de nuevo mientras vuelve la señal</p>
+                <button id="restartBtn" class="bg-delivery-primary px-10 py-4 rounded-2xl font-black text-white shadow-xl active:scale-95 transition-all uppercase tracking-tighter">
+                    Nueva Entrega
+                </button>
+            `;
+            document.getElementById('restartBtn').addEventListener('click', resetGame);
+        }
+
+        function resetGame() {
+            snake = [{x: 8, y: 8}, {x: 7, y: 8}, {x: 6, y: 8}];
+            direction = 'RIGHT';
+            nextDirection = 'RIGHT';
+            score = 0;
+            scoreSpan.innerText = "$0";
+            isGameOver = false;
+            food = getRandomFood();
+            overlay.classList.add('hidden');
+            if (gameLoop) clearInterval(gameLoop);
+            gameLoop = setInterval(update, 160);
+            draw();
+        }
+
+        let startX = 0, startY = 0;
+        canvas.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+        }, { passive: false });
+
+        canvas.addEventListener('touchmove', (e) => {
+            if (!startX || !startY || isGameOver) return;
+            const currentX = e.touches[0].clientX;
+            const currentY = e.touches[0].clientY;
+            const diffX = currentX - startX;
+            const diffY = currentY - startY;
+
+            if (Math.abs(diffX) > 25 || Math.abs(diffY) > 25) {
+                if (Math.abs(diffX) > Math.abs(diffY)) {
+                    if (diffX > 0 && direction !== 'LEFT') nextDirection = 'RIGHT';
+                    else if (diffX < 0 && direction !== 'RIGHT') nextDirection = 'LEFT';
+                } else {
+                    if (diffY > 0 && direction !== 'UP') nextDirection = 'DOWN';
+                    else if (diffY < -0 && direction !== 'DOWN') nextDirection = 'UP';
+                }
+                startX = currentX;
+                startY = currentY;
+            }
+            e.preventDefault();
+        }, { passive: false });
+
+        window.addEventListener('keydown', e => {
+            if (e.key === 'ArrowUp' && direction !== 'DOWN') nextDirection = 'UP';
+            if (e.key === 'ArrowDown' && direction !== 'UP') nextDirection = 'DOWN';
+            if (e.key === 'ArrowLeft' && direction !== 'RIGHT') nextDirection = 'LEFT';
+            if (e.key === 'ArrowRight' && direction !== 'LEFT') nextDirection = 'RIGHT';
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) e.preventDefault();
+        });
+
+        resetBtn.addEventListener('click', resetGame);
+        
+        if (!navigator.onLine) {
+            updateConnectionUI(false);
+        } else {
+            statusMsgSpan.innerHTML = "✅ Conectado. Puedes volver al inicio.";
         }
         
-        document.addEventListener('DOMContentLoaded', init);
-        
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes toastIn {
-                from {
-                    opacity: 0;
-                    transform: translateX(-50%) translateY(-20px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateX(-50%) translateY(0);
+        setInterval(() => {
+            if (navigator.onLine && !pendingRedirect) {
+                if (statusMsgSpan.innerHTML.includes("Sin conexión")) {
+                    statusMsgSpan.innerHTML = "✅ Conexión activa. Usa 'Reintentar' para volver.";
+                    statusMsgSpan.className = "text-green-600 text-xs font-bold";
                 }
             }
-        `;
-        document.head.appendChild(style);
+        }, 20000);
+
+        resetGame();
     </script>
 </body>
 </html>
+
+```

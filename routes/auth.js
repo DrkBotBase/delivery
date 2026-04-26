@@ -17,19 +17,83 @@ router.post('/google/verify', async (req, res) => {
         const payload = ticket.getPayload();
         
         let user = await User.findOne({ googleId: payload.sub });
-
+        
         if (!user) {
+            // Buscar por email para vincular
             user = await User.findOne({ email: payload.email });
+            
             if (user) {
+                // Vincular cuenta existente
+                let updated = false;
                 user.googleId = payload.sub;
-                await user.save();
+                
+                if (!user.fullName && payload.name) {
+                    user.fullName = payload.name;
+                    updated = true;
+                }
+                if (!user.avatar && payload.picture) {
+                    user.avatar = payload.picture;
+                    updated = true;
+                }
+                
+                if (updated) {
+                    await user.save();
+                    console.log(`Cuenta vinculada y actualizada: ${user.email}`);
+                }
             } else {
+                // Crear nuevo usuario
+                let baseUsername = payload.email.split('@')[0].toLowerCase();
+                let username = baseUsername;
+                let counter = 1;
+                
+                while (await User.findOne({ username })) {
+                    username = `${baseUsername}${counter}`;
+                    counter++;
+                }
+                
                 user = new User({
-                    username: payload.name,
+                    username: username,
+                    fullName: payload.name,
                     email: payload.email,
-                    googleId: payload.sub
+                    googleId: payload.sub,
+                    avatar: payload.picture
                 });
                 await user.save();
+                console.log(`Nuevo usuario Google: ${user.email}`);
+            }
+        } else {
+            // Actualizar datos de usuario Google existente
+            let updated = false;
+            
+            if (payload.name && user.fullName !== payload.name) {
+                user.fullName = payload.name;
+                updated = true;
+            }
+            
+            if (payload.picture && user.avatar !== payload.picture) {
+                user.avatar = payload.picture;
+                updated = true;
+            }
+            
+            // Corregir username genérico si es necesario
+            const genericUsernames = ['Google User', 'Usuario Google'];
+            if (genericUsernames.includes(user.username)) {
+                let baseUsername = payload.email.split('@')[0].toLowerCase();
+                let newUsername = baseUsername;
+                let counter = 1;
+                
+                while (await User.findOne({ username: newUsername, _id: { $ne: user._id } })) {
+                    newUsername = `${baseUsername}${counter}`;
+                    counter++;
+                }
+                
+                user.username = newUsername;
+                updated = true;
+            }
+            
+            if (updated) {
+                await user.save();
+                console.log(`Usuario Google actualizado: ${user.email}`);
             }
         }
 
@@ -62,7 +126,7 @@ router.get('/register', (req, res) => {
 
 router.post('/register', async (req, res) => {
     try {
-        const { username, password } = req.body;
+        const { username, password, fullName } = req.body;
 
         if (!username || !password) {
             return res.status(400).json({ success: false, message: 'Faltan datos' });
@@ -80,8 +144,8 @@ router.post('/register', async (req, res) => {
 
         const newUser = new User({
             username: username.trim(),
-            password: hashedPassword
-            // email:
+            password: hashedPassword,
+            fullName: fullName || null
         });
         await newUser.save();
 
@@ -95,7 +159,9 @@ router.post('/register', async (req, res) => {
 
 router.post('/login', async (req, res) => {
     try {
-        const { username, password } = req.body;
+        let { username, password } = req.body;
+        
+        if (username) username = username.trim();
         
         const user = await User.findOne({ username });
         if (!user) {
@@ -116,6 +182,7 @@ router.post('/login', async (req, res) => {
 
         req.session.userId = user._id;
         req.session.username = user.username;
+        req.session.fullName = user.fullName;
         
         req.session.save((err) => {
             if (err) {

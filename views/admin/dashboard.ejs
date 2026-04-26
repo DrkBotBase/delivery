@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="bg-gray-50">
+    <!-- Sidebar -->
+    <div class="flex h-screen">
+        <div class="w-64 bg-indigo-800 text-white flex flex-col">
+            <div class="p-5 border-b border-indigo-700">
+                <h1 class="text-xl font-bold"><i class="fas fa-store"></i> Admin Panel</h1>
+                <p class="text-xs text-indigo-300 mt-1"><%= admin.fullName || admin.username %></p>
+            </div>
+            <nav class="flex-1 p-4">
+                <a href="/admin" class="flex items-center gap-3 px-4 py-3 bg-indigo-700 rounded-lg mb-2">
+                    <i class="fas fa-chart-line"></i> Dashboard
+                </a>
+                <a href="/admin/restaurants" class="flex items-center gap-3 px-4 py-3 hover:bg-indigo-700 rounded-lg transition">
+                    <i class="fas fa-store"></i> Restaurantes
+                </a>
+                <a href="/admin/recharges" class="flex items-center gap-3 px-4 py-3 hover:bg-indigo-700 rounded-lg transition">
+                    <i class="fas fa-history"></i> Historial de Recargas
+                </a>
+            </nav>
+            <div class="p-4 border-t border-indigo-700">
+                <a href="/auth/logout" class="flex items-center gap-3 px-4 py-3 hover:bg-indigo-700 rounded-lg transition">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                </a>
+            </div>
+        </div>
+        
+        <!-- Main content -->
+        <div class="flex-1 overflow-auto">
+            <header class="bg-white shadow-sm p-6">
+                <h2 class="text-2xl font-bold text-gray-800">Dashboard</h2>
+                <p class="text-gray-500 text-sm">Bienvenido de vuelta, <%= admin.fullName || admin.username %></p>
+            </header>
+            
+            <main class="p-6">
+                <!-- Stats cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-400 text-sm">Total Restaurantes</p>
+                                <p class="text-3xl font-bold text-gray-800"><%= stats.totalRestaurants %></p>
+                            </div>
+                            <i class="fas fa-store text-3xl text-indigo-400"></i>
+                        </div>
+                        <div class="mt-4 flex gap-2 text-xs">
+                            <span class="text-green-600">▲ <%= stats.activeRestaurants %> activos</span>
+                            <span class="text-red-600">▼ <%= stats.suspendedRestaurants %> suspendidos</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-400 text-sm">Escaneos Totales</p>
+                                <p class="text-3xl font-bold text-gray-800"><%= stats.totalAvailableScans.toLocaleString() %></p>
+                            </div>
+                            <i class="fas fa-boxes text-3xl text-emerald-400"></i>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-4">disponibles en todos los restaurantes</p>
+                    </div>
+                </div>
+                
+                <!-- Top restaurantes y recargas recientes -->
+                <div class="grid lg:grid-cols-2 gap-6">
+                    <!-- Top restaurantes -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-100">
+                            <h3 class="font-bold text-gray-800">
+                                <i class="fas fa-trophy text-yellow-500 mr-2"></i> Top Restaurantes
+                            </h3>
+                        </div>
+                        <div class="divide-y divide-gray-100">
+                            <% topRestaurants.forEach((rest, index) => { %>
+                                <div class="p-4 flex items-center justify-between hover:bg-gray-50">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-2xl font-bold <%= index === 0 ? 'text-yellow-500' : index === 1 ? 'text-gray-400' : index === 2 ? 'text-orange-400' : 'text-gray-300' %>">
+                                            #<%= index + 1 %>
+                                        </span>
+                                        <div>
+                                            <p class="font-medium text-gray-800"><%= rest.name %></p>
+                                            <p class="text-xs text-gray-400">ID: <%= rest.pointId %></p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="font-bold text-indigo-600"><%= rest.totalScans.toLocaleString() %></p>
+                                        <p class="text-xs text-gray-400">escaneos totales</p>
+                                    </div>
+                                </div>
+                            <% }) %>
+                        </div>
+                    </div>
+                    
+                    <!-- Últimas recargas -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-100">
+                            <h3 class="font-bold text-gray-800">
+                                <i class="fas fa-clock text-indigo-500 mr-2"></i> Últimas Recargas
+                            </h3>
+                        </div>
+                        <div class="divide-y divide-gray-100 max-h-96 overflow-y-auto">
+                            <% if (recentRecharges.length === 0) { %>
+                                <div class="p-8 text-center text-gray-400">
+                                    <i class="fas fa-history text-3xl mb-2"></i>
+                                    <p>No hay recargas registradas</p>
+                                </div>
+                            <% } else { %>
+                                <% recentRecharges.forEach(recharge => { %>
+                                    <div class="p-4 hover:bg-gray-50">
+                                        <div class="flex justify-between items-start mb-1">
+                                            <p class="font-medium text-gray-800"><%= recharge.restaurantName %></p>
+                                            <span class="text-xs text-gray-400"><%= new Date(recharge.createdAt).toLocaleDateString() %></span>
+                                        </div>
+                                        <div class="flex justify-between items-center text-sm">
+                                            <span class="text-gray-500"><i class="fas fa-plus-circle text-green-500"></i> +<%= recharge.amount %> escaneos</span>
+                                            <span class="text-emerald-600 font-semibold">Total: <%= recharge.newScans %></span>
+                                        </div>
+                                        <p class="text-xs text-gray-400 mt-1">por: <%= recharge.adminName %></p>
+                                    </div>
+                                <% }) %>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>

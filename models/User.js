@@ -11,6 +11,15 @@ const userSchema = new mongoose.Schema({
         type: String, 
         required: true, 
     },
+    role: {
+        type: String,
+        enum: ['user', 'admin'],
+        default: 'user'
+    },
+    fullName: {
+        type: String,
+        default: null
+    },
     email: {
         type: String,
         unique: true, 
@@ -24,6 +33,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         unique: true,
         sparse: true
+    },
+    avatar: {
+        type: String,
+        default: 'default.svg'
     },
     linkedRestaurants: {
         type: [restaurantSchema],

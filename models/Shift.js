@@ -11,4 +11,7 @@ const shiftSchema = new mongoose.Schema({
     note: String
 });
 
+shiftSchema.index({ user: 1, status: 1 });
+shiftSchema.index({ user: 1, startTime: -1 });
+
 module.exports = mongoose.model('Delshift', shiftSchema);

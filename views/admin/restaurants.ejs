@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="w-64 bg-indigo-800 text-white flex flex-col">
+            <div class="p-5 border-b border-indigo-700">
+                <h1 class="text-xl font-bold"><i class="fas fa-store"></i> Admin Panel</h1>
+                <p class="text-xs text-indigo-300 mt-1"><%= admin.fullName || admin.username %></p>
+            </div>
+            <nav class="flex-1 p-4">
+                <a href="/admin" class="flex items-center gap-3 px-4 py-3 hover:bg-indigo-700 rounded-lg transition">
+                    <i class="fas fa-chart-line"></i> Dashboard
+                </a>
+                <a href="/admin/restaurants" class="flex items-center gap-3 px-4 py-3 bg-indigo-700 rounded-lg">
+                    <i class="fas fa-store"></i> Restaurantes
+                </a>
+                <a href="/admin/recharges" class="flex items-center gap-3 px-4 py-3 hover:bg-indigo-700 rounded-lg transition">
+                    <i class="fas fa-history"></i> Historial de Recargas
+                </a>
+            </nav>
+            <div class="p-4 border-t border-indigo-700">
+                <a href="/auth/logout" class="flex items-center gap-3 px-4 py-3 hover:bg-indigo-700 rounded-lg transition">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                </a>
+            </div>
+        </div>
+        
+        <!-- Main content -->
+        <div class="flex-1 overflow-auto">
+            <header class="bg-white shadow-sm p-6 flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800">Restaurantes</h2>
+                    <p class="text-gray-500 text-sm">Gestiona los restaurantes y sus escaneos</p>
+                </div>
+            </header>
+            
+            <main class="p-6">
+                <!-- Filtros -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-6">
+                    <form method="GET" class="flex flex-wrap gap-4">
+                        <input type="text" name="search" placeholder="Buscar por nombre o ID..." 
+                               value="<%= filters.search || '' %>"
+                               class="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                        <select name="status" class="px-4 py-2 border border-gray-200 rounded-lg">
+                            <option value="all">Todos los estados</option>
+                            <option value="active" <%= filters.status === 'active' ? 'selected' : '' %>>Activos</option>
+                            <option value="suspended" <%= filters.status === 'suspended' ? 'selected' : '' %>>Suspendidos</option>
+                        </select>
+                        <button type="submit" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700">
+                            <i class="fas fa-search"></i> Filtrar
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Tabla de restaurantes -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50 border-b border-gray-100">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Restaurante</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Escaneos</th>
+                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Estado</th>
+                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Recargas</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                <% if (restaurants && restaurants.length > 0) { %>
+                                    <% for(var i = 0; i < restaurants.length; i++) { 
+                                        var rest = restaurants[i];
+                                    %>
+                                        <tr class="hover:bg-gray-50 transition">
+                                            <td class="px-6 py-4">
+                                                <div>
+                                                    <p class="font-medium text-gray-800"><%= rest.name %></p>
+                                                    <p class="text-xs text-gray-400"><%= rest.companyId ? 'Compañía: ' + rest.companyId : 'Sin compañía' %></p>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <span class="font-mono text-sm"><%= rest.pointId %></span>
+                                            </td>
+                                            <td class="px-6 py-4 text-center">
+                                                <span class="font-bold text-emerald-600"><%= rest.availableScans ? rest.availableScans.toLocaleString() : '0' %></span>
+                                                <p class="text-xs text-gray-400">total: <%= rest.totalScans ? rest.totalScans.toLocaleString() : '0' %></p>
+                                            </td>
+                                            <td class="px-6 py-4 text-center">
+                                                <button onclick='toggleStatus("<%= rest._id %>", "<%= rest.status %>")' 
+                                                    class="px-3 py-1 rounded-full text-xs font-semibold <%= rest.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' %>">
+                                                    <%= rest.status === 'active' ? 'Activo' : 'Suspendido' %>
+                                                </button>
+                                            </td>
+                                            <td class="px-6 py-4 text-center">
+                                                <p class="font-medium"><%= rest.totalRecharges || 0 %></p>
+                                                <% if (rest.lastRecharge) { %>
+                                                    <p class="text-xs text-gray-400">última: <%= new Date(rest.lastRecharge.createdAt).toLocaleDateString() %></p>
+                                                <% } %>
+                                            </td>
+                                            <td class="px-6 py-4 text-right">
+                                                <div class="flex justify-end gap-2">
+                                                    <button onclick='rechargeScans("<%= rest._id %>", "<%= rest.name %>")' 
+                                                        class="text-indigo-600 hover:text-indigo-800 p-1">
+                                                        <i class="fas fa-plus-circle"></i>
+                                                    </button>
+                                                    <a href="/admin/restaurants/<%= rest._id %>" 
+                                                        class="text-gray-500 hover:text-gray-700 p-1">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <% } %>
+                                <% } else { %>
+                                    <tr>
+                                        <td colspan="6" class="px-6 py-12 text-center text-gray-400">
+                                            <i class="fas fa-store text-4xl mb-2"></i>
+                                            <p>No hay restaurantes registrados</p>
+                                        </td>
+                                    </tr>
+                                <% } %>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Paginación -->
+                    <% if (pagination && pagination.pages > 1) { %>
+                        <div class="px-6 py-4 border-t border-gray-100 flex justify-between items-center">
+                            <p class="text-sm text-gray-500">Mostrando <%= restaurants ? restaurants.length : 0 %> de <%= pagination.total %> restaurantes</p>
+                            <div class="flex gap-2">
+                                <% for (var i = 1; i <= pagination.pages; i++) { %>
+                                    <a href="?page=<%= i %>&search=<%= filters.search || '' %>&status=<%= filters.status || 'all' %>" 
+                                       class="px-3 py-1 rounded <%= i === pagination.page ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' %>">
+                                        <%= i %>
+                                    </a>
+                                <% } %>
+                            </div>
+                        </div>
+                    <% } %>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <script>
+        async function toggleStatus(id, currentStatus) {
+            var newStatus = currentStatus === 'active' ? 'suspended' : 'active';
+            var action = newStatus === 'active' ? 'activar' : 'suspender';
+            
+            var result = await Swal.fire({
+                title: '¿' + action + ' restaurante?',
+                text: '¿Estás seguro de querer ' + action + ' este restaurante?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: newStatus === 'active' ? '#10b981' : '#ef4444',
+                confirmButtonText: 'Sí, ' + action,
+                cancelButtonText: 'Cancelar'
+            });
+            
+            if (result.isConfirmed) {
+                try {
+                    var res = await fetch('/admin/restaurants/' + id + '/status', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ status: newStatus })
+                    });
+                    var data = await res.json();
+                    
+                    if (data.success) {
+                        Swal.fire('Actualizado', 'Restaurante ' + action + 'do correctamente', 'success');
+                        setTimeout(function() { location.reload(); }, 1500);
+                    } else {
+                        Swal.fire('Error', data.error, 'error');
+                    }
+                } catch (error) {
+                    Swal.fire('Error', 'Error de conexión', 'error');
+                }
+            }
+        }
+        
+        async function rechargeScans(id, name) {
+            var result = await Swal.fire({
+                title: 'Recargar escaneos',
+                html: '<p class="text-left mb-3">Restaurante: <strong>' + name + '</strong></p>' +
+                    '<input type="number" id="amount" class="swal2-input" placeholder="Cantidad de escaneos" min="1">' +
+                    '<textarea id="notes" class="swal2-textarea" placeholder="Notas (opcional)" rows="2"></textarea>',
+                focusConfirm: false,
+                preConfirm: function() {
+                    var amount = document.getElementById('amount').value;
+                    if (!amount || amount <= 0) {
+                        Swal.showValidationMessage('Ingresa una cantidad válida');
+                        return false;
+                    }
+                    return { 
+                        amount: parseInt(amount), 
+                        notes: document.getElementById('notes').value 
+                    };
+                }
+            });
+            
+            if (result.value) {
+                try {
+                    var res = await fetch('/admin/restaurants/' + id + '/recharge', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ amount: result.value.amount, notes: result.value.notes })
+                    });
+                    var data = await res.json();
+                    
+                    if (data.success) {
+                        Swal.fire('Éxito', data.message, 'success');
+                        setTimeout(function() { location.reload(); }, 1500);
+                    } else {
+                        Swal.fire('Error', data.error, 'error');
+                    }
+                } catch (error) {
+                    Swal.fire('Error', 'Error de conexión', 'error');
+                }
+            }
+        }
+    </script>
+</body>
+</html>
