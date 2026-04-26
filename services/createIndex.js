@@ -12,7 +12,7 @@ const Restaurant = require('../models/Restaurant.js');
 async function createIndexes() {
     try {
         console.log('🔄 Conectando a MongoDB...');
-        await mongoose.connect('mongodb+srv://drkbot:xix2j4av@newbets.gaga0sg.mongodb.net/?retryWrites=true&w=majority&appName=newbets');
+        await mongoose.connect(process.env.MONGODB_URI);
         console.log('✅ Conectado');
 
         console.log('\n📊 Creando índices para Delivery...');
