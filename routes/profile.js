@@ -4,7 +4,6 @@ const { requireAuth } = require('../middleware/auth');
 const User = require('../models/User');
 const { info } = require('../config');
 
-// Vista de perfil del usuario
 router.get('/', requireAuth, async (req, res) => {
     try {
         const user = await User.findById(req.session.userId)

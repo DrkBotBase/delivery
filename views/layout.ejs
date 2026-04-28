@@ -2,116 +2,112 @@
 <html lang="es">
 <head>
   <%- include("partials/head") %>
-  <!-- Agregar DotLottie Web Component -->
-  <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.9.10/dist/dotlottie-wc.js" type="module"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
-<style>
-  /* Agregar estos estilos a tu CSS */
-.notification-content {
-    line-height: 1.5;
-    word-wrap: break-word;
-}
-
-.notification-content ul,
-.notification-content ol {
-    padding-left: 1.25rem;
-    margin: 0.5rem 0;
-}
-
-.notification-content li {
-    margin: 0.25rem 0;
-}
-
-.notification-content p {
-    margin: 0.5rem 0;
-}
-
-.notification-content h1,
-.notification-content h2,
-.notification-content h3 {
-    margin: 0.75rem 0 0.5rem 0;
-    font-weight: 600;
-}
-
-.notification-content h1 { font-size: 1rem; }
-.notification-content h2 { font-size: 0.875rem; }
-.notification-content h3 { font-size: 0.8125rem; }
-
-.notification-content strong,
-.notification-content b {
-    font-weight: 600;
-}
-
-.notification-content em,
-.notification-content i {
-    font-style: italic;
-}
-
-.notification-content a {
-    color: #4f46e5;
-    text-decoration: underline;
-}
-
-.notification-content a:hover {
-    color: #4338ca;
-}
-
-.notification-content img {
-    max-width: 100%;
-    height: auto;
-    border-radius: 0.5rem;
-    margin: 0.5rem 0;
-}
-
-.notification-content blockquote {
-    border-left: 3px solid #4f46e5;
-    padding-left: 0.75rem;
-    margin: 0.5rem 0;
-    color: #4b5563;
-}
-
-.notification-content code {
-    background-color: #f3f4f6;
-    padding: 0.125rem 0.25rem;
-    border-radius: 0.25rem;
-    font-family: monospace;
-    font-size: 0.75rem;
-}
-
-.notification-content pre {
-    background-color: #1f2937;
-    color: #f9fafb;
-    padding: 0.75rem;
-    border-radius: 0.5rem;
-    overflow-x: auto;
-    font-size: 0.7rem;
-    margin: 0.5rem 0;
-}
-
-/* Clases de utilidad para notificaciones */
-.notification-content .bg-indigo-50 { background-color: #eef2ff; }
-.notification-content .bg-red-50 { background-color: #fef2f2; }
-.notification-content .bg-green-50 { background-color: #f0fdf4; }
-.notification-content .bg-yellow-50 { background-color: #fefce8; }
-.notification-content .bg-purple-50 { background-color: #faf5ff; }
-.notification-content .bg-gray-50 { background-color: #f9fafb; }
-.notification-content .rounded-lg { border-radius: 0.5rem; }
-.notification-content .rounded-xl { border-radius: 0.75rem; }
-.notification-content .p-2 { padding: 0.5rem; }
-.notification-content .p-3 { padding: 0.75rem; }
-.notification-content .p-4 { padding: 1rem; }
-.notification-content .mt-1 { margin-top: 0.25rem; }
-.notification-content .mt-2 { margin-top: 0.5rem; }
-.notification-content .mt-3 { margin-top: 0.75rem; }
-.notification-content .mb-1 { margin-bottom: 0.25rem; }
-.notification-content .mb-2 { margin-bottom: 0.5rem; }
-.notification-content .text-xs { font-size: 0.75rem; }
-.notification-content .text-sm { font-size: 0.875rem; }
-.notification-content .font-bold { font-weight: 700; }
-.notification-content .space-y-1 > * + * { margin-top: 0.25rem; }
-.notification-content .space-y-2 > * + * { margin-top: 0.5rem; }
-.notification-content .space-y-3 > * + * { margin-top: 0.75rem; }
-</style>
+  <style>
+    .notification-content {
+        line-height: 1.5;
+        word-wrap: break-word;
+    }
+    
+    .notification-content ul,
+    .notification-content ol {
+        padding-left: 1.25rem;
+        margin: 0.5rem 0;
+    }
+    
+    .notification-content li {
+        margin: 0.25rem 0;
+    }
+    
+    .notification-content p {
+        margin: 0.5rem 0;
+    }
+    
+    .notification-content h1,
+    .notification-content h2,
+    .notification-content h3 {
+        margin: 0.75rem 0 0.5rem 0;
+        font-weight: 600;
+    }
+    
+    .notification-content h1 { font-size: 1rem; }
+    .notification-content h2 { font-size: 0.875rem; }
+    .notification-content h3 { font-size: 0.8125rem; }
+    
+    .notification-content strong,
+    .notification-content b {
+        font-weight: 600;
+    }
+    
+    .notification-content em,
+    .notification-content i {
+        font-style: italic;
+    }
+    
+    .notification-content a {
+        color: #4f46e5;
+        text-decoration: underline;
+    }
+    
+    .notification-content a:hover {
+        color: #4338ca;
+    }
+    
+    .notification-content img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 0.5rem;
+        margin: 0.5rem 0;
+    }
+    
+    .notification-content blockquote {
+        border-left: 3px solid #4f46e5;
+        padding-left: 0.75rem;
+        margin: 0.5rem 0;
+        color: #4b5563;
+    }
+    
+    .notification-content code {
+        background-color: #f3f4f6;
+        padding: 0.125rem 0.25rem;
+        border-radius: 0.25rem;
+        font-family: monospace;
+        font-size: 0.75rem;
+    }
+    
+    .notification-content pre {
+        background-color: #1f2937;
+        color: #f9fafb;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        overflow-x: auto;
+        font-size: 0.7rem;
+        margin: 0.5rem 0;
+    }
+    
+    .notification-content .bg-indigo-50 { background-color: #eef2ff; }
+    .notification-content .bg-red-50 { background-color: #fef2f2; }
+    .notification-content .bg-green-50 { background-color: #f0fdf4; }
+    .notification-content .bg-yellow-50 { background-color: #fefce8; }
+    .notification-content .bg-purple-50 { background-color: #faf5ff; }
+    .notification-content .bg-gray-50 { background-color: #f9fafb; }
+    .notification-content .rounded-lg { border-radius: 0.5rem; }
+    .notification-content .rounded-xl { border-radius: 0.75rem; }
+    .notification-content .p-2 { padding: 0.5rem; }
+    .notification-content .p-3 { padding: 0.75rem; }
+    .notification-content .p-4 { padding: 1rem; }
+    .notification-content .mt-1 { margin-top: 0.25rem; }
+    .notification-content .mt-2 { margin-top: 0.5rem; }
+    .notification-content .mt-3 { margin-top: 0.75rem; }
+    .notification-content .mb-1 { margin-bottom: 0.25rem; }
+    .notification-content .mb-2 { margin-bottom: 0.5rem; }
+    .notification-content .text-xs { font-size: 0.75rem; }
+    .notification-content .text-sm { font-size: 0.875rem; }
+    .notification-content .font-bold { font-weight: 700; }
+    .notification-content .space-y-1 > * + * { margin-top: 0.25rem; }
+    .notification-content .space-y-2 > * + * { margin-top: 0.5rem; }
+    .notification-content .space-y-3 > * + * { margin-top: 0.75rem; }
+  </style>
 </head>
 <body class="bg-gray-50 min-h-screen pb-24 font-sans text-gray-800">
     <header class="sticky top-0 z-50 border-b border-gray-200 shadow-sm transition-all duration-300 bg-gray-50/80 backdrop-blur-sm">
@@ -130,59 +126,53 @@
                     </p>
                 </div>
             </div>
-            <!-- En layout.ejs, agregar el botón de notificaciones en el header -->
-<div class="flex gap-2">
-    <!-- Botón de notificaciones -->
-    <div class="relative">
-        <button onclick="toggleNotifications()" class="w-9 h-9 flex items-center justify-center bg-gray-100 rounded-full text-gray-600 hover:bg-gray-200 transition-all hover:scale-105 relative">
-            <i class="fas fa-bell"></i>
-            <span id="notificationBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 hidden">0</span>
-        </button>
-        
-        <!-- Dropdown de notificaciones -->
-        <div id="notificationsDropdown" class="hidden fixed right-0 top-16 w-96 bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 z-50 overflow-hidden transform transition-all">
-          <div class="flex justify-between items-center p-4 border-b border-gray-100 bg-gray-50/80 backdrop-blur-sm">
-              <h3 class="font-bold text-gray-800 flex items-center gap-2">
-                  <i class="fas fa-bell text-indigo-500"></i> Notificaciones
-              </h3>
-              <button onclick="markAllNotificationsAsRead()" class="text-[11px] font-semibold text-indigo-500 hover:text-indigo-700 transition px-2 py-1 hover:bg-indigo-50 rounded-md">
-                  Marcar todo leído
-              </button>
-          </div>
-          <div id="notificationsList" class="overflow-y-auto max-h-[420px] bg-white scroll-smooth">
-              <div class="text-center py-8 text-gray-400">
-                  <i class="fas fa-spinner fa-spin text-indigo-500 text-2xl mb-2"></i>
-                  <p class="text-sm">Sincronizando...</p>
-              </div>
-          </div>
-      </div>
-
-    </div>
-    
-    <!-- Botón de ruta -->
-    <div class="relative group">
-        <button onclick="window.location.href='/route'" class="w-9 h-9 flex items-center justify-center bg-gray-100 rounded-full text-indigo-600 hover:bg-indigo-50 transition-all hover:scale-105">
-            <i class="fas fa-map-marked-alt"></i>
-        </button>
-        <span class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-[10px] px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap">Ver ruta</span>
-    </div>
-    
-    <!-- Botón de perfil -->
-    <div class="relative group">
-      <button onclick="window.location.href='/profile'" class="w-9 h-9 flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full text-white shadow-md hover:shadow-lg transition-all hover:scale-105 overflow-hidden">
-          <img src="<%= currentUser && currentUser.avatar ? (currentUser.isGoogleUser && currentUser.avatar.startsWith('http') ? currentUser.avatar : '/avatars/' + currentUser.avatar) : '/avatars/default.svg' %>" 
-               alt="Avatar" 
-               class="w-full h-full object-cover rounded-full"
-               onerror="this.src='/avatars/default.svg'">
-      </button>
-      <span class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-[10px] px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap">Mi Perfil</span>
-    </div>
-</div>
+            <div class="flex gap-2">
+                <div class="relative">
+                    <button onclick="toggleNotifications()" class="w-9 h-9 flex items-center justify-center bg-gray-100 rounded-full text-gray-600 hover:bg-gray-200 transition-all hover:scale-105 relative">
+                        <i class="fas fa-bell"></i>
+                        <span id="notificationBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 hidden">0</span>
+                    </button>
+                    
+                    <div id="notificationsDropdown" class="hidden fixed right-0 top-16 w-96 bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 z-50 overflow-hidden transform transition-all">
+                      <div class="flex justify-between items-center p-4 border-b border-gray-100 bg-gray-50/80 backdrop-blur-sm">
+                          <h3 class="font-bold text-gray-800 flex items-center gap-2">
+                              <i class="fas fa-bell text-indigo-500"></i> Notificaciones
+                          </h3>
+                          <button onclick="markAllNotificationsAsRead()" class="text-[11px] font-semibold text-indigo-500 hover:text-indigo-700 transition px-2 py-1 hover:bg-indigo-50 rounded-md">
+                              Marcar todo leído
+                          </button>
+                      </div>
+                      <div id="notificationsList" class="overflow-y-auto max-h-[420px] bg-white scroll-smooth">
+                          <div class="text-center py-8 text-gray-400">
+                              <i class="fas fa-spinner fa-spin text-indigo-500 text-2xl mb-2"></i>
+                              <p class="text-sm">Sincronizando...</p>
+                          </div>
+                      </div>
+                  </div>
+            
+                </div>
+                
+                <div class="relative group">
+                    <button onclick="window.location.href='/route'" class="w-9 h-9 flex items-center justify-center bg-gray-100 rounded-full text-indigo-600 hover:bg-indigo-50 transition-all hover:scale-105">
+                        <i class="fas fa-map-marked-alt"></i>
+                    </button>
+                    <span class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-[10px] px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap">Ver ruta</span>
+                </div>
+                
+                <div class="relative group">
+                  <button onclick="window.location.href='/profile'" class="w-9 h-9 flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full text-white shadow-md hover:shadow-lg transition-all hover:scale-105 overflow-hidden">
+                      <img src="<%= currentUser && currentUser.avatar ? (currentUser.isGoogleUser && currentUser.avatar.startsWith('http') ? currentUser.avatar : '/avatars/' + currentUser.avatar) : '/avatars/default.svg' %>" 
+                           alt="Avatar" 
+                           class="w-full h-full object-cover rounded-full"
+                           onerror="this.src='/avatars/default.svg'">
+                  </button>
+                  <span class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-[10px] px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap">Mi Perfil</span>
+                </div>
+            </div>
         </div>
     </header>
     
     <main class="max-w-md mx-auto px-4 pt-4 space-y-6 pb-24">
-        <!-- Panel de Jornada -->
         <div id="shiftPanel" class="rounded-2xl overflow-hidden shadow-lg relative transition-all duration-500">
             <div id="shiftLoading" class="bg-white p-6 text-center text-gray-400">
                 <div class="flex flex-col items-center gap-2">
@@ -244,7 +234,6 @@
             </div>
         </div>
         
-        <!-- Tarjetas de estadísticas de la jornada activa -->
         <div class="grid grid-cols-3 gap-3">
             <div class="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center hover:shadow-md transition-all hover:-translate-y-0.5">
                 <div class="w-9 h-9 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center mb-1">
@@ -269,26 +258,16 @@
             </div>
         </div>
         
-        <!-- ========== SECCIÓN DE CONTENIDO PRINCIPAL (se muestra solo con jornada activa) ========== -->
         <div id="mainContent">
-            <!-- Importar factura -->
             <div class="relative group">
                 <div class="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition"></div>
                 <div class="relative bg-white rounded-2xl shadow-sm p-1 mb-4">
                     <div class="bg-white rounded-3xl shadow-md p-5 border border-indigo-50 relative overflow-hidden">
                         <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 to-purple-500"></div>
                         <h2 class="text-lg font-bold mb-4 flex items-center text-gray-800">
-                            <i class="fas fa-camera text-indigo-500 mr-2"></i> Nueva Factura
+                            <i class="fas fa-barcode text-indigo-500 mr-2"></i> Escanear Factura
                         </h2>
                         <div class="bg-gradient-to-br from-indigo-50 to-purple-50 p-4 rounded-2xl mb-4">
-                            <div class="flex justify-between items-center mb-2">
-                                <label class="block text-xs font-bold text-gray-500 uppercase flex items-center gap-1">
-                                    <i class="fas fa-barcode"></i> Escanear Factura
-                                </label>
-                                <button onclick="showLinkedRestaurants()" class="text-[10px] text-indigo-500 font-bold hover:underline flex items-center gap-1">
-                                    <i class="fas fa-store"></i> Registrar Restaurante
-                                </button>
-                            </div>
                             <div class="flex gap-2">
                                 <div class="relative flex-1">
                                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -296,7 +275,7 @@
                                     </div>
                                     <input type="number" id="vinappInput" inputmode="numeric" pattern="[0-9]*"
                                         class="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none font-bold text-lg"
-                                        placeholder="Ej: 9870">
+                                        placeholder="1234">
                                 </div>
                                 <button onclick="importFromVinApp()" id="btnVinApp"
                                     class="bg-indigo-600 text-white px-6 rounded-xl hover:bg-indigo-700 transition-all flex items-center justify-center shadow-lg shadow-indigo-500/30 active:scale-95 gap-2">
@@ -312,8 +291,7 @@
                 </div>
             </div>
             
-            <!-- Buscador -->
-            <div class="flex gap-2">
+            <div class="flex gap-2 mb-4">
                 <div class="relative flex-1">
                     <i class="fas fa-search absolute left-4 top-3.5 text-gray-400 text-sm"></i>
                     <input type="text" id="searchInput" placeholder="Buscar por teléfono, dirección, factura..." 
@@ -326,18 +304,11 @@
                 </button>
             </div>
             
-            <!-- Historial de la jornada -->
             <div class="space-y-4">
-                <div class="flex justify-between items-end px-1">
+                <div class="flex justify-start px-1">
                     <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
                         <i class="fas fa-history text-indigo-500"></i> Historial de Jornada
                     </h2>
-                    <% if (filters.shiftId) { %>
-                        <span class="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full flex items-center gap-1">
-                            <i class="fas fa-filter"></i> Filtro: Jornada 
-                            <button onclick="clearShiftFilter()" class="ml-1 hover:text-red-500">×</button>
-                        </span>
-                    <% } %>
                 </div>
                 
                 <div id="deliveriesContainer" class="space-y-3 pb-4 transition-opacity duration-200"></div>
@@ -354,20 +325,17 @@
             </div>
         </div>
         
-        <!-- ========== SECCIÓN DE ESTADO VACÍO (sin jornada activa) ========== -->
         <div id="emptyState" class="hidden">
-            <div class="bg-white rounded-2xl shadow-lg p-8 text-center">
-                <dotlottie-wc 
-                    src="https://lottie.host/776fcdfa-86a8-4a81-8031-15dcb27cb302/1EMN0StO51.json" 
-                    style="width: 300px; height: 200px; margin: 0 auto;"
-                    autoplay loop>
-                </dotlottie-wc>
-                <h3 class="text-xl font-bold text-gray-800 mt-4">Sin jornada activa</h3>
-                <p class="text-sm text-gray-500 mt-2">No hay una jornada activa en este momento.</p>
+            <div class="bg-white rounded-2xl shadow-lg p-8 text-center mt-4">
+                <img 
+                  src="/avatars/sleep.png" 
+                  style="width: 300px; height: 200px; margin: 0 auto;"
+                  >
+                </img>
+                <p class="text-sm text-gray-500 mt-2">No hay jornada activa en este momento.</p>
             </div>
         </div>
         
-        <!-- ========== SECCIÓN DE JORNADA CERRADA (vista de detalles) ========== -->
         <div id="closedShiftState" class="hidden">
             <div class="bg-indigo-50 rounded-2xl p-4 mb-4 flex items-center justify-between">
                 <div class="flex items-center gap-3">
@@ -385,7 +353,6 @@
             </div>
         </div>
         
-        <!-- Footer -->
         <div class="text-center pt-2 pb-2 border-t border-gray-100 mt-2">
             <p class="text-xs text-gray-400 flex items-center justify-center gap-2">
                 <i class="fas fa-motorcycle text-indigo-400"></i>

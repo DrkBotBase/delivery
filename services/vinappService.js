@@ -3,7 +3,6 @@ const moment = require('moment-timezone');
 class VinAppService {
     constructor() {
         this.baseUrl = process.env.VINAPP_URL;
-        // Ahora usamos el token fijo que debes configurar en tu archivo .env
         this.dbJwtToken = process.env.DB_JWT_TOKEN; 
     }
     
@@ -26,7 +25,6 @@ class VinAppService {
 
         let allOrders = [];
 
-        // 1. Hacemos las dos peticiones separadas igual que en tu frontend
         for (const date of [yesterdayStr, todayStr]) {
             try {
                 const url = `${this.baseUrl}/api/list/order-range-dev/${date}%2000:00/${date}%2023:59/${companyId}/${pointId}/0`;
@@ -41,12 +39,11 @@ class VinAppService {
 
                 if (!response.ok) {
                     console.warn(`⚠️ Error API en fecha ${date}: ${response.status}`);
-                    continue; // Si falla un día, continuamos con el otro sin detener todo
+                    continue;
                 }
 
                 const data = await response.json();
                 
-                // 2. Leemos la estructura correcta (data.orders)
                 const orders = data.orders || (Array.isArray(data) ? data : (data.data || []));
                 allOrders = [...allOrders, ...orders];
             } catch (err) {
@@ -56,7 +53,6 @@ class VinAppService {
 
         if (allOrders.length === 0) return null;
 
-        // 3. Buscar la factura en el acumulado de ambos días
         const targetOrder = allOrders.find(order => {
             const docNumber = order.document_number ? order.document_number.toString() : '';
             const invoicePos = order.consecutive_invoice_pos ? order.consecutive_invoice_pos.toString() : '';
@@ -70,7 +66,6 @@ class VinAppService {
         
         if (!targetOrder) return null;
         
-        // 4. Obtener costo de envío desde el endpoint público
         let shippingCost = 0;
         let phoneNumber = '';
         try {
@@ -97,7 +92,6 @@ class VinAppService {
     }
 
 
-    // El mapeo de datos al formato de tu PWA queda exactamente igual
     mapToDelivery(vinData, shippingCost, phoneNumber) {
         const cleanTotal = parseFloat((vinData.total || '0').toString().replace(/\./g, '').replace(',', '.'));
         const paymentType = vinData.id_type_forma_pago == 37 ? 'Efectivo' : 'Transferencia';

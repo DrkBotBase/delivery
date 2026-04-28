@@ -4,7 +4,6 @@ const { requireAuth } = require('../../middleware/auth');
 const Expense = require('../../models/Expense');
 const Shift = require('../../models/Shift');
 
-// POST /api/expenses - Crear gasto
 router.post('/', requireAuth, async (req, res) => {
     try {
         const activeShift = await Shift.findOne({ 
@@ -27,7 +26,6 @@ router.post('/', requireAuth, async (req, res) => {
     }
 });
 
-// GET /api/expenses - Obtener todos los gastos
 router.get('/', requireAuth, async (req, res) => {
     try {
         const expenses = await Expense.find({ user: req.session.userId })
@@ -40,7 +38,6 @@ router.get('/', requireAuth, async (req, res) => {
     }
 });
 
-// GET /api/expenses/:id - Obtener un gasto específico
 router.get('/:id', requireAuth, async (req, res) => {
     try {
         const expense = await Expense.findOne({ 
@@ -59,7 +56,6 @@ router.get('/:id', requireAuth, async (req, res) => {
     }
 });
 
-// DELETE /api/expenses/:id - Eliminar gasto
 router.delete('/:id', requireAuth, async (req, res) => {
     try {
         const expense = await Expense.findOneAndDelete({ 

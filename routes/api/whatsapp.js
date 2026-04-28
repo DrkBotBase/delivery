@@ -6,7 +6,6 @@ const PDFDocument = require('pdfkit');
 const { requireAuth } = require('../../middleware/auth');
 const waService = require('../../services/whatsapp');
 
-// POST /api/whatsapp/pair - Emparejar WhatsApp
 router.post('/pair', requireAuth, async (req, res) => {
     try {
         const { phone } = req.body;
@@ -22,7 +21,6 @@ router.post('/pair', requireAuth, async (req, res) => {
     }
 });
 
-// POST /api/whatsapp/send-ticket/:idOrder - Enviar factura por WhatsApp
 router.post('/send-ticket/:idOrder', requireAuth, async (req, res) => {
     try {
         if (!waService.getStatus()) {
@@ -153,7 +151,6 @@ router.post('/send-ticket/:idOrder', requireAuth, async (req, res) => {
            .stroke();
         doc.moveDown(0.5);
         
-        // Productos
         doc.font('Helvetica-Bold')
            .fontSize(8);
         
@@ -298,7 +295,6 @@ router.post('/send-ticket/:idOrder', requireAuth, async (req, res) => {
     }
 });
 
-// GET /api/whatsapp/status - Estado de WhatsApp
 router.get('/status', requireAuth, async (req, res) => {
     try {
         const status = waService.getStatus();

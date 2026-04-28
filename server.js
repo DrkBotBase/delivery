@@ -39,12 +39,8 @@ mongoose.connect(process.env.MONGODB_URI)
 .then(() => console.log('✅ Conectado a MongoDB'))
 .catch(err => console.error('❌ Error de conexión:', err));
 
-// ========== RUTAS ==========
-
-// Rutas de autenticación
 app.use('/auth', require('./routes/auth'));
 
-// Rutas web principales
 app.use('/', require('./routes/deliveries'));
 app.use('/tools', require('./routes/tools'));
 app.use('/profile', require('./routes/profile'));
@@ -54,7 +50,6 @@ app.use('/restaurante', restaurantRoutes);
 
 app.use('/api', require('./routes/api/index'));
 
-// Rutas adicionales
 app.get('/manifest.json', (req, res) => {
     res.type('application/manifest+json');
     res.sendFile(path.join(__dirname, 'public/manifest.json'));
@@ -83,29 +78,12 @@ app.get('/route', requireAuth, (req, res) => {
     });
 });
 
-// Ruta de restaurante (web)
-/*
-app.get('/restaurante/login', (req, res) => {
-    res.render('restaurante-login');
-});
-
-app.get('/restaurante/panel', async (req, res) => {
-    if (!req.session.restaurantId) {
-        return res.redirect('/restaurante/login');
-    }
-    const Restaurant = require('./models/Restaurant');
-    const restaurant = await Restaurant.findById(req.session.restaurantId);
-    res.render('restaurante-dashboard', { restaurant });
-});
-*/
-// Keep-alive
 setInterval(() => {
   fetch((info.dominio || `http://localhost:${PORT}`) + '/ping')
     .then(res => { /* console.log('Ping OK'); */ })
     .catch(err => console.error('Ping Error:', err.message));
 }, 25 * 60 * 1000);
 
-// 404
 app.use((req, res, next) => {
     res.status(404).render('404', {
       info,

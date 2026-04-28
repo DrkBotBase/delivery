@@ -1,11 +1,8 @@
-// ========== VARIABLES GLOBALES ==========
 let currentShiftToken = null;
 let isUpdating = false;
 let onlineTimeout;
 
-// ========== INICIALIZACIÓN ==========
 document.addEventListener('DOMContentLoaded', function() {
-    checkPendingSync();
     checkShiftStatus();
     
     const currentPage = window.currentFilters?.page || 1;
@@ -18,7 +15,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 100);
 });
 
-// ========== FUNCIONES DE SESIÓN ==========
 function checkSession(response) {
     if (response.status === 401) {
         Swal.fire({
@@ -53,8 +49,6 @@ function confirmLogout() {
         }
     });
 }
-
-// ========== FUNCIONES DE JORNADA ==========
 
 async function startShift() {
     const { value: base } = await Swal.fire({
@@ -170,16 +164,13 @@ function shareShift(tokenOverride = null) {
     });
 }
 
-// ========== FUNCIONES DE TRANSACCIONES ==========
 function toggleSections(hasActiveShift, isViewingClosedShift) {
     const mainContent = document.getElementById('mainContent');
     const emptyState = document.getElementById('emptyState');
     const closedShiftState = document.getElementById('closedShiftState');
     const shiftPanel = document.getElementById('shiftPanel');
     
-    // Si está viendo una jornada cerrada (shiftId en URL)
     if (isViewingClosedShift) {
-        // MOSTRAR mainContent para que se vea el historial
         if (mainContent) mainContent.classList.remove('hidden');
         if (emptyState) emptyState.classList.add('hidden');
         if (closedShiftState) closedShiftState.classList.remove('hidden');
@@ -187,7 +178,6 @@ function toggleSections(hasActiveShift, isViewingClosedShift) {
         return;
     }
     
-    // Si no hay jornada activa
     if (!hasActiveShift) {
         if (mainContent) mainContent.classList.add('hidden');
         if (emptyState) emptyState.classList.remove('hidden');
@@ -196,14 +186,12 @@ function toggleSections(hasActiveShift, isViewingClosedShift) {
         return;
     }
     
-    // Si hay jornada activa
     if (mainContent) mainContent.classList.remove('hidden');
     if (emptyState) emptyState.classList.add('hidden');
     if (closedShiftState) closedShiftState.classList.add('hidden');
     if (shiftPanel) shiftPanel.classList.remove('hidden');
 }
 
-// Función para cargar estadísticas de jornada específica
 async function loadShiftStats(shiftId) {
     try {
         const response = await fetch(`/api/shifts/${shiftId}`);
@@ -212,7 +200,6 @@ async function loadShiftStats(shiftId) {
         const data = await response.json();
         
         if (data.success) {
-            // Actualizar tarjetas
             const shiftTotalCard = document.getElementById('shiftGrandTotalCard');
             if (shiftTotalCard) {
                 shiftTotalCard.textContent = '$' + (data.stats?.deliveriesTotal || 0).toLocaleString('es-CO');
@@ -228,7 +215,6 @@ async function loadShiftStats(shiftId) {
                 deliveriesCountDisplay.textContent = data.stats?.deliveriesCount || 0;
             }
             
-            // Mostrar la fecha de la jornada en el banner
             const closedShiftDate = document.getElementById('closedShiftDate');
             if (closedShiftDate && data.shift) {
                 const startDate = new Date(data.shift.startTime);
@@ -254,10 +240,8 @@ async function loadShiftStats(shiftId) {
     }
 }
 
-// Modificar loadPage
 async function loadPage(page) {
     if (isUpdating) {
-        console.log('⏳ Actualización en curso, omitiendo...');
         return;
     }
     
@@ -279,18 +263,14 @@ async function loadPage(page) {
 
         const data = await res.json();
         
-        console.log(`📊 Página ${page}: ${data.items?.length || 0} items de ${data.totalDocs || 0} totales`);
-        
         if (typeof renderTransactions === 'function') {
             renderTransactions(data.items);
         }
         
         updatePaginationControls(data.page, data.totalPages);
         
-        // Si hay shiftId, cargar estadísticas de esa jornada y mostrar el estado correcto
         if (shiftId) {
             await loadShiftStats(shiftId);
-            // Mostrar el estado de jornada cerrada PERO con el historial visible
             toggleSections(false, true);
         } else {
             await refreshTotals();
@@ -321,7 +301,6 @@ async function loadPage(page) {
     }
 }
 
-// Actualizar checkShiftStatus (agregar toggleSections)
 async function checkShiftStatus() {
     try {
         const loading = document.getElementById('shiftLoading');
@@ -356,7 +335,6 @@ async function checkShiftStatus() {
             active.classList.remove('hidden');
             toggleSections(true, false);
             
-            // Resto del código igual...
             const grandTotal = data.stats?.grandTotal || 0;
             const baseMoney = data.shift?.baseMoney || 0;
             const totalDeliveries = data.stats?.totalDeliveries || 0;
@@ -398,7 +376,6 @@ async function checkShiftStatus() {
             active.classList.add('hidden');
             toggleSections(false, false);
             
-            // Resetear tarjetas
             const shiftTotalCard = document.getElementById('shiftGrandTotalCard');
             const shiftExpenseCard = document.getElementById('shiftExpensesTotal');
             const deliveriesCountDisplay = document.getElementById('deliveriesCountDisplay');
@@ -412,26 +389,18 @@ async function checkShiftStatus() {
     }
 }
 
-// Modificar loadPage para manejar el estado de jornada cerrada
-
-// Modificar clearShiftFilter
 function clearShiftFilter() {
     const url = new URL(window.location.href);
     url.searchParams.delete('shiftId');
     url.searchParams.delete('page');
     window.location.href = url.toString();
 }
-// ========== FIN NUEVA FUNCIÓN ==========
 
 function renderTransactions(items) {
     const container = document.getElementById('deliveriesContainer');
-    
-    // ========== VERIFICAR QUE EL CONTENEDOR EXISTE ==========
     if (!container) {
-        console.log('⚠️ deliveriesContainer no encontrado en esta página');
         return;
     }
-    // ========== FIN VERIFICACIÓN ==========
     
     if (!items || items.length === 0) {
         container.innerHTML = `
@@ -512,12 +481,9 @@ function updatePaginationControls(page, totalPages) {
     const nextBtn = document.getElementById('nextPageBtn');
     const pageLabel = document.getElementById('pageLabel');
 
-    // ========== VERIFICAR QUE LOS ELEMENTOS EXISTEN ==========
     if (!prevBtn || !nextBtn || !pageLabel) {
-        console.log('⚠️ Elementos de paginación no encontrados en esta página');
         return;
     }
-    // ========== FIN VERIFICACIÓN ==========
 
     if (prevBtn) {
         if (page <= 1) {
@@ -554,18 +520,14 @@ function applyFilters() {
     window.location.href = url.toString();
 }
 
-
-// ========== FUNCIONES DE TOTALES ==========
 async function refreshTotals() {
     if (window.refreshingTotals) return;
     window.refreshingTotals = true;
     
     try {
-        // Verificar si hay shiftId en la URL
         const urlParams = new URLSearchParams(window.location.search);
         const shiftIdFilter = urlParams.get('shiftId');
         
-        // Si hay filtro de jornada, no actualizar totals normales
         if (shiftIdFilter) {
             window.refreshingTotals = false;
             return;
@@ -602,9 +564,7 @@ async function refreshTotals() {
     }
 }
 
-// ========== CRUD DE ENTREGAS ==========
 function openDeliveryModal(id) {
-    // Buscar en window.deliveriesData
     let delivery = window.deliveriesData?.find(d => d._id === id);
     
     if (!delivery) {
@@ -686,7 +646,6 @@ async function editDelivery(id) {
         
         const data = await resGet.json();
         
-        // ========== CORRECCIÓN: Obtener el delivery de diferentes estructuras ==========
         let delivery;
         if (data.delivery) {
             delivery = data.delivery;
@@ -897,7 +856,6 @@ async function addExpense() {
     }
 }
 
-// ========== FUNCIONES DE CONTACTO ==========
 function openContactOptions(phone, name) {
     let cleanPhone = phone.replace(/\D/g, ''); 
     if (!cleanPhone.startsWith('57')) cleanPhone = '57' + cleanPhone;
@@ -932,7 +890,6 @@ function openContactOptions(phone, name) {
     });
 }
 
-// ========== FUNCIONES DE VINAPP ==========
 async function importFromVinApp() {
     const input = document.getElementById('vinappInput');
     const btn = document.getElementById('btnVinApp');
@@ -1016,7 +973,6 @@ async function showLinkedRestaurants() {
     }
 }
 
-// ========== FUNCIONES DE FACTURA DIGITAL ==========
 async function viewDigitalInvoice(idOrder) {
     Swal.fire({ title: 'Generando ticket...', text: 'Consultando datos del restaurante', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
     try {
@@ -1049,7 +1005,6 @@ async function viewDigitalInvoice(idOrder) {
     } catch (error) { console.error("Error cargando ticket:", error); Swal.fire('Error', 'No se pudo cargar la información del ticket. Intenta de nuevo.', 'error'); }
 }
 
-// ========== FUNCIONES DE COPIA ==========
 function copyToClipboard(text, btnElement) {
     if (navigator.clipboard && window.isSecureContext) { navigator.clipboard.writeText(text).then(() => { showCopyFeedback(btnElement); }).catch(() => { fallbackCopyTextToClipboard(text, btnElement); }); } 
     else { fallbackCopyTextToClipboard(text, btnElement); }
@@ -1077,23 +1032,12 @@ function showCopyFeedback(btn) {
     setTimeout(() => { btn.innerHTML = originalHtml; btn.classList.remove('bg-green-600'); btn.classList.add('bg-gray-800'); }, 2000);
 }
 
-// ========== FUNCIONES DE SINCRONIZACIÓN ==========
-let pendingSync = [];
-
-function checkPendingSync() {
-    const pending = localStorage.getItem('pendingSync');
-    if (pending) { pendingSync = JSON.parse(pending); if (pendingSync.length > 0 && navigator.onLine) syncPendingData(); }
-}
-
-async function syncPendingData() { console.log("Sincronizando datos pendientes..."); }
-
 window.addEventListener('online', () => {
     if (onlineTimeout) clearTimeout(onlineTimeout);
     onlineTimeout = setTimeout(() => {
         const toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, timerProgressBar: true });
         toast.fire({ icon: 'success', title: 'Conexión restablecida' });
         if (document.visibilityState === 'visible') { checkShiftStatus(); refreshTotals(); const currentPage = window.currentFilters?.page || 1; loadPage(currentPage); }
-        checkPendingSync();
     }, 500);
 });
 

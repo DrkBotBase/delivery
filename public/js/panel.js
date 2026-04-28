@@ -1,8 +1,5 @@
-// app.js - Versión simplificada sin historial de transacciones
-
 let isUpdating = false;
 
-// app.js - Modificar loadPage
 async function loadPage(page) {
     if (isUpdating) return;
     
@@ -14,48 +11,32 @@ async function loadPage(page) {
     const search = urlParams.get('search') || '';
 
     try {
-        console.log(`🔄 Cargando página ${page}...`);
-        
-        const res = await fetch(`/api/transactions?page=${page}&limit=10&search=${encodeURIComponent(search)}`);
+      const res = await fetch(`/api/transactions?page=${page}&limit=10&search=${encodeURIComponent(search)}`);
         
         if (!checkSession(res)) return;
 
         const data = await res.json();
         
-        console.log(`✅ Datos recibidos:`, {
-            items: data.items?.length,
-            totalDocs: data.totalDocs,
-            totalDeliveries: data.totalDeliveries,
-            totalExpenses: data.totalExpenses,
-            activeShiftId: data.activeShiftId
-        });
-        
-        // Renderizar items
         if (typeof renderTransactions === 'function') {
             renderTransactions(data.items || []);
         } else {
             console.error('❌ renderTransactions no está definida');
         }
         
-        // Actualizar paginación
         if (typeof updatePaginationControls === 'function') {
             updatePaginationControls(data.page, data.totalPages);
         }
         
-        // Actualizar total de hoy
         const todayTotalElement = document.getElementById('todayTotalDisplay');
         if (todayTotalElement && data.todayTotal !== undefined) {
             todayTotalElement.textContent = `$${data.todayTotal.toLocaleString('es-CO')}`;
         }
         
-        // Actualizar total de caja
         await checkShiftStatus();
         
-        // Actualizar URL
         const newUrl = new URL(window.location);
         newUrl.searchParams.set('page', page);
         window.history.pushState({}, '', newUrl);
-
     } catch (error) {
         console.error('❌ Error cargando página:', error);
         if (container) {
@@ -73,13 +54,11 @@ async function loadPage(page) {
     }
 }
 
-// app.js - Modificar renderTransactions
 function renderTransactions(items) {
     const container = document.getElementById('deliveriesContainer');
     
     if (!container) return;
     
-    // Verificar si hay jornada activa (window.activeShift viene del backend)
     if (!window.activeShift) {
         container.innerHTML = `
             <div class="text-center py-10 bg-white rounded-2xl border border-dashed border-gray-300">
@@ -195,7 +174,6 @@ function applyFilters() {
     window.location.href = url.toString();
 }
 
-// Cargar página al iniciar
 document.addEventListener('DOMContentLoaded', function() {
     checkShiftStatus();
     loadPage(1);

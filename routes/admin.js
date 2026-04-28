@@ -1,4 +1,3 @@
-// routes/admin.js
 const express = require('express');
 const router = express.Router();
 const { requireAuth, requireAdmin } = require('../middleware/auth');
@@ -7,14 +6,13 @@ const Recharge = require('../models/Recharge');
 const User = require('../models/User');
 const { info } = require('../config');
 
-// Panel de notificaciones (solo admin)
 router.get('/notifications', requireAuth, requireAdmin, async (req, res) => {
-    try {
-        const user = await User.findById(req.session.userId);
-        res.render('admin/notifications', {
-            info,
-            title: `${info.name_page} | Admin Notificaciones`,
-            currentUser: user
+  try {
+    const user = await User.findById(req.session.userId);
+      res.render('admin/notifications', {
+        info,
+        admin: user,
+            title: 'Admin | Notificaciones'
         });
     } catch (error) {
         console.error('Error en admin/notifications:', error);
@@ -22,33 +20,28 @@ router.get('/notifications', requireAuth, requireAdmin, async (req, res) => {
     }
 });
 
-// Panel principal
 router.get('/', requireAdmin, async (req, res) => {
     try {
         const user = await User.findById(req.session.userId);
-        // Estadísticas generales
         const totalRestaurants = await Restaurant.countDocuments();
         const activeRestaurants = await Restaurant.countDocuments({ status: 'active' });
         const suspendedRestaurants = await Restaurant.countDocuments({ status: 'suspended' });
         
-        // Total de escaneos disponibles
         const totalScans = await Restaurant.aggregate([
             { $group: { _id: null, total: { $sum: '$availableScans' } } }
         ]);
         
-        // Últimas recargas
         const recentRecharges = await Recharge.find()
             .sort({ createdAt: -1 })
             .limit(10);
         
-        // Top restaurantes por uso
         const topRestaurants = await Restaurant.find()
             .sort({ totalScans: -1 })
             .limit(5)
             .select('name pointId totalScans availableScans');
             
         res.render('admin/dashboard', {
-            title: `${info.name_page} | Panel Admin`,
+            title: 'Admin | Panel',
             admin: user,
             stats: {
                 totalRestaurants,
@@ -65,7 +58,6 @@ router.get('/', requireAdmin, async (req, res) => {
     }
 });
 
-// Lista de restaurantes
 router.get('/restaurants', requireAdmin, async (req, res) => {
     try {
         const user = await User.findById(req.session.userId);
@@ -90,8 +82,6 @@ router.get('/restaurants', requireAdmin, async (req, res) => {
             .limit(limit);
         
         const total = await Restaurant.countDocuments(filter);
-        
-        // Obtener últimos recharges para cada restaurante
         const restaurantsWithRecharges = await Promise.all(restaurants.map(async (rest) => {
             const lastRecharge = await Recharge.findOne({ restaurantId: rest._id })
                 .sort({ createdAt: -1 });
@@ -105,7 +95,7 @@ router.get('/restaurants', requireAdmin, async (req, res) => {
         }));
         
         res.render('admin/restaurants', {
-            title: `${info.name_page} | Restaurantes`,
+            title: 'Admin | Restaurantes',
             admin: user,
             restaurants: restaurantsWithRecharges,
             pagination: {
@@ -121,7 +111,6 @@ router.get('/restaurants', requireAdmin, async (req, res) => {
     }
 });
 
-// Ver restaurante específico
 router.get('/restaurants/:id', requireAdmin, async (req, res) => {
     try {
         const user = await User.findById(req.session.userId);
@@ -130,16 +119,13 @@ router.get('/restaurants/:id', requireAdmin, async (req, res) => {
             return res.status(404).send('Restaurante no encontrado');
         }
         
-        // Obtener historial de recargas
         const recharges = await Recharge.find({ restaurantId: restaurant._id })
             .sort({ createdAt: -1 });
         
-        // Obtener domiciliarios vinculados
         const deliveryUsers = await User.find({
             'linkedRestaurants.pointId': restaurant.pointId
         }).select('username fullName email createdAt');
         
-        // Estadísticas adicionales
         const stats = {
             totalRecharges: recharges.length,
             totalScansRecharged: recharges.reduce((sum, r) => sum + r.amount, 0),
@@ -161,7 +147,7 @@ router.get('/restaurants/:id', requireAdmin, async (req, res) => {
         };
         
         res.render('admin/restaurant-detail', {
-            title: `${info.name_page} | ${restaurant.name}`,
+            title: `Admin | ${restaurant.name}`,
             admin: user,
             restaurant,
             recharges,
@@ -174,7 +160,6 @@ router.get('/restaurants/:id', requireAdmin, async (req, res) => {
     }
 });
 
-// Recargar escaneos
 router.post('/restaurants/:id/recharge', requireAdmin, async (req, res) => {
     try {
         const { amount, notes } = req.body;
@@ -192,11 +177,9 @@ router.post('/restaurants/:id/recharge', requireAdmin, async (req, res) => {
         const previousScans = restaurant.availableScans;
         const newScans = previousScans + parseInt(amount);
         
-        // Actualizar restaurante
         restaurant.availableScans = newScans;
         await restaurant.save();
         
-        // Registrar recarga
         const recharge = new Recharge({
             restaurantId: restaurant._id,
             restaurantName: restaurant.name,
@@ -221,7 +204,6 @@ router.post('/restaurants/:id/recharge', requireAdmin, async (req, res) => {
     }
 });
 
-// Cambiar estado del restaurante
 router.put('/restaurants/:id/status', requireAdmin, async (req, res) => {
     try {
         const { status } = req.body;
@@ -241,7 +223,6 @@ router.put('/restaurants/:id/status', requireAdmin, async (req, res) => {
     }
 });
 
-// Historial de recargas
 router.get('/recharges', requireAdmin, async (req, res) => {
     try {
         const user = await User.findById(req.session.userId);
@@ -256,7 +237,7 @@ router.get('/recharges', requireAdmin, async (req, res) => {
         const total = await Recharge.countDocuments();
         
         res.render('admin/recharges', {
-            title: `${info.name_page} | Historial de Recargas`,
+            title: 'Admin | Historial de Recargas',
             admin: user,
             recharges,
             pagination: {
@@ -270,7 +251,5 @@ router.get('/recharges', requireAdmin, async (req, res) => {
         res.status(500).send('Error al cargar historial');
     }
 });
-
-module.exports = router;
 
 module.exports = router;

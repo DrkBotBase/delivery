@@ -9,10 +9,8 @@ const Expense = require('../models/Expense');
 const User = require('../models/User');
 
 const { requireAuth } = require('../middleware/auth');
-//const checkFullName = require('../middleware/checkFullName');
 const { info } = require('../config');
 
-// Reporte público de jornada (compartido)
 router.get('/report/:token', async (req, res) => {
     try {
         const shift = await Shift.findOne({ shareToken: req.params.token });
@@ -60,7 +58,6 @@ router.get('/report/:token', async (req, res) => {
     }
 });
 
-// Landing page
 router.get('/', (req, res) => {
     res.render('landing', {
       info,
@@ -68,14 +65,12 @@ router.get('/', (req, res) => {
     });
 });
 
-// Dashboard principal (solo jornada activa)
 router.get('/panel', requireAuth, async (req, res) => {
     try {
         const { page = 1, limit = 10, search, shiftId } = req.query;
         const userId = req.session.userId;
         const skip = (parseInt(page) - 1) * parseInt(limit);
 
-        // Obtener jornada activa
         let activeShiftId = shiftId;
         
         if (!shiftId) {
@@ -89,7 +84,6 @@ router.get('/panel', requireAuth, async (req, res) => {
             }
         }
         
-        // Filtros para la jornada activa
         const deliveryFilters = { user: userId };
         if (activeShiftId) deliveryFilters.shiftId = activeShiftId;
         
@@ -161,14 +155,13 @@ router.get('/panel', requireAuth, async (req, res) => {
 
         const currentUser = await User.findById(userId).select('-password');
         
-        // ✅ Crear objeto sanitizado para la vista
         const userForView = {
             _id: currentUser._id,
             username: currentUser.username,
             fullName: currentUser.fullName,
             avatar: currentUser.avatar,
             role: currentUser.role,
-            isGoogleUser: !!currentUser.googleId  // ← Agregar esta línea
+            isGoogleUser: !!currentUser.googleId
         };
 
         res.render('layout', {
@@ -177,7 +170,7 @@ router.get('/panel', requireAuth, async (req, res) => {
             deliveries: combinedData,
             total: netTotal,
             todayTotal: todayTotal,
-            currentUser: userForView,  // ← Usar el objeto sanitizado
+            currentUser: userForView,
             pagination: {
                 totalDocs: totalDocs,
                 totalPages: Math.ceil(totalDocs / limit),

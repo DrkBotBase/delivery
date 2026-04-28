@@ -5,7 +5,6 @@ const Delivery = require('../../models/Delivery');
 const Expense = require('../../models/Expense');
 const Shift = require('../../models/Shift');
 
-// GET /api/transactions - Historial paginado (para panel y perfil)
 router.get('/', requireAuth, async (req, res) => {
     try {
         const { page = 1, limit = 10, search, shiftId, allTime = 'false' } = req.query;
@@ -15,12 +14,10 @@ router.get('/', requireAuth, async (req, res) => {
         let deliveryFilters = { user: userId };
         let expenseFilters = { user: userId };
         
-        // Si se especifica shiftId, filtrar por esa jornada
         if (shiftId && shiftId !== '') {
             deliveryFilters.shiftId = shiftId;
             expenseFilters.shiftId = shiftId;
         }
-        // Si allTime es 'false' y no hay shiftId, mostrar solo jornada activa
         else if (allTime === 'false') {
             const activeShift = await Shift.findOne({ user: userId, status: 'active' });
             if (activeShift) {
@@ -28,8 +25,7 @@ router.get('/', requireAuth, async (req, res) => {
                 expenseFilters.shiftId = activeShift._id;
             }
         }
-        // Si allTime es 'true', no aplicar filtro de jornada (ver todo)
-
+        
         if (search) {
             deliveryFilters.$or = [
                 { invoiceNumber: { $regex: search, $options: 'i' } },

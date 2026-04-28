@@ -1,5 +1,3 @@
-// route.js - Versión completa corregida
-
 let currentRoute = null;
 let currentDeliveryIndex = 0;
 
@@ -194,7 +192,7 @@ function startNavigation() {
     if (!currentRoute || currentDeliveryIndex >= currentRoute.deliveries.length) return;
     
     const delivery = currentRoute.deliveries[currentDeliveryIndex];
-    const addressQuery = encodeURIComponent((delivery.address || '') + ", Colombia"); 
+    const addressQuery = encodeURIComponent((delivery.address || '')); 
     
     Swal.fire({
         html: `

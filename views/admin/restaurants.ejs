@@ -7,151 +7,185 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+      .swal2-popup {
+          width: 90% !important;
+          max-width: 450px !important;
+          padding: 1.25rem !important;
+          border-radius: 1.5rem !important;
+      }
+      .swal2-input, .swal2-textarea {
+          width: 100% !important;
+          margin: 1rem 0 0 0 !important;
+          box-sizing: border-box !important;
+      }
+    </style>
 </head>
-<body class="bg-gray-50">
-    <div class="flex h-screen">
-        <!-- Sidebar -->
-        <div class="w-64 bg-indigo-800 text-white flex flex-col">
-            <div class="p-5 border-b border-indigo-700">
-                <h1 class="text-xl font-bold"><i class="fas fa-store"></i> Admin Panel</h1>
-                <p class="text-xs text-indigo-300 mt-1"><%= admin.fullName || admin.username %></p>
-            </div>
-            <nav class="flex-1 p-4">
-                <a href="/admin" class="flex items-center gap-3 px-4 py-3 hover:bg-indigo-700 rounded-lg transition">
-                    <i class="fas fa-chart-line"></i> Dashboard
-                </a>
-                <a href="/admin/restaurants" class="flex items-center gap-3 px-4 py-3 bg-indigo-700 rounded-lg">
-                    <i class="fas fa-store"></i> Restaurantes
-                </a>
-                <a href="/admin/recharges" class="flex items-center gap-3 px-4 py-3 hover:bg-indigo-700 rounded-lg transition">
-                    <i class="fas fa-history"></i> Historial de Recargas
-                </a>
-            </nav>
-            <div class="p-4 border-t border-indigo-700">
-                <a href="/auth/logout" class="flex items-center gap-3 px-4 py-3 hover:bg-indigo-700 rounded-lg transition">
-                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
-                </a>
-            </div>
-        </div>
+<body class="bg-gray-50 antialiased">
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden"></div>
+
+    <div class="flex h-screen overflow-hidden">
         
-        <!-- Main content -->
-        <div class="flex-1 overflow-auto">
-            <header class="bg-white shadow-sm p-6 flex justify-between items-center">
-                <div>
-                    <h2 class="text-2xl font-bold text-gray-800">Restaurantes</h2>
-                    <p class="text-gray-500 text-sm">Gestiona los restaurantes y sus escaneos</p>
+        <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-indigo-800 text-white flex flex-col z-50 transform -translate-x-full transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0">
+          <%- include("p-sidebar") %>
+        </aside>
+        
+        <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+            <header class="bg-white shadow-sm p-4 lg:p-6 flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <button id="openSidebar" class="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-md">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                    <div>
+                        <h2 class="text-xl lg:text-2xl font-bold text-gray-800">Restaurantes</h2>
+                        <p class="hidden sm:block text-gray-500 text-sm">Gestiona los restaurantes y sus escaneos</p>
+                    </div>
                 </div>
             </header>
             
-            <main class="p-6">
-                <!-- Filtros -->
+            <main class="flex-1 overflow-y-auto p-4 lg:p-6">
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-6">
-                    <form method="GET" class="flex flex-wrap gap-4">
-                        <input type="text" name="search" placeholder="Buscar por nombre o ID..." 
-                               value="<%= filters.search || '' %>"
-                               class="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500">
-                        <select name="status" class="px-4 py-2 border border-gray-200 rounded-lg">
-                            <option value="all">Todos los estados</option>
-                            <option value="active" <%= filters.status === 'active' ? 'selected' : '' %>>Activos</option>
-                            <option value="suspended" <%= filters.status === 'suspended' ? 'selected' : '' %>>Suspendidos</option>
-                        </select>
-                        <button type="submit" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700">
-                            <i class="fas fa-search"></i> Filtrar
-                        </button>
+                    <form method="GET" class="flex flex-col md:flex-row gap-3">
+                        <div class="flex-1 relative">
+                            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                            <input type="text" name="search" placeholder="Buscar nombre o ID..." 
+                                   value="<%= filters.search || '' %>"
+                                   class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition">
+                        </div>
+                        <div class="flex gap-2">
+                            <select name="status" class="flex-1 md:w-48 px-4 py-2 border border-gray-200 rounded-lg bg-white outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="all">Todos</option>
+                                <option value="active" <%= filters.status === 'active' ? 'selected' : '' %>>Activos</option>
+                                <option value="suspended" <%= filters.status === 'suspended' ? 'selected' : '' %>>Suspendidos</option>
+                            </select>
+                            <button type="submit" class="bg-indigo-600 text-white px-5 py-2 rounded-lg hover:bg-indigo-700 font-medium transition">
+                                <i class="fas fa-filter sm:hidden"></i>
+                                <span class="hidden sm:inline">Filtrar</span>
+                            </button>
+                        </div>
                     </form>
                 </div>
                 
-                <!-- Tabla de restaurantes -->
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="overflow-x-auto">
+                    <div class="hidden lg:block overflow-x-auto">
                         <table class="w-full">
                             <thead class="bg-gray-50 border-b border-gray-100">
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Restaurante</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
-                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Escaneos</th>
-                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Estado</th>
-                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Recargas</th>
-                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Restaurante</th>
+                                    <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">ID</th>
+                                    <th class="px-6 py-4 text-center text-xs font-bold text-gray-400 uppercase tracking-wider">Escaneos</th>
+                                    <th class="px-6 py-4 text-center text-xs font-bold text-gray-400 uppercase tracking-wider">Estado</th>
+                                    <th class="px-6 py-4 text-center text-xs font-bold text-gray-400 uppercase tracking-wider">Recargas</th>
+                                    <th class="px-6 py-4 text-right text-xs font-bold text-gray-400 uppercase tracking-wider">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
                                 <% if (restaurants && restaurants.length > 0) { %>
-                                    <% for(var i = 0; i < restaurants.length; i++) { 
-                                        var rest = restaurants[i];
-                                    %>
-                                        <tr class="hover:bg-gray-50 transition">
-                                            <td class="px-6 py-4">
-                                                <div>
-                                                    <p class="font-medium text-gray-800"><%= rest.name %></p>
-                                                    <p class="text-xs text-gray-400"><%= rest.companyId ? 'Compañía: ' + rest.companyId : 'Sin compañía' %></p>
-                                                </div>
-                                            </td>
-                                            <td class="px-6 py-4">
-                                                <span class="font-mono text-sm"><%= rest.pointId %></span>
-                                            </td>
+                                    <% restaurants.forEach(rest => { %>
+                                        <tr class="hover:bg-gray-50/50 transition">
+                                            <td class="px-6 py-4 font-medium text-gray-800"><%= rest.name %></td>
+                                            <td class="px-6 py-4 font-mono text-sm text-gray-500"><%= rest.pointId %></td>
                                             <td class="px-6 py-4 text-center">
-                                                <span class="font-bold text-emerald-600"><%= rest.availableScans ? rest.availableScans.toLocaleString() : '0' %></span>
-                                                <p class="text-xs text-gray-400">total: <%= rest.totalScans ? rest.totalScans.toLocaleString() : '0' %></p>
+                                                <span class="font-bold text-emerald-600"><%= (rest.availableScans || 0).toLocaleString() %></span>
                                             </td>
                                             <td class="px-6 py-4 text-center">
                                                 <button onclick='toggleStatus("<%= rest._id %>", "<%= rest.status %>")' 
-                                                    class="px-3 py-1 rounded-full text-xs font-semibold <%= rest.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' %>">
+                                                    class="px-3 py-1 rounded-full text-xs font-bold <%= rest.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' %> uppercase">
                                                     <%= rest.status === 'active' ? 'Activo' : 'Suspendido' %>
                                                 </button>
                                             </td>
-                                            <td class="px-6 py-4 text-center">
-                                                <p class="font-medium"><%= rest.totalRecharges || 0 %></p>
-                                                <% if (rest.lastRecharge) { %>
-                                                    <p class="text-xs text-gray-400">última: <%= new Date(rest.lastRecharge.createdAt).toLocaleDateString() %></p>
-                                                <% } %>
-                                            </td>
+                                            <td class="px-6 py-4 text-center text-sm text-gray-600"><%= rest.totalRecharges || 0 %></td>
                                             <td class="px-6 py-4 text-right">
-                                                <div class="flex justify-end gap-2">
-                                                    <button onclick='rechargeScans("<%= rest._id %>", "<%= rest.name %>")' 
-                                                        class="text-indigo-600 hover:text-indigo-800 p-1">
-                                                        <i class="fas fa-plus-circle"></i>
-                                                    </button>
-                                                    <a href="/admin/restaurants/<%= rest._id %>" 
-                                                        class="text-gray-500 hover:text-gray-700 p-1">
-                                                        <i class="fas fa-eye"></i>
-                                                    </a>
+                                                <div class="flex justify-end gap-3">
+                                                    <button onclick='rechargeScans("<%= rest._id %>", "<%= rest.name %>")' class="text-indigo-600 hover:scale-110 transition"><i class="fas fa-plus-circle text-lg"></i></button>
+                                                    <a href="/admin/restaurants/<%= rest._id %>" class="text-gray-400 hover:text-gray-600 transition"><i class="fas fa-eye text-lg"></i></a>
                                                 </div>
                                             </td>
                                         </tr>
-                                    <% } %>
-                                <% } else { %>
-                                    <tr>
-                                        <td colspan="6" class="px-6 py-12 text-center text-gray-400">
-                                            <i class="fas fa-store text-4xl mb-2"></i>
-                                            <p>No hay restaurantes registrados</p>
-                                        </td>
-                                    </tr>
+                                    <% }) %>
                                 <% } %>
                             </tbody>
                         </table>
                     </div>
-                    
-                    <!-- Paginación -->
-                    <% if (pagination && pagination.pages > 1) { %>
-                        <div class="px-6 py-4 border-t border-gray-100 flex justify-between items-center">
-                            <p class="text-sm text-gray-500">Mostrando <%= restaurants ? restaurants.length : 0 %> de <%= pagination.total %> restaurantes</p>
-                            <div class="flex gap-2">
-                                <% for (var i = 1; i <= pagination.pages; i++) { %>
-                                    <a href="?page=<%= i %>&search=<%= filters.search || '' %>&status=<%= filters.status || 'all' %>" 
-                                       class="px-3 py-1 rounded <%= i === pagination.page ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' %>">
-                                        <%= i %>
-                                    </a>
-                                <% } %>
+
+                    <div class="lg:hidden divide-y divide-gray-100">
+                        <% if (restaurants && restaurants.length > 0) { %>
+                            <% restaurants.forEach(rest => { %>
+                                <div class="p-4 flex flex-col gap-3">
+                                    <div class="flex justify-between items-start">
+                                        <div class="min-w-0">
+                                            <h3 class="font-bold text-gray-800 truncate"><%= rest.name %></h3>
+                                            <p class="text-xs font-mono text-gray-400"><%= rest.pointId %></p>
+                                        </div>
+                                        <button onclick='toggleStatus("<%= rest._id %>", "<%= rest.status %>")' 
+                                            class="px-3 py-1 rounded-full text-[10px] font-bold <%= rest.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' %> uppercase">
+                                            <%= rest.status === 'active' ? 'Activo' : 'Suspendido' %>
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="flex items-center justify-between bg-gray-50 p-3 rounded-xl">
+                                        <div class="text-center flex-1">
+                                            <p class="text-[10px] text-gray-400 uppercase font-bold">Disponibles</p>
+                                            <p class="font-bold text-emerald-600"><%= (rest.availableScans || 0).toLocaleString() %></p>
+                                        </div>
+                                        <div class="w-px h-8 bg-gray-200"></div>
+                                        <div class="text-center flex-1">
+                                            <p class="text-[10px] text-gray-400 uppercase font-bold">Recargas</p>
+                                            <p class="font-bold text-gray-700"><%= rest.totalRecharges || 0 %></p>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex gap-2">
+                                        <button onclick='rechargeScans("<%= rest._id %>", "<%= rest.name %>")' class="flex-1 bg-indigo-50 text-indigo-700 py-2 rounded-lg font-bold text-sm flex items-center justify-center gap-2">
+                                            <i class="fas fa-plus-circle"></i> Recargar
+                                        </button>
+                                        <a href="/admin/restaurants/<%= rest._id %>" class="px-4 bg-gray-100 text-gray-600 py-2 rounded-lg flex items-center justify-center">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            <% }) %>
+                        <% } else { %>
+                            <div class="p-12 text-center text-gray-400">
+                                <i class="fas fa-store text-4xl mb-2"></i>
+                                <p>No hay restaurantes registrados</p>
                             </div>
-                        </div>
-                    <% } %>
+                        <% } %>
+                    </div>
                 </div>
+
+                <% if (pagination && pagination.pages > 1) { %>
+                    <div class="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <p class="text-sm text-gray-500 order-2 sm:order-1">Total: <%= pagination.total %></p>
+                        <div class="flex gap-1 order-1 sm:order-2">
+                            <% for (var i = 1; i <= pagination.pages; i++) { %>
+                                <a href="?page=<%= i %>&search=<%= filters.search || '' %>&status=<%= filters.status || 'all' %>" 
+                                   class="w-10 h-10 flex items-center justify-center rounded-lg font-medium transition <%= i === pagination.page ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200' %>">
+                                    <%= i %>
+                                </a>
+                            <% } %>
+                        </div>
+                    </div>
+                <% } %>
             </main>
         </div>
     </div>
-    
+
     <script>
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const openBtn = document.getElementById('openSidebar');
+        const closeBtn = document.getElementById('closeSidebar');
+
+        const toggleSidebar = () => {
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        };
+
+        openBtn.addEventListener('click', toggleSidebar);
+        closeBtn.addEventListener('click', toggleSidebar);
+        overlay.addEventListener('click', toggleSidebar);
+        
         async function toggleStatus(id, currentStatus) {
             var newStatus = currentStatus === 'active' ? 'suspended' : 'active';
             var action = newStatus === 'active' ? 'activar' : 'suspender';
@@ -188,45 +222,77 @@
         }
         
         async function rechargeScans(id, name) {
-            var result = await Swal.fire({
-                title: 'Recargar escaneos',
-                html: '<p class="text-left mb-3">Restaurante: <strong>' + name + '</strong></p>' +
-                    '<input type="number" id="amount" class="swal2-input" placeholder="Cantidad de escaneos" min="1">' +
-                    '<textarea id="notes" class="swal2-textarea" placeholder="Notas (opcional)" rows="2"></textarea>',
-                focusConfirm: false,
-                preConfirm: function() {
-                    var amount = document.getElementById('amount').value;
-                    if (!amount || amount <= 0) {
-                        Swal.showValidationMessage('Ingresa una cantidad válida');
-                        return false;
-                    }
-                    return { 
-                        amount: parseInt(amount), 
-                        notes: document.getElementById('notes').value 
-                    };
-                }
-            });
-            
-            if (result.value) {
-                try {
-                    var res = await fetch('/admin/restaurants/' + id + '/recharge', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ amount: result.value.amount, notes: result.value.notes })
-                    });
-                    var data = await res.json();
-                    
-                    if (data.success) {
-                        Swal.fire('Éxito', data.message, 'success');
-                        setTimeout(function() { location.reload(); }, 1500);
-                    } else {
-                        Swal.fire('Error', data.error, 'error');
-                    }
-                } catch (error) {
-                    Swal.fire('Error', 'Error de conexión', 'error');
-                }
-            }
+          var result = await Swal.fire({
+              title: 'Recargar escaneos',
+              html: `
+                  <div class="w-full max-w-full text-left overflow-hidden">
+                      <p class="text-sm text-gray-600 mb-4 bg-indigo-50 p-3 rounded-lg border border-indigo-100">
+                          Restaurante: <span class="font-bold text-indigo-900 block sm:inline">${name}</span>
+                      </p>
+                      
+                      <label class="text-xs font-bold text-gray-400 uppercase ml-1">Cantidad</label>
+                      <input type="number" id="amount" 
+                          class="w-full mt-1 px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition" 
+                          placeholder="Ej: 500" min="1">
+                      
+                      <div class="mt-4">
+                          <label class="text-xs font-bold text-gray-400 uppercase ml-1">Notas (Opcional)</label>
+                          <textarea id="notes" 
+                              class="w-full mt-1 px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition" 
+                              placeholder="Motivo de la recarga..." rows="2"></textarea>
+                      </div>
+                  </div>
+              `,
+              showCancelButton: true,
+              confirmButtonText: 'Confirmar Recarga',
+              cancelButtonText: 'Cancelar',
+              confirmButtonColor: '#4f46e5',
+              cancelButtonColor: '#f3f4f6',
+              customClass: {
+                  confirmButton: 'px-6 py-2 rounded-lg font-bold',
+                  cancelButton: 'px-6 py-2 rounded-lg font-bold text-gray-500'
+              },
+              buttonsStyling: true,
+              focusConfirm: false,
+              preConfirm: function() {
+                  var amount = document.getElementById('amount').value;
+                  if (!amount || amount <= 0) {
+                      Swal.showValidationMessage('Ingresa una cantidad válida');
+                      return false;
+                  }
+                  return { 
+                      amount: parseInt(amount), 
+                      notes: document.getElementById('notes').value 
+                  };
+              }
+          });
+          
+          if (result.value) {
+              try {
+                  const res = await fetch(`/admin/restaurants/${id}/recharge`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify(result.value)
+                  });
+                  const data = await res.json();
+                  
+                  if (data.success) {
+                      Swal.fire({
+                          title: '¡Éxito!',
+                          text: 'Recarga aplicada correctamente',
+                          icon: 'success',
+                          timer: 1500,
+                          showConfirmButton: false
+                      }).then(() => location.reload());
+                  } else {
+                      Swal.fire('Error', data.error, 'error');
+                  }
+              } catch (error) {
+                  Swal.fire('Error', 'Error de conexión', 'error');
+              }
+          }
         }
+
     </script>
 </body>
 </html>

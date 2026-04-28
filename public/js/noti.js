@@ -1,12 +1,7 @@
-// ========== SISTEMA DE NOTIFICACIONES ==========
-
 let notificationsData = [];
 let unreadCount = 0;
 let isNotificationsOpen = false;
 
-// =============================
-// LOAD NOTIFICATIONS
-// =============================
 async function loadNotifications() {
     try {
         const response = await fetch('/api/notifications');
@@ -24,9 +19,6 @@ async function loadNotifications() {
     }
 }
 
-// =============================
-// BADGE
-// =============================
 function updateNotificationBadge() {
     const badge = document.getElementById('notificationBadge');
     if (!badge) return;
@@ -39,9 +31,6 @@ function updateNotificationBadge() {
     }
 }
 
-// =============================
-// RENDER
-// =============================
 function renderNotifications() {
     const container = document.getElementById('notificationsList');
     if (!container) return;
@@ -75,8 +64,7 @@ function renderNotifications() {
             transition-all duration-200 cursor-pointer 
             ${!isRead ? 'border-l-4 border-l-indigo-500' : 'border-l-4 border-l-transparent'}
         `;
-
-        // Destacar updates con un brillo sutil
+        
         if (notif.type === 'update' && !isRead) {
             notifDiv.classList.add('shadow-[inset_0_0_15px_rgba(167,139,250,0.15)]');
         }
@@ -91,15 +79,11 @@ function renderNotifications() {
                 }
             }
         };
-
-        // Generar banner de imagen si existe
+        
         const imageHtml = (notif.imageUrl && notif.imageUrl.trim()) 
             ? `<img src="${escapeHtml(notif.imageUrl)}" alt="Imagen notificación" class="w-full h-32 object-cover" />` 
             : '';
-
-        // =============================
-        // CONTENIDO BASE
-        // =============================
+            
         notifDiv.innerHTML = `
             ${imageHtml}
             <div class="p-4">
@@ -125,10 +109,7 @@ function renderNotifications() {
                 </div>
             </div>
         `;
-
-        // =============================
-        // CONTENIDO HTML (QUILL)
-        // =============================
+        
         if (notif.content && notif.content.trim()) {
             const contentDiv = document.createElement('div');
             contentDiv.className = 'px-4 pb-4 pt-0 text-sm text-gray-700 prose prose-sm max-w-none';
@@ -155,9 +136,6 @@ function renderNotifications() {
     });
 }
 
-// =============================
-// ICONOS
-// =============================
 function getNotificationIcon(type) {
     return {
         info: 'fas fa-info-circle',
@@ -185,9 +163,6 @@ function getNotificationImage(type) {
     }[type] || null;
 }
 
-// =============================
-// MARK AS READ
-// =============================
 async function markNotificationAsRead(id) {
     try {
         const response = await fetch(`/api/notifications/${id}/read`, {
@@ -210,9 +185,6 @@ async function markNotificationAsRead(id) {
     }
 }
 
-// =============================
-// MARK ALL
-// =============================
 async function markAllNotificationsAsRead() {
     try {
         const response = await fetch('/api/notifications/mark-all-read', {
@@ -240,9 +212,6 @@ async function markAllNotificationsAsRead() {
     }
 }
 
-// =============================
-// TOGGLE DROPDOWN
-// =============================
 function toggleNotifications() {
     const dropdown = document.getElementById('notificationsDropdown');
     if (!dropdown) return;
@@ -252,7 +221,6 @@ function toggleNotifications() {
     if (isNotificationsOpen) {
         dropdown.classList.remove('hidden');
 
-        // 🔥 evita recarga innecesaria
         if (!notificationsData.length) {
             loadNotifications();
         }
@@ -267,9 +235,6 @@ function toggleNotifications() {
     }
 }
 
-// =============================
-// CLOSE OUTSIDE
-// =============================
 function closeNotificationsOnClickOutside(e) {
     const dropdown = document.getElementById('notificationsDropdown');
 
@@ -280,9 +245,6 @@ function closeNotificationsOnClickOutside(e) {
     }
 }
 
-// =============================
-// FORMAT DATE
-// =============================
 function formatDate(dateString) {
     const date = new Date(dateString);
     const now = new Date();
@@ -301,9 +263,6 @@ function formatDate(dateString) {
     return date.toLocaleDateString();
 }
 
-// =============================
-// ESCAPE HTML
-// =============================
 function escapeHtml(text) {
     if (!text) return '';
     const div = document.createElement('div');
@@ -311,9 +270,6 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// =============================
-// INIT
-// =============================
 document.addEventListener('DOMContentLoaded', () => {
     loadNotifications();
 });

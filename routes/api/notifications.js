@@ -63,7 +63,7 @@ router.post('/admin', requireAuth, requireAdmin, async (req, res) => {
         const notification = new Notification({
             title: title.trim(),
             message: message.trim(),
-            content: content || '',  // Guardar el HTML sin modificar
+            content: content || '',
             type: type || 'info',
             imageUrl: imageUrl || '',
             link: link || '',
@@ -174,11 +174,10 @@ router.get('/', requireAuth, async (req, res) => {
         
         const notificationsWithReadStatus = notifications.map(notif => {
             const isRead = notif.readBy.some(r => r.user.toString() === userId);
-            // Asegurar que el contenido se devuelve como string sin modificar
             return {
                 ...notif.toObject(),
                 isRead,
-                content: notif.content || ''  // Devolver tal cual está en la BD
+                content: notif.content || ''
             };
         });
         

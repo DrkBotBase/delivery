@@ -4,7 +4,6 @@ const bcrypt = require('bcryptjs');
 const { requireAuth } = require('../../middleware/auth');
 const User = require('../../models/User');
 
-// GET /api/user/profile - Incluir avatar en la respuesta
 router.get('/profile', requireAuth, async (req, res) => {
     try {
         const user = await User.findById(req.session.userId)
@@ -32,7 +31,6 @@ router.get('/profile', requireAuth, async (req, res) => {
     }
 });
 
-// routes/api/user.js - Asegurar que update-name no elimine el avatar
 router.put('/update-name', requireAuth, async (req, res) => {
     try {
         const { fullName } = req.body;
@@ -100,7 +98,6 @@ router.put('/change-password', requireAuth, async (req, res) => {
     }
 });
 
-// GET /api/user/restaurants - Obtener restaurantes vinculados
 router.get('/restaurants', requireAuth, async (req, res) => {
     try {
         const user = await User.findById(req.session.userId)
@@ -116,7 +113,6 @@ router.get('/restaurants', requireAuth, async (req, res) => {
     }
 });
 
-// routes/api/user.js - Actualizar el endpoint de avatar
 router.put('/update-avatar', requireAuth, async (req, res) => {
     try {
         const { avatar } = req.body;
@@ -125,7 +121,6 @@ router.put('/update-avatar', requireAuth, async (req, res) => {
             return res.status(400).json({ success: false, error: 'Avatar no especificado' });
         }
         
-        // Verificar si es usuario de Google
         const currentUser = await User.findById(req.session.userId).select('googleId');
         
         if (currentUser.googleId) {
@@ -181,7 +176,6 @@ router.delete('/remove-restaurant', requireAuth, async (req, res) => {
         
         const originalLength = user.linkedRestaurants.length;
         
-        // Filtrar por ambos IDs para mayor precisión
         user.linkedRestaurants = user.linkedRestaurants.filter(r => 
             !(r.companyId === companyIdNumber && r.pointId === pointIdNumber)
         );

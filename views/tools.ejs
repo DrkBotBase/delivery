@@ -8,6 +8,15 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up {
+            animation: fadeInUp 0.5s ease-out forwards;
+        }
+    </style>
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col font-sans text-gray-800">
 
@@ -110,93 +119,92 @@
         </div>
     </main>
 
-    <script>
-        async function generateCode() {
-          const input = document.getElementById('globalIdInput');
-          const btn = document.getElementById('btnGenerate');
-          const resultSection = document.getElementById('resultSection');
-          const id = input.value.trim();
-      
-          if (!id) {
-              return Swal.fire('Error', 'Debes ingresar el ID de un pedido.', 'warning');
-          }
-      
-          const originalBtn = btn.innerHTML;
-          btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Buscando...';
-          btn.disabled = true;
-          resultSection.classList.add('hidden');
-      
-          try {
-              const res = await fetch('/tools/generate-link-code', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ globalId: id })
-              });
-      
-              const data = await res.json();
-      
-              if (data.success) {
-                  document.getElementById('restaurantNameLabel').textContent = data.restName;
-                  document.getElementById('codeDisplay').textContent = data.linkCode;
-                  document.getElementById('loginCodeHint').textContent = data.linkCode; // Llenamos la pista de login
-                  
-                  resultSection.classList.remove('hidden');
-                  resultSection.classList.add('animate-fade-in-up');
-                  
-                  Swal.fire({
-                      icon: 'success',
-                      title: '¡Restaurante Vinculado!',
-                      html: `
-                          <p class="mb-3"><b>${data.restName}</b> ha sido configurado.</p>
-                          <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800">
-                              <i class="fas fa-gift mb-2 text-2xl text-emerald-500"></i><br>
-                              Te hemos regalado <b>100 escaneos</b> gratis para iniciar. 
-                              Revisa la pantalla para ver tu clave de acceso al panel.
-                          </div>
-                      `,
-                      confirmButtonColor: '#059669',
-                      confirmButtonText: '¡Entendido!'
-                  });
-              } else {
-                  Swal.fire('Error', data.error, 'error');
-              }
-          } catch (error) {
-              Swal.fire('Error', 'Fallo de conexión', 'error');
-          } finally {
-              btn.innerHTML = originalBtn;
-              btn.disabled = false;
-          }
-        }
+<script>
+  async function generateCode() {
+    const input = document.getElementById('globalIdInput');
+    const btn = document.getElementById('btnGenerate');
+    const resultSection = document.getElementById('resultSection');
+    const id = input.value.trim();
 
-        function copyCode() {
-            const code = document.getElementById('codeDisplay').textContent;
-            const btn = document.getElementById('btnCopy');
-            
-            navigator.clipboard.writeText(code).then(() => {
-                const originalHtml = btn.innerHTML;
-                btn.innerHTML = '<i class="fas fa-check"></i> ¡Copiado!';
-                btn.classList.replace('text-emerald-700', 'text-white');
-                btn.classList.replace('bg-white', 'bg-emerald-600');
-                
-                setTimeout(() => {
-                    btn.innerHTML = originalHtml;
-                    btn.classList.replace('text-white', 'text-emerald-700');
-                    btn.classList.replace('bg-emerald-600', 'bg-white');
-                }, 2000);
-            }).catch(err => {
-                Swal.fire('Error', 'No se pudo copiar el código', 'error');
+    if (!id) {
+        return Swal.fire('Error', 'Debes ingresar el ID de un pedido.', 'warning');
+    }
+
+    const originalBtn = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Buscando...';
+    btn.disabled = true;
+    resultSection.classList.add('hidden');
+
+    try {
+        const res = await fetch('/tools/generate-link-code', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ globalId: id })
+        });
+
+        const data = await res.json();
+
+        if (res.status === 409) {
+            input.value = '';
+            Swal.fire({
+                icon: 'warning',
+                title: 'Restaurante ya registrado',
+                text: data.error,
+                confirmButtonColor: '#d97706',
+                confirmButtonText: 'Entendido'
             });
+        } else if (data.success) {
+            document.getElementById('restaurantNameLabel').textContent = data.restName;
+            document.getElementById('codeDisplay').textContent = data.linkCode;
+            document.getElementById('loginCodeHint').textContent = data.linkCode;
+            
+            resultSection.classList.remove('hidden');
+            resultSection.classList.add('animate-fade-in-up');
+            
+            Swal.fire({
+                icon: 'success',
+                title: '¡Restaurante Vinculado!',
+                html: `
+                    <p class="mb-3"><b>${data.restName}</b> ha sido configurado correctamente.</p>
+                    <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-sm text-emerald-800">
+                        <i class="fas fa-gift mb-2 text-2xl text-emerald-500"></i><br>
+                        Te hemos regalado <b>100 escaneos gratis</b> para iniciar. 
+                        Revisa la pantalla para ver tu clave de acceso al panel.
+                    </div>
+                `,
+                confirmButtonColor: '#059669',
+                confirmButtonText: '¡Entendido!'
+            });
+        } else {
+            Swal.fire('Error', data.error, 'error');
         }
-    </script>
-
-    <style>
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-in-up {
-            animation: fadeInUp 0.5s ease-out forwards;
-        }
-    </style>
+    } catch (error) {
+        Swal.fire('Error', 'Fallo de conexión', 'error');
+    } finally {
+        btn.innerHTML = originalBtn;
+        btn.disabled = false;
+    }
+  }
+  
+  function copyCode() {
+      const code = document.getElementById('codeDisplay').textContent;
+      const btn = document.getElementById('btnCopy');
+      
+      navigator.clipboard.writeText(code).then(() => {
+          const originalHtml = btn.innerHTML;
+          btn.innerHTML = '<i class="fas fa-check"></i> ¡Copiado!';
+          btn.classList.replace('text-emerald-700', 'text-white');
+          btn.classList.replace('bg-white', 'bg-emerald-600');
+          
+          setTimeout(() => {
+              btn.innerHTML = originalHtml;
+              btn.classList.replace('text-white', 'text-emerald-700');
+              btn.classList.replace('bg-emerald-600', 'bg-white');
+          }, 2000);
+      }).catch(err => {
+          Swal.fire('Error', 'No se pudo copiar el código', 'error');
+      });
+  }
+</script>
 </body>
 </html>

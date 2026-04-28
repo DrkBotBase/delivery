@@ -6,7 +6,6 @@ const Shift = require('../../models/Shift');
 const Delivery = require('../../models/Delivery');
 const Expense = require('../../models/Expense');
 
-// POST /api/shifts/start - Iniciar jornada
 router.post('/start', requireAuth, async (req, res) => {
     try {
         const existing = await Shift.findOne({ 
@@ -29,7 +28,6 @@ router.post('/start', requireAuth, async (req, res) => {
     }
 });
 
-// GET /api/shifts/current - Obtener jornada actual
 router.get('/current', requireAuth, async (req, res) => {
     try {
         const shift = await Shift.findOne({ 
@@ -61,7 +59,6 @@ router.get('/current', requireAuth, async (req, res) => {
     }
 });
 
-// POST /api/shifts/end - Cerrar jornada
 router.post('/end', requireAuth, async (req, res) => {
     try {
         const shift = await Shift.findOne({ 
@@ -86,7 +83,6 @@ router.post('/end', requireAuth, async (req, res) => {
     }
 });
 
-// GET /api/shifts/history - Historial de jornadas
 router.get('/history', requireAuth, async (req, res) => {
     try {
         const { limit = 50, page = 1 } = req.query;
@@ -101,7 +97,6 @@ router.get('/history', requireAuth, async (req, res) => {
             Shift.countDocuments({ user: req.session.userId })
         ]);
         
-        // Enriquecer con estadísticas de cada jornada
         const shiftsWithStats = await Promise.all(shifts.map(async (shift) => {
             const [deliveries, expenses] = await Promise.all([
                 Delivery.aggregate([
@@ -141,7 +136,6 @@ router.get('/history', requireAuth, async (req, res) => {
     }
 });
 
-// routes/api/shifts.js - Mejorar la respuesta
 router.get('/:id', requireAuth, async (req, res) => {
     try {
         const shift = await Shift.findOne({ 

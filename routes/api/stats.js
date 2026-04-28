@@ -6,7 +6,6 @@ const Delivery = require('../../models/Delivery');
 const Expense = require('../../models/Expense');
 const Shift = require('../../models/Shift');
 
-// GET /api/stats - Estadísticas generales
 router.get('/', requireAuth, async (req, res) => {
     try {
         const userObjectId = new mongoose.Types.ObjectId(req.session.userId);
@@ -86,7 +85,6 @@ router.get('/', requireAuth, async (req, res) => {
             netTotal: 0 
         };
 
-        // Obtener estadísticas de jornadas
         const shifts = await Shift.aggregate([
             { $match: { user: userObjectId } },
             { $sort: { startTime: -1 } },
@@ -128,7 +126,6 @@ router.get('/', requireAuth, async (req, res) => {
     }
 });
 
-// GET /api/stats/active-shift - Totales de la jornada activa
 router.get('/active-shift', requireAuth, async (req, res) => {
     try {
         const userId = req.session.userId;

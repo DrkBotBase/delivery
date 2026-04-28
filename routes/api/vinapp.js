@@ -7,7 +7,6 @@ const Shift = require('../../models/Shift');
 const Restaurant = require('../../models/Restaurant');
 const VinAppService = require('../../services/vinappService');
 
-// POST /api/vinapp/import - Importar factura desde VinApp
 router.post('/import', requireAuth, async (req, res) => {
     try {
         const { invoiceNumber } = req.body;
@@ -215,7 +214,6 @@ router.get('/ticket/:idOrder', requireAuth, async (req, res) => {
     }
 });
 
-// POST /api/vinapp/link-restaurant - Vincular restaurante
 router.post('/link-restaurant', requireAuth, async (req, res) => {
     try {
         const { companyId, pointId, name } = req.body;
@@ -251,7 +249,6 @@ router.post('/link-restaurant', requireAuth, async (req, res) => {
     }
 });
 
-// GET /api/vinapp/restaurants - Obtener restaurantes vinculados
 router.get('/restaurants', requireAuth, async (req, res) => {
     try {
         const user = await User.findById(req.session.userId).select('linkedRestaurants');

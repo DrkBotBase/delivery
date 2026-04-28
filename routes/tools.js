@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Restaurant = require('../models/Restaurant'); // Importa el nuevo modelo
+const Restaurant = require('../models/Restaurant');
 const moment = require('moment-timezone');
 const { info } = require('../config');
 
@@ -30,20 +30,31 @@ router.post('/generate-link-code', async (req, res) => {
         let restaurant = await Restaurant.findOne({ pointId: vinData.point.id_point });
 
         if (!restaurant) {
-            const trialEnd = moment().tz("America/Bogota").add(15, 'days').toDate();
-            
             restaurant = new Restaurant({
                 companyId: vinData.id_companie,
                 pointId: vinData.point.id_point,
                 name: restName,
-                trialEndsAt: trialEnd,
+                availableScans: 100,
+                totalScans: 0,
                 status: 'active'
             });
             await restaurant.save();
+            
+            return res.json({ 
+                success: true, 
+                linkCode, 
+                restName,
+                isNew: true
+            });
+        } else {
+            return res.status(409).json({ 
+                success: false, 
+                error: 'Restaurante ya registrado en el sistema.'
+            });
         }
-
-        res.json({ success: true, linkCode, restName });
+        
     } catch (error) {
+        console.error(error);
         res.status(500).json({ success: false, error: 'Error de conexión.' });
     }
 });

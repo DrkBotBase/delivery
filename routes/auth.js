@@ -19,11 +19,9 @@ router.post('/google/verify', async (req, res) => {
         let user = await User.findOne({ googleId: payload.sub });
         
         if (!user) {
-            // Buscar por email para vincular
             user = await User.findOne({ email: payload.email });
             
             if (user) {
-                // Vincular cuenta existente
                 let updated = false;
                 user.googleId = payload.sub;
                 
@@ -38,10 +36,8 @@ router.post('/google/verify', async (req, res) => {
                 
                 if (updated) {
                     await user.save();
-                    console.log(`Cuenta vinculada y actualizada: ${user.email}`);
                 }
             } else {
-                // Crear nuevo usuario
                 let baseUsername = payload.email.split('@')[0].toLowerCase();
                 let username = baseUsername;
                 let counter = 1;
@@ -59,10 +55,8 @@ router.post('/google/verify', async (req, res) => {
                     avatar: payload.picture
                 });
                 await user.save();
-                console.log(`Nuevo usuario Google: ${user.email}`);
             }
         } else {
-            // Actualizar datos de usuario Google existente
             let updated = false;
             
             if (payload.name && user.fullName !== payload.name) {
@@ -75,7 +69,6 @@ router.post('/google/verify', async (req, res) => {
                 updated = true;
             }
             
-            // Corregir username genérico si es necesario
             const genericUsernames = ['Google User', 'Usuario Google'];
             if (genericUsernames.includes(user.username)) {
                 let baseUsername = payload.email.split('@')[0].toLowerCase();
@@ -93,7 +86,6 @@ router.post('/google/verify', async (req, res) => {
             
             if (updated) {
                 await user.save();
-                console.log(`Usuario Google actualizado: ${user.email}`);
             }
         }
 

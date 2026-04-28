@@ -9,7 +9,6 @@ const Shift = require('../models/Shift');
 const bcrypt = require('bcryptjs');
 const { info } = require('../config');
 
-// Middleware para verificar sesión de restaurante
 const requireRestaurantAuth = async (req, res, next) => {
     if (!req.session.restaurantId) {
         return res.redirect('/restaurante/login');
@@ -25,14 +24,12 @@ const requireRestaurantAuth = async (req, res, next) => {
     next();
 };
 
-// Login page
 router.get('/login', (req, res) => {
     res.render('restaurante/login', {
         title: `${info.name_page} | Panel Restaurante`
     });
 });
 
-// Procesar login
 router.post('/login', async (req, res) => {
     try {
         const { pointId, password } = req.body;
@@ -46,7 +43,6 @@ router.post('/login', async (req, res) => {
             return res.status(400).json({ success: false, error: 'Restaurante no encontrado' });
         }
         
-        // Verificar contraseña (soporta tanto texto plano como bcrypt)
         let isValid = false;
         if (restaurant.password.startsWith('$2a$')) {
             isValid = await bcrypt.compare(password, restaurant.password);
@@ -72,19 +68,15 @@ router.post('/login', async (req, res) => {
     }
 });
 
-// Dashboard principal
 router.get('/dashboard', requireRestaurantAuth, async (req, res) => {
     try {
         const restaurant = req.restaurant;
         
-        // Obtener domiciliarios
         const deliveryUsers = await User.find({
             'linkedRestaurants.pointId': restaurant.pointId
         }).select('username fullName email avatar createdAt');
         
-        // Obtener estadísticas de pedidos para cada domiciliario
         const usersWithStats = await Promise.all(deliveryUsers.map(async (user) => {
-            // Contar pedidos totales del domiciliario (de todas sus jornadas cerradas)
             const shifts = await Shift.aggregate([
                 { 
                     $match: { 
@@ -127,15 +119,12 @@ router.get('/dashboard', requireRestaurantAuth, async (req, res) => {
             };
         }));
         
-        // Ordenar por defecto por cantidad de pedidos (mayor a menor)
         usersWithStats.sort((a, b) => b.stats.totalDeliveries - a.stats.totalDeliveries);
         
-        // Obtener historial de recargas del restaurante
         const recharges = await Recharge.find({ 
             restaurantId: restaurant._id 
         }).sort({ createdAt: -1 }).limit(10);
         
-        // Estadísticas de recargas
         const rechargeStats = {
             totalRecharges: await Recharge.countDocuments({ restaurantId: restaurant._id }),
             totalScansRecharged: await Recharge.aggregate([
@@ -172,13 +161,11 @@ router.get('/dashboard', requireRestaurantAuth, async (req, res) => {
     }
 });
 
-// Cambiar contraseña
 router.post('/change-password', requireRestaurantAuth, async (req, res) => {
     try {
         const { currentPassword, newPassword } = req.body;
         const restaurant = req.restaurant;
         
-        // Verificar contraseña actual
         let isValid = false;
         if (restaurant.password.startsWith('$2a$')) {
             isValid = await bcrypt.compare(currentPassword, restaurant.password);
@@ -194,7 +181,6 @@ router.post('/change-password', requireRestaurantAuth, async (req, res) => {
             return res.status(400).json({ success: false, error: 'La nueva contraseña debe tener al menos 4 caracteres' });
         }
         
-        // Hashear nueva contraseña
         const hashedPassword = await bcrypt.hash(newPassword, 10);
         
         await Restaurant.findByIdAndUpdate(restaurant._id, {
@@ -225,7 +211,6 @@ router.get('/delivery-stats/:userId', requireRestaurantAuth, async (req, res) =>
         
         const userObjectId = new mongoose.Types.ObjectId(userId);
         
-        // Configurar fechas según período
         let dateFilter = {};
         if (period === 'week') {
             const weekAgo = new Date();
@@ -233,10 +218,8 @@ router.get('/delivery-stats/:userId', requireRestaurantAuth, async (req, res) =>
             dateFilter = { $gte: weekAgo };
         }
         
-        // SOLO jornadas cerradas
         const closedShiftsMatch = { user: userObjectId, status: 'closed' };
         
-        // Estadísticas generales (sin promedio)
         const allShifts = await Shift.aggregate([
             { $match: closedShiftsMatch },
             {
@@ -249,7 +232,6 @@ router.get('/delivery-stats/:userId', requireRestaurantAuth, async (req, res) =>
             }
         ]);
         
-        // Obtener mejor jornada CON conteo de pedidos
         const bestShift = await Shift.aggregate([
             { $match: closedShiftsMatch },
             { $sort: { totalDeliveryAmount: -1 } },
@@ -272,7 +254,6 @@ router.get('/delivery-stats/:userId', requireRestaurantAuth, async (req, res) =>
             }
         ]);
         
-        // Obtener peor jornada CON conteo de pedidos
         const worstShift = await Shift.aggregate([
             { $match: closedShiftsMatch },
             { $sort: { totalDeliveryAmount: 1 } },
@@ -295,7 +276,6 @@ router.get('/delivery-stats/:userId', requireRestaurantAuth, async (req, res) =>
             }
         ]);
         
-        // Estadísticas por jornada (para el período seleccionado)
         const shiftsHistory = await Shift.aggregate([
             { 
                 $match: { 
@@ -337,7 +317,6 @@ router.get('/delivery-stats/:userId', requireRestaurantAuth, async (req, res) =>
             { $sort: { _id: -1 } }
         ]);
         
-        // Resumen mensual
         let monthlySummary = [];
         if (period === 'all') {
             monthlySummary = await Shift.aggregate([
@@ -402,7 +381,6 @@ router.get('/delivery-stats/:userId', requireRestaurantAuth, async (req, res) =>
     }
 });
 
-// En routes/restaurant.js - Agrega esta ruta
 router.get('/recharges', requireRestaurantAuth, async (req, res) => {
     try {
         const restaurant = req.restaurant;
@@ -421,7 +399,6 @@ router.get('/recharges', requireRestaurantAuth, async (req, res) => {
     }
 });
 
-// Logout
 router.get('/logout', (req, res) => {
     req.session.restaurantId = null;
     res.redirect('/restaurante/login');

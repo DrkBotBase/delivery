@@ -38,16 +38,12 @@
     </header>
     
     <main class="max-w-md mx-auto px-4 pt-6 pb-24 space-y-6">
-        <!-- Tarjeta de perfil -->
         <div class="bg-white rounded-2xl shadow-lg p-6 relative overflow-hidden">
             <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full -mr-16 -mt-16 opacity-50"></div>
             
-            <!-- En views/profile.ejs, actualizar la sección del avatar -->
             <div class="flex flex-col items-center text-center relative z-10">
-              <!-- Avatar -->
               <div class="relative mb-4">
                 <% 
-                // Determinar la URL del avatar
                 let avatarSrc = '/avatars/default.svg';
                 if (user.avatar) {
                     if (user.isGoogleUser && user.avatar.startsWith('http')) {
@@ -64,39 +60,33 @@
                      class="w-24 h-24 rounded-full object-cover border-4 border-indigo-100 shadow-md"
                      onerror="this.src='/avatars/default.svg'">
                 
-                <!-- Mostrar botón de cámara SOLO si NO es usuario Google -->
                 <% if (!user.isGoogleUser) { %>
                     <button onclick="showAvatarSelector()" class="absolute bottom-0 right-0 bg-indigo-600 text-white rounded-full w-8 h-8 flex items-center justify-center shadow-lg hover:bg-indigo-700 transition">
                         <i class="fas fa-camera text-xs"></i>
                     </button>
                 <% } else { %>
-                    <!-- Indicador de usuario Google -->
                     <div class="absolute bottom-0 right-0 bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center shadow-lg" title="Avatar sincronizado con Google">
                         <i class="fab fa-google text-xs"></i>
                     </div>
                 <% } %>
             </div>
                 
-              <!-- Nombre -->
               <div class="flex items-center gap-2 mb-1">
                   <h2 id="displayName" class="text-xl font-bold text-gray-800">
                       <%= user.fullName || user.username %>
                   </h2>
-                  <!-- Botón de editar nombre visible para todos -->
                   <button onclick="editFullName()" class="text-indigo-500 hover:text-indigo-700 transition">
                       <i class="fas fa-pencil-alt text-xs"></i>
                   </button>
               </div>
               <p class="text-sm text-gray-500">@<%= user.username %></p>
               
-              <!-- Solo advertencia para registro normal sin fullName -->
               <% if (!user.isGoogleUser && !user.fullName) { %>
                   <div class="mt-2 bg-yellow-50 text-yellow-700 text-xs px-3 py-1 rounded-full flex items-center gap-1">
                       <i class="fas fa-info-circle"></i> Agrega tu nombre
                   </div>
               <% } %>
               
-              <!-- Mensaje opcional para usuarios Google -->
               <% if (user.isGoogleUser && !user.fullName) { %>
                   <div class="mt-2 bg-blue-50 text-blue-600 text-xs px-3 py-1 rounded-full flex items-center gap-1">
                       <i class="fab fa-google"></i> Nombre sincronizado con Google
@@ -105,10 +95,9 @@
             </div>
         </div>
         
-        <!-- Estadísticas globales -->
-        <div class="bg-white rounded-2xl shadow-sm p-5">
+        <div class="bg-white rounded-2xl shadow-lg p-5">
             <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <i class="fas fa-chart-line text-indigo-500"></i> Estadísticas Globales
+                <i class="fas fa-chart-line text-indigo-500"></i> Estadísticas Generales
             </h3>
             <div class="grid grid-cols-2 gap-4">
                 <div class="bg-emerald-50 rounded-xl p-3 text-center">
@@ -130,8 +119,7 @@
             </div>
         </div>
         
-        <!-- Resumen de jornadas -->
-        <div class="bg-white rounded-2xl shadow-sm p-5">
+        <div class="bg-white rounded-2xl shadow-lg p-5">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
                     <i class="fas fa-calendar-alt text-indigo-500"></i> Mis Jornadas
@@ -145,8 +133,7 @@
             </div>
         </div>
         
-        <!-- Restaurantes vinculados -->
-        <div class="bg-white rounded-2xl shadow-sm p-5">
+        <div class="bg-white rounded-2xl shadow-lg p-5">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
                     <i class="fas fa-store text-indigo-500"></i> Restaurantes Vinculados
@@ -161,9 +148,8 @@
                 </div>
             </div>
         </div>
-        
-        <!-- Configuración de cuenta -->
-        <div class="bg-white rounded-2xl shadow-sm p-5">
+    
+        <div class="bg-white rounded-2xl shadow-lg p-5">
             <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
                 <i class="fas fa-shield-alt text-indigo-500"></i> Configuración
             </h3>
@@ -172,14 +158,9 @@
                     <span class="text-sm text-gray-700"><i class="fas fa-lock mr-2 text-gray-400"></i> Cambiar contraseña</span>
                     <i class="fas fa-chevron-right text-gray-400 text-xs"></i>
                 </button>
-                <button onclick="exportData()" class="w-full flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition">
-                    <span class="text-sm text-gray-700"><i class="fas fa-download mr-2 text-gray-400"></i> Exportar mis datos</span>
-                    <i class="fas fa-chevron-right text-gray-400 text-xs"></i>
-                </button>
             </div>
         </div>
         
-        <!-- Versión -->
         <div class="text-center pb-4">
             <p class="text-xs text-gray-400">MJFOOD • <%= info.version %></p>
         </div>
@@ -196,7 +177,6 @@
             isGoogleUser: <%= user.isGoogleUser %>
         };
         
-        // Cargar estadísticas
         async function loadProfileStats() {
             try {
                 const response = await fetch('/api/stats');
@@ -214,7 +194,6 @@
             }
         }
         
-        // Cargar jornadas
         async function loadShifts() {
             try {
                 const response = await fetch('/api/shifts/history?limit=50');
@@ -289,7 +268,6 @@
             }
         }
         
-        // Cargar restaurantes vinculados
         async function loadRestaurants() {
             try {
                 const response = await fetch('/api/vinapp/restaurants');
@@ -348,7 +326,6 @@
                 .replace(/'/g, '&#39;');
         }
         
-        // Editar nombre completo
         async function editFullName() {
             const currentName = window.currentUser.fullName || '';
             
@@ -397,7 +374,6 @@
             }
         }
         
-        // Cambiar contraseña
         async function changePassword() {
             const { value: formValues } = await Swal.fire({
                 title: 'Cambiar contraseña',
@@ -456,61 +432,7 @@
             }
         }
         
-        // Exportar datos
-        async function exportData() {
-            Swal.fire({
-                title: 'Exportar datos',
-                text: '¿Qué datos deseas exportar?',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'Entregas',
-                cancelButtonText: 'Cancelar',
-                showDenyButton: true,
-                denyButtonText: 'Jornadas',
-                confirmButtonColor: '#4f46e5'
-            }).then(async (result) => {
-                let endpoint = '';
-                let filename = '';
-                
-                if (result.isConfirmed) {
-                    endpoint = '/api/export/deliveries';
-                    filename = 'mis_entregas';
-                } else if (result.isDenied) {
-                    endpoint = '/api/export/shifts';
-                    filename = 'mis_jornadas';
-                } else {
-                    return;
-                }
-                
-                Swal.fire({
-                    title: 'Generando archivo...',
-                    text: 'Por favor espera',
-                    allowOutsideClick: false,
-                    didOpen: () => { Swal.showLoading(); }
-                });
-                
-                try {
-                    const response = await fetch(endpoint);
-                    const data = await response.json();
-                    
-                    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `${filename}_${new Date().toISOString().split('T')[0]}.json`;
-                    a.click();
-                    URL.revokeObjectURL(url);
-                    
-                    Swal.fire('Éxito', 'Archivo generado correctamente', 'success');
-                } catch (error) {
-                    Swal.fire('Error', 'No se pudo generar el archivo', 'error');
-                }
-            });
-        }
-        
-        // Remover restaurante
         async function removeRestaurant(companyId, pointId) {
-            // Confirmar antes de eliminar
             const result = await Swal.fire({
                 title: '¿Desvincular restaurante?',
                 text: 'Podrás volver a vincularlo más tarde con el código',
@@ -523,7 +445,6 @@
             });
             
             if (result.isConfirmed) {
-                // Mostrar loading
                 Swal.fire({
                     title: 'Desvinculando...',
                     text: 'Por favor espera',
@@ -548,7 +469,6 @@
                             timer: 1500,
                             showConfirmButton: false
                         });
-                        // Recargar la lista de restaurantes
                         loadRestaurants();
                     } else {
                         Swal.fire({
@@ -570,9 +490,7 @@
             }
         }
         
-        // Mostrar selector de avatar
         function showAvatarSelector() {
-            // Usar la variable del backend en lugar de verificar en cliente
             if (window.isGoogleUser) {
                 Swal.fire({
                     icon: 'info',
@@ -602,7 +520,6 @@
             });
         }
         
-        // Seleccionar avatar
         async function selectAvatar(avatarName) {
             try {
                 const response = await fetch('/api/user/update-avatar', {
@@ -615,7 +532,6 @@
                 
                 if (data.success) {
                     document.getElementById('profileAvatar').src = `/avatars/${avatarName}`;
-                    // Actualizar el avatar en window.currentUser
                     window.currentUser.avatar = avatarName;
                     Swal.fire({
                         icon: 'success',
@@ -632,13 +548,11 @@
             }
         }
         
-        // En la inicialización, cargar el avatar actual
         document.addEventListener('DOMContentLoaded', () => {
             loadProfileStats();
             loadShifts();
             loadRestaurants();
             
-            // Asegurar que el avatar se muestra correctamente
             const avatarImg = document.getElementById('profileAvatar');
             if (avatarImg && window.currentUser?.avatar) {
                 avatarImg.src = `/avatars/${window.currentUser.avatar}`;

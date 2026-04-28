@@ -1,216 +1,271 @@
-<!-- views/admin/notifications.ejs -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <%- include("../partials/head") %>
-    <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
-    <script src="https://cdn.quilljs.com/1.3.7/quill.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         .ql-editor { min-height: 150px; }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
-    <header class="bg-indigo-600 text-white shadow-lg sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-            <div class="flex items-center gap-4">
-                <a href="/panel" class="p-2 bg-white/20 rounded-full hover:bg-white/30 transition">
-                    <i class="fas fa-arrow-left"></i>
-                </a>
-                <h1 class="text-xl font-bold">Panel de Notificaciones</h1>
-            </div>
-            <div class="flex items-center gap-3">
-                <span class="text-sm"><%= currentUser.username %></span>
-                <button onclick="confirmLogout()" class="p-2 bg-white/20 rounded-full hover:bg-white/30 transition">
-                    <i class="fas fa-sign-out-alt"></i>
-                </button>
-            </div>
-        </div>
-    </header>
+<body class="bg-gray-50 antialiased min-h-screen">
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden"></div>
 
-    <main class="max-w-7xl mx-auto px-4 py-6">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Formulario para crear notificación -->
-            <div class="lg:col-span-1">
-                <div class="bg-white rounded-2xl shadow-sm p-5 sticky top-20">
-                    <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                        <i class="fas fa-plus-circle text-indigo-500"></i> Crear Notificación
-                    </h2>
+    <div class="flex h-screen overflow-hidden">
+        <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-indigo-800 text-white flex flex-col z-50 transform -translate-x-full transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0">
+          <%- include("p-sidebar") %>
+        </aside>
+        
+        <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+            <header class="bg-white shadow-sm p-4 lg:p-6 flex items-center justify-between sticky top-0 z-40">
+                <div class="flex items-center gap-4">
+                    <button id="openSidebar" class="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-md">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                    <div>
+                        <h2 class="text-xl lg:text-2xl font-bold text-gray-800">Notificaciones</h2>
+                        <p class="hidden sm:block text-gray-500 text-sm">Comunícate con los restaurantes y repartidores</p>
+                    </div>
+                </div>
+            </header>
+
+            <main class="flex-1 overflow-y-auto p-4 lg:p-6">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     
-                    <form id="notificationForm">
-                        <div class="mb-4">
-                            <label class="block text-sm font-bold text-gray-700 mb-1">Título *</label>
-                            <input type="text" id="title" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" required>
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label class="block text-sm font-bold text-gray-700 mb-1">Tipo</label>
-                            <select id="type" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
-                                <option value="info">ℹ️ Información</option>
-                                <option value="success">✅ Éxito</option>
-                                <option value="warning">⚠️ Advertencia</option>
-                                <option value="promotion">🎉 Promoción</option>
-                                <option value="update">🔄 Actualización</option>
-                            </select>
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label class="block text-sm font-bold text-gray-700 mb-1">Ícono Personalizado (opcional)</label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i class="fas fa-icons text-gray-400"></i>
+                    <div class="lg:col-span-1">
+                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sticky lg:top-4">
+                            <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                <i class="fas fa-plus-circle text-indigo-500"></i> <span id="formTitle">Nueva Notificación</span>
+                            </h2>
+                            
+                            <form id="notificationForm" class="space-y-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Título *</label>
+                                    <input type="text" id="title" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition" placeholder="Ej: Actualización de sistema" required>
                                 </div>
-                                <input type="text" id="customIcon" class="w-full pl-10 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="ej. fas fa-star">
+                                
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Tipo</label>
+                                        <select id="type" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition bg-white">
+                                            <option value="info">ℹ️ Info</option>
+                                            <option value="success">✅ Éxito</option>
+                                            <option value="warning">⚠️ Alerta</option>
+                                            <option value="promotion">🎉 Promo</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Icono FontAwesome</label>
+                                        <input type="text" id="customIcon" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="fas fa-star">
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Resumen Mensaje *</label>
+                                    <textarea id="message" rows="2" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Breve descripción..." required></textarea>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Cuerpo (HTML / Quill)</label>
+                                    <div id="editor" class="rounded-xl overflow-hidden" style="height: 150px;"></div>
+                                </div>
+                                
+                                <div class="space-y-4 pt-2">
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Imagen URL</label>
+                                        <input type="url" id="imageUrl" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="https://...">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Fecha Expiración</label>
+                                        <input type="datetime-local" id="expiresAt" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition flex items-center justify-center gap-2">
+                                    <i class="fas fa-paper-plane"></i> <span id="submitBtnText">Enviar Notificación</span>
+                                </button>
+                                <button type="button" id="cancelEdit" class="hidden w-full bg-gray-100 text-gray-600 py-2 rounded-xl font-bold mt-2">Cancelar Edición</button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <div class="lg:col-span-2">
+                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+                            <div class="flex justify-between items-center mb-6">
+                                <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                                    <i class="fas fa-history text-indigo-500"></i> Historial de Envíos
+                                </h2>
+                                <button onclick="loadNotificationsList()" class="p-2 text-indigo-500 hover:bg-indigo-50 rounded-full transition">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
                             </div>
-                        </div>
-
-                        
-                        <div class="mb-4">
-                            <label class="block text-sm font-bold text-gray-700 mb-1">Mensaje *</label>
-                            <textarea id="message" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" required></textarea>
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label class="block text-sm font-bold text-gray-700 mb-1">Contenido HTML (opcional)</label>
-                            <div id="editor"></div>
-                            <input type="hidden" id="content">
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label class="block text-sm font-bold text-gray-700 mb-1">Enlace (opcional)</label>
-                            <input type="url" id="link" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="https://...">
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label class="block text-sm font-bold text-gray-700 mb-1">URL de imagen (opcional)</label>
-                            <input type="url" id="imageUrl" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="https://...">
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label class="block text-sm font-bold text-gray-700 mb-1">Fecha de expiración (opcional)</label>
-                            <input type="datetime-local" id="expiresAt" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
-                        </div>
-                        
-                        <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded-lg font-bold hover:bg-indigo-700 transition">
-                            <i class="fas fa-paper-plane mr-2"></i> Enviar Notificación
-                        </button>
-                    </form>
-                </div>
-            </div>
-            
-            <!-- Lista de notificaciones existentes -->
-            <div class="lg:col-span-2">
-                <div class="bg-white rounded-2xl shadow-sm p-5">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
-                            <i class="fas fa-history text-indigo-500"></i> Notificaciones Enviadas
-                        </h2>
-                        <button onclick="loadNotificationsList()" class="text-indigo-500 hover:text-indigo-700">
-                            <i class="fas fa-sync-alt"></i>
-                        </button>
-                    </div>
-                    
-                    <div id="notificationsList" class="space-y-3 max-h-[600px] overflow-y-auto">
-                        <div class="text-center py-8 text-gray-400">
-                            <i class="fas fa-spinner fa-spin"></i> Cargando...
+                            
+                            <div id="notificationsList" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="col-span-full text-center py-12 text-gray-400">
+                                    <i class="fas fa-circle-notch fa-spin text-3xl mb-2"></i>
+                                    <p>Cargando notificaciones...</p>
+                                </div>
+                            </div>
+                            
+                            <div id="pagination" class="flex justify-center gap-2 mt-8"></div>
                         </div>
                     </div>
-                    
-                    <div id="pagination" class="flex justify-center gap-2 mt-4"></div>
                 </div>
-            </div>
+            </main>
         </div>
-    </main>
-    
-<script>
-let quill;
-let currentPage = 1;
-let editingId = null;
-
-// Inicializar Quill
-document.addEventListener('DOMContentLoaded', () => {
-    quill = new Quill('#editor', {
-        theme: 'snow',
-        placeholder: 'Escribe contenido HTML aquí...',
-        modules: {
-            toolbar: [
-                ['bold', 'italic', 'underline', 'strike'],
-                ['blockquote', 'code-block'],
-                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                ['link', 'image'],
-                ['clean']
-            ]
-        }
-    });
-
-    loadNotificationsList();
-});
+    </div>
 
 
-// =============================
-// SUBMIT ÚNICO (CREATE + UPDATE)
-// =============================
-document.getElementById('notificationForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const openBtn = document.getElementById('openSidebar');
+        const closeBtn = document.getElementById('closeSidebar');
 
-    if (editingId) {
-        await updateNotification(editingId);
-    } else {
-        await createNotification();
-    }
-});
+        const toggleSidebar = () => {
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        };
 
+        openBtn.addEventListener('click', toggleSidebar);
+        closeBtn.addEventListener('click', toggleSidebar);
+        overlay.addEventListener('click', toggleSidebar);
 
-// =============================
-// EDITAR
-// =============================
-async function editNotification(id) {
-    try {
-        console.log('📝 Editando:', id);
+        let quill;
+        let currentPage = 1;
+        let editingId = null;
 
-        const response = await fetch(`/api/notifications/admin/${id}`);
-        const data = await response.json();
+        document.addEventListener('DOMContentLoaded', () => {
+            quill = new Quill('#editor', {
+                theme: 'snow',
+                placeholder: 'Detalles adicionales...',
+                modules: { toolbar: [['bold', 'italic'], ['link', 'image'], [{ 'list': 'bullet' }]] }
+            });
+            loadNotificationsList();
+        });
 
-        if (!data.success) {
-            return Swal.fire('Error', data.error, 'error');
-        }
-
-        const notif = data.notification;
-
-        editingId = id;
-
-        // Llenar formulario
-        document.getElementById('title').value = notif.title || '';
-        document.getElementById('type').value = notif.type || 'info';
-        document.getElementById('message').value = notif.message || '';
-        document.getElementById('link').value = notif.link || '';
-        document.getElementById('imageUrl').value = notif.imageUrl || '';
-
-        if (notif.expiresAt) {
-            const date = new Date(notif.expiresAt);
-            if (!isNaN(date)) {
-                document.getElementById('expiresAt').value = date.toISOString().slice(0, 16);
+        async function loadNotificationsList(page = 1) {
+            currentPage = page;
+            try {
+                const response = await fetch(`/api/notifications/admin?page=${page}&limit=10`);
+                const data = await response.json();
+                if (data.success) {
+                    renderNotificationsList(data.notifications);
+                    renderPagination(data.pagination);
+                }
+            } catch (error) {
+                console.error('Error:', error);
             }
         }
 
-        // ✅ FORMA CORRECTA CON QUILL
-        const content = notif.content || '';
-        quill.setContents([]);
-        quill.clipboard.dangerouslyPasteHTML(content);
+        function renderNotificationsList(notifications) {
+            const container = document.getElementById('notificationsList');
+            if (!notifications.length) {
+                container.innerHTML = `<div class="col-span-full text-center py-12 text-gray-400 italic">No hay notificaciones enviadas.</div>`;
+                return;
+            }
 
-        // Cambiar botón
-        document.querySelector('#notificationForm button[type="submit"]').textContent = 'Actualizar Notificación';
+            container.innerHTML = notifications.map(notif => `
+                <div class="flex flex-col bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition">
+                    ${notif.imageUrl ? `<img src="${notif.imageUrl}" class="w-full h-32 object-cover" onerror="this.style.display='none'">` : ''}
+                    <div class="p-4 flex-1">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${notif.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}">
+                                ${notif.type}
+                            </span>
+                            <div class="flex gap-2">
+                                <button onclick="editNotification('${notif._id}')" class="text-indigo-600 hover:bg-indigo-50 p-1.5 rounded-lg transition"><i class="fas fa-edit"></i></button>
+                                <button onclick="deleteNotification('${notif._id}')" class="text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>
+                        <h3 class="font-bold text-gray-800 text-sm truncate">${notif.title}</h3>
+                        <p class="text-xs text-gray-500 mt-1 line-clamp-2">${notif.message}</p>
+                        <p class="text-[10px] text-gray-400 mt-3"><i class="far fa-clock mr-1"></i>${new Date(notif.createdAt).toLocaleDateString()}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
 
-        document.getElementById('notificationForm').scrollIntoView({ behavior: 'smooth' });
+        function getFormData() {
+            return {
+                title: document.getElementById('title').value,
+                type: document.getElementById('type').value,
+                customIcon: document.getElementById('customIcon').value,
+                message: document.getElementById('message').value,
+                content: quill.root.innerHTML,
+                imageUrl: document.getElementById('imageUrl').value,
+                expiresAt: document.getElementById('expiresAt').value || null,
+                isActive: true
+            };
+        }
 
-    } catch (error) {
-        console.error(error);
-        Swal.fire('Error', 'No se pudo cargar', 'error');
-    }
-}
+        document.getElementById('notificationForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = getFormData();
+            const url = editingId ? `/api/notifications/admin/${editingId}` : '/api/notifications/admin';
+            const method = editingId ? 'PUT' : 'POST';
 
-// =============================
-// DELETE
-// =============================
+            try {
+                const res = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    Swal.fire('Éxito', editingId ? 'Actualizada' : 'Enviada', 'success');
+                    resetForm();
+                    loadNotificationsList();
+                } else {
+                    Swal.fire('Error', data.error, 'error');
+                }
+            } catch (error) {
+                Swal.fire('Error', 'Fallo de conexión', 'error');
+            }
+        });
+
+        async function editNotification(id) {
+            const res = await fetch(`/api/notifications/admin/${id}`);
+            const data = await res.json();
+            if (data.success) {
+                const n = data.notification;
+                editingId = id;
+                document.getElementById('title').value = n.title;
+                document.getElementById('type').value = n.type;
+                document.getElementById('message').value = n.message;
+                document.getElementById('customIcon').value = n.customIcon || '';
+                document.getElementById('imageUrl').value = n.imageUrl || '';
+                quill.clipboard.dangerouslyPasteHTML(n.content || '');
+                
+                document.getElementById('formTitle').innerText = "Editando Notificación";
+                document.getElementById('submitBtnText').innerText = "Actualizar";
+                document.getElementById('cancelEdit').classList.remove('hidden');
+                document.querySelector('main').scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('notificationForm').reset();
+            quill.setContents([]);
+            editingId = null;
+            document.getElementById('formTitle').innerText = "Nueva Notificación";
+            document.getElementById('submitBtnText').innerText = "Enviar Notificación";
+            document.getElementById('cancelEdit').classList.add('hidden');
+        }
+
+        document.getElementById('cancelEdit').addEventListener('click', resetForm);
+
+        async function confirmLogout() {
+            const r = await Swal.fire({ title: '¿Cerrar sesión?', icon: 'question', showCancelButton: true });
+            if (r.isConfirmed) window.location.href = '/auth/logout';
+        }
+
 async function deleteNotification(id) {
     const result = await Swal.fire({
         title: '¿Eliminar notificación?',
@@ -248,7 +303,6 @@ async function deleteNotification(id) {
             showConfirmButton: false
         });
 
-        // 🔄 Recargar lista manteniendo la página actual
         loadNotificationsList(currentPage);
 
     } catch (error) {
@@ -262,10 +316,6 @@ async function deleteNotification(id) {
     }
 }
 
-
-// =============================
-// UPDATE
-// =============================
 async function updateNotification(id) {
     const formData = getFormData();
 
@@ -293,10 +343,6 @@ async function updateNotification(id) {
     }
 }
 
-
-// =============================
-// CREATE
-// =============================
 async function createNotification() {
     const formData = getFormData();
 
@@ -322,107 +368,6 @@ async function createNotification() {
         console.error(error);
         Swal.fire('Error', 'No se pudo crear', 'error');
     }
-}
-
-
-// =============================
-// FORM DATA
-// =============================
-function getFormData() {
-    let rawContent = quill.root.innerHTML;
-    let cleanContent = cleanQuillHTML(rawContent);
-
-    return {
-        title: document.getElementById('title').value,
-        type: document.getElementById('type').value,
-        customIcon: document.getElementById('customIcon').value, // NUEVO CAMPO
-        message: document.getElementById('message').value,
-        content: cleanContent,
-        link: document.getElementById('link').value,
-        imageUrl: document.getElementById('imageUrl').value,
-        expiresAt: document.getElementById('expiresAt').value || null,
-        isActive: true
-    };
-}
-
-
-// =============================
-// RESET FORM
-// =============================
-function resetForm() {
-    document.getElementById('notificationForm').reset();
-
-    quill.setContents([]);
-
-    editingId = null;
-
-    document.querySelector('#notificationForm button[type="submit"]').textContent = 'Enviar Notificación';
-}
-
-// =============================
-// LOAD LIST
-// =============================
-async function loadNotificationsList(page = 1) {
-    currentPage = page;
-
-    try {
-        const response = await fetch(`/api/notifications/admin?page=${page}&limit=10`);
-        const data = await response.json();
-
-        if (data.success) {
-            renderNotificationsList(data.notifications);
-            renderPagination(data.pagination);
-        } else {
-            console.error('Error:', data.error);
-        }
-
-    } catch (error) {
-        console.error('Error cargando notificaciones:', error);
-    }
-}
-
-
-// =============================
-// RENDER LIST
-// =============================
-function renderNotificationsList(notifications) {
-    const container = document.getElementById('notificationsList');
-
-    if (!notifications || notifications.length === 0) {
-        container.innerHTML = `
-            <div class="text-center py-8 text-gray-400">
-                <i class="fas fa-bell-slash text-3xl mb-2"></i>
-                <p>No hay notificaciones</p>
-            </div>
-        `;
-        return;
-    }
-
-    container.innerHTML = notifications.map(notif => `
-      <div class="border border-gray-200 rounded-xl overflow-hidden hover:shadow-md transition bg-white">
-          ${notif.imageUrl ? `<img src="${escapeHtml(notif.imageUrl)}" class="w-full h-24 object-cover" />` : ''}
-          <div class="p-4">
-              <div class="flex justify-between items-start mb-2">
-                  <div class="flex items-center gap-2">
-                      <span class="text-xs font-medium px-2.5 py-1 rounded-full ${getStatusClass(notif.isActive)}">
-                          <i class="${notif.customIcon || 'fas fa-circle'} mr-1"></i>
-                          ${notif.isActive ? 'Activa' : 'Inactiva'}
-                      </span>
-                  </div>
-                  <div class="flex gap-3">
-                      <button onclick="editNotification('${notif._id}')" class="text-gray-400 hover:text-indigo-500 transition">
-                          <i class="fas fa-edit"></i>
-                      </button>
-                      <button onclick="deleteNotification('${notif._id}')" class="text-gray-400 hover:text-red-500 transition">
-                          <i class="fas fa-trash"></i>
-                      </button>
-                  </div>
-              </div>
-              <h3 class="font-bold text-gray-800 text-sm">${escapeHtml(notif.title)}</h3>
-              <p class="text-xs text-gray-500 mt-1 line-clamp-2">${escapeHtml(notif.message)}</p>
-          </div>
-      </div>
-  `).join('');
 }
 
 function renderPagination(pagination) {
@@ -451,13 +396,11 @@ function renderPagination(pagination) {
     container.innerHTML = html;
 }
 
-
 function getStatusClass(isActive) {
     return isActive
         ? 'bg-green-100 text-green-700'
         : 'bg-gray-100 text-gray-500';
 }
-
 
 function escapeHtml(text) {
     if (!text) return '';
@@ -467,9 +410,6 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// =============================
-// CLEAN HTML
-// =============================
 function cleanQuillHTML(html) {
     if (!html) return '';
 
@@ -492,7 +432,7 @@ function cleanQuillHTML(html) {
 
     return cleaned;
 }
-</script>
-    <script src="/js/app.js"></script>
+    </script>
+<script src="/js/app.js"></script>
 </body>
 </html>

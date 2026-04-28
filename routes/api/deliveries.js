@@ -1,4 +1,3 @@
-// routes/api/deliveries.js
 const express = require('express');
 const router = express.Router();
 const path = require('path');
@@ -8,9 +7,6 @@ const { requireAuth } = require('../../middleware/auth');
 const Delivery = require('../../models/Delivery');
 const Shift = require('../../models/Shift');
 
-// ========== PRIMERO: Rutas específicas (antes que /:id) ==========
-
-// GET /api/deliveries/pending - Entregas pendientes del día
 router.get('/pending', requireAuth, async (req, res) => {
     try {
         const deliveries = await Delivery.find({
@@ -40,7 +36,6 @@ router.get('/pending', requireAuth, async (req, res) => {
     }
 });
 
-// GET /api/deliveries/total-count - Conteo total de entregas
 router.get('/total-count', requireAuth, async (req, res) => {
     try {
         const userId = req.session.userId;
@@ -56,7 +51,6 @@ router.get('/total-count', requireAuth, async (req, res) => {
     }
 });
 
-// GET /api/deliveries - Obtener todas las entregas (sin paginación)
 router.get('/', requireAuth, async (req, res) => {
     try {
         const deliveries = await Delivery.find({ user: req.session.userId })
@@ -69,12 +63,8 @@ router.get('/', requireAuth, async (req, res) => {
     }
 });
 
-// ========== DESPUÉS: Rutas con parámetros (/:id) ==========
-
-// GET /api/deliveries/:id - Obtener una entrega específica
 router.get('/:id', requireAuth, async (req, res) => {
     try {
-        // Verificar que el ID sea válido antes de buscarlo
         const { id } = req.params;
         if (!id || id.length !== 24) {
             return res.status(400).json({ success: false, error: 'ID inválido' });
@@ -96,7 +86,6 @@ router.get('/:id', requireAuth, async (req, res) => {
     }
 });
 
-// POST /api/deliveries/manual - Crear entrega manual
 router.post('/manual', requireAuth, async (req, res) => {
     try {
         const activeShift = await Shift.findOne({ 
@@ -134,7 +123,6 @@ router.post('/manual', requireAuth, async (req, res) => {
     }
 });
 
-// PUT /api/deliveries/:id - Actualizar entrega
 router.put('/:id', requireAuth, async (req, res) => {
     try {
         const { id } = req.params;
@@ -159,7 +147,6 @@ router.put('/:id', requireAuth, async (req, res) => {
     }
 });
 
-// PUT /api/deliveries/:id/status - Actualizar estado de entrega
 router.put('/:id/status', requireAuth, async (req, res) => {
     try {
         const { id } = req.params;
@@ -191,7 +178,6 @@ router.put('/:id/status', requireAuth, async (req, res) => {
     }
 });
 
-// DELETE /api/deliveries/:id - Eliminar entrega
 router.delete('/:id', requireAuth, async (req, res) => {
     try {
         const { id } = req.params;

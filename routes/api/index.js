@@ -10,7 +10,6 @@ const vinappApi = require('./vinapp');
 const whatsappApi = require('./whatsapp');
 const restaurantApi = require('./restaurant');
 const userApi = require('./user');
-// nueva
 const notificationsApi = require('./notifications');
 
 router.use('/deliveries', deliveriesApi);
@@ -22,7 +21,6 @@ router.use('/vinapp', vinappApi);
 router.use('/whatsapp', whatsappApi);
 router.use('/restaurant', restaurantApi);
 router.use('/user', userApi);
-// nueva
 router.use('/notifications', notificationsApi);
 
 router.get('/health', (req, res) => {

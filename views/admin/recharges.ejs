@@ -8,49 +8,46 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
-<body class="bg-gray-50">
-    <div class="flex h-screen">
-        <!-- Sidebar -->
-        <div class="w-64 bg-indigo-800 text-white flex flex-col">
-            <div class="p-5 border-b border-indigo-700">
-                <h1 class="text-xl font-bold"><i class="fas fa-store"></i> Admin Panel</h1>
-                <p class="text-xs text-indigo-300 mt-1"><%= admin.fullName || admin.username %></p>
-            </div>
-            <nav class="flex-1 p-4">
-                <a href="/admin" class="flex items-center gap-3 px-4 py-3 hover:bg-indigo-700 rounded-lg transition">
-                    <i class="fas fa-chart-line"></i> Dashboard
-                </a>
-                <a href="/admin/restaurants" class="flex items-center gap-3 px-4 py-3 hover:bg-indigo-700 rounded-lg transition">
-                    <i class="fas fa-store"></i> Restaurantes
-                </a>
-                <a href="/admin/recharges" class="flex items-center gap-3 px-4 py-3 bg-indigo-700 rounded-lg">
-                    <i class="fas fa-history"></i> Historial de Recargas
-                </a>
-            </nav>
-            <div class="p-4 border-t border-indigo-700">
-                <a href="/auth/logout" class="flex items-center gap-3 px-4 py-3 hover:bg-indigo-700 rounded-lg transition">
-                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
-                </a>
-            </div>
-        </div>
-        
-        <!-- Main content -->
-        <div class="flex-1 overflow-auto">
-            <header class="bg-white shadow-sm p-6">
-                <h2 class="text-2xl font-bold text-gray-800">Historial de Recargas</h2>
-                <p class="text-gray-500 text-sm">Registro de todas las recargas de escaneos realizadas</p>
-            </header>
-            
-            <main class="p-6">
-                <!-- Resumen -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <div class="bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-2xl p-6 text-white">
-                        <p class="text-indigo-100 text-sm">Total Recargas</p>
-                        <p class="text-3xl font-bold"><%= pagination.total %></p>
+<body class="bg-gray-50 antialiased">
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden"></div>
+
+    <div class="flex h-screen overflow-hidden">
+        <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-indigo-800 text-white flex flex-col z-50 transform -translate-x-full transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0">
+          <%- include("p-sidebar") %>
+        </aside>
+
+        <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+            <header class="bg-white shadow-sm p-4 lg:p-6 flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <button id="openSidebar" class="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-md">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                    <div>
+                        <h2 class="text-xl lg:text-2xl font-bold text-gray-800">Historial</h2>
+                        <p class="hidden sm:block text-gray-500 text-sm italic">Registro global de movimientos</p>
                     </div>
-                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                        <p class="text-gray-400 text-sm">Última recarga</p>
-                        <p class="text-lg font-bold text-gray-800">
+                </div>
+                <button onclick="exportToCSV()" class="p-2.5 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition sm:px-4 sm:py-2 flex items-center gap-2">
+                    <i class="fas fa-download"></i>
+                    <span class="hidden sm:inline font-medium text-sm">Exportar</span>
+                </button>
+            </header>
+
+            <main class="flex-1 overflow-y-auto p-4 lg:p-6">
+                <div class="flex overflow-x-auto pb-4 gap-4 snap-x sm:grid sm:grid-cols-3 lg:mb-8">
+                    <div class="min-w-[280px] sm:min-w-0 flex-1 snap-center bg-gradient-to-br from-indigo-600 to-indigo-700 rounded-2xl p-6 text-white shadow-lg shadow-indigo-100">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-indigo-100 text-xs font-bold uppercase tracking-wider">Total Recargas</p>
+                                <p class="text-4xl font-black mt-1"><%= pagination.total %></p>
+                            </div>
+                            <i class="fas fa-layer-group text-2xl text-indigo-400/50"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="min-w-[280px] sm:min-w-0 flex-1 snap-center bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                        <p class="text-gray-400 text-xs font-bold uppercase tracking-wider">Último Movimiento</p>
+                        <p class="text-xl font-bold text-gray-800 mt-2">
                             <% if (recharges.length > 0) { %>
                                 <%= new Date(recharges[0].createdAt).toLocaleDateString() %>
                             <% } else { %>
@@ -58,170 +55,191 @@
                             <% } %>
                         </p>
                     </div>
-                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                        <p class="text-gray-400 text-sm">Administradores activos</p>
-                        <p class="text-lg font-bold text-gray-800">
+
+                    <div class="min-w-[280px] sm:min-w-0 flex-1 snap-center bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                        <p class="text-gray-400 text-xs font-bold uppercase tracking-wider">Administradores</p>
+                        <p class="text-xl font-bold text-gray-800 mt-2">
                             <% 
-                            var adminsUnicos = [];
-                            recharges.forEach(function(r) {
-                                if (adminsUnicos.indexOf(r.adminName) === -1) adminsUnicos.push(r.adminName);
-                            });
+                            var adminsUnicos = [...new Set(recharges.map(r => r.adminName))];
                             %>
-                            <%= adminsUnicos.length %>
+                            <%= adminsUnicos.length %> <span class="text-sm font-normal text-gray-400 ml-1 italic">activos</span>
                         </p>
                     </div>
                 </div>
-                
-                <!-- Tabla de recargas -->
+
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead class="bg-gray-50 border-b border-gray-100">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Restaurante</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
-                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Cantidad</th>
-                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Anterior</th>
-                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Nuevo Total</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Admin</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Notas</th>
+                    <div class="hidden lg:block overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50/50 border-b border-gray-100">
+                                <tr class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                                    <th class="px-6 py-4">Fecha / Admin</th>
+                                    <th class="px-6 py-4">Restaurante</th>
+                                    <th class="px-6 py-4 text-center">Cantidad</th>
+                                    <th class="px-6 py-4 text-center">Balance</th>
+                                    <th class="px-6 py-4">Notas</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
-                                <% if (recharges.length === 0) { %>
-                                    <tr>
-                                        <td colspan="8" class="px-6 py-12 text-center text-gray-400">
-                                            <i class="fas fa-history text-4xl mb-2"></i>
-                                            <p>No hay recargas registradas</p>
-                                            <p class="text-sm mt-1">Las recargas aparecerán aquí cuando se realicen</p>
+                                <% recharges.forEach(function(recharge) { %>
+                                    <tr class="hover:bg-gray-50/50 transition">
+                                        <td class="px-6 py-4">
+                                            <p class="text-sm font-medium text-gray-800"><%= new Date(recharge.createdAt).toLocaleDateString() %></p>
+                                            <p class="text-[10px] text-indigo-500 font-bold uppercase"><%= recharge.adminName %></p>
                                         </td>
+                                        <td class="px-6 py-4">
+                                            <p class="text-sm font-bold text-gray-800"><%= recharge.restaurantName %></p>
+                                            <p class="text-[10px] font-mono text-gray-400">ID: <%= recharge.pointId %></p>
+                                        </td>
+                                        <td class="px-6 py-4 text-center">
+                                            <span class="bg-green-50 text-green-700 px-3 py-1 rounded-full text-xs font-bold font-mono">
+                                                +<%= recharge.amount %>
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 text-center">
+                                            <p class="text-sm font-bold text-gray-800"><%= recharge.newScans %></p>
+                                            <p class="text-[10px] text-gray-400 italic">Previa: <%= recharge.previousScans %></p>
+                                        </td>
+                                        <td class="px-6 py-4 text-xs text-gray-500 italic max-w-[200px] truncate"><%= recharge.notes || '-' %></td>
                                     </tr>
-                                <% } else { %>
-                                    <% recharges.forEach(function(recharge) { %>
-                                        <tr class="hover:bg-gray-50">
-                                            <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
-                                                <%= new Date(recharge.createdAt).toLocaleString() %>
-                                            </td>
-                                            <td class="px-6 py-4">
-                                                <div>
-                                                    <p class="font-medium text-gray-800"><%= recharge.restaurantName %></p>
-                                                    <a href="/admin/restaurants/<%= recharge.restaurantId %>" class="text-xs text-indigo-600 hover:underline">
-                                                        Ver detalles
-                                                    </a>
-                                                </div>
-                                            </td>
-                                            <td class="px-6 py-4">
-                                                <span class="font-mono text-xs bg-gray-100 px-2 py-1 rounded"><%= recharge.pointId %></span>
-                                            </td>
-                                            <td class="px-6 py-4 text-center">
-                                                <span class="inline-flex items-center gap-1 bg-green-100 text-green-700 px-2 py-1 rounded-full text-sm font-semibold">
-                                                    <i class="fas fa-plus-circle text-xs"></i> +<%= recharge.amount %>
-                                                </span>
-                                            </td>
-                                            <td class="px-6 py-4 text-center text-sm text-gray-500">
-                                                <%= recharge.previousScans %>
-                                            </td>
-                                            <td class="px-6 py-4 text-center font-semibold text-gray-800">
-                                                <%= recharge.newScans %>
-                                            </td>
-                                            <td class="px-6 py-4">
-                                                <div class="flex items-center gap-2">
-                                                    <div class="w-6 h-6 bg-indigo-100 rounded-full flex items-center justify-center">
-                                                        <i class="fas fa-user-shield text-indigo-600 text-xs"></i>
-                                                    </div>
-                                                    <span class="text-sm text-gray-600"><%= recharge.adminName %></span>
-                                                </div>
-                                            </td>
-                                            <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate" title="<%= recharge.notes || '' %>">
-                                                <%= recharge.notes || '-' %>
-                                            </td>
-                                        </tr>
-                                    <% }); %>
-                                <% } %>
+                                <% }); %>
                             </tbody>
                         </table>
                     </div>
-                    
-                    <!-- Paginación -->
-                    <% if (pagination.pages > 1) { %>
-                        <div class="px-6 py-4 border-t border-gray-100 flex justify-between items-center">
-                            <p class="text-sm text-gray-500">
-                                Mostrando <%= recharges.length %> de <%= pagination.total %> recargas
-                            </p>
-                            <div class="flex gap-2">
-                                <% if (pagination.page > 1) { %>
-                                    <a href="?page=<%= pagination.page - 1 %>" class="px-3 py-1 rounded bg-gray-100 text-gray-600 hover:bg-gray-200">
-                                        <i class="fas fa-chevron-left"></i>
-                                    </a>
-                                <% } %>
-                                
-                                <% 
-                                var startPage = Math.max(1, pagination.page - 2);
-                                var endPage = Math.min(pagination.pages, pagination.page + 2);
-                                for (var i = startPage; i <= endPage; i++) { 
-                                %>
-                                    <a href="?page=<%= i %>" 
-                                       class="px-3 py-1 rounded <%= i === pagination.page ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' %>">
-                                        <%= i %>
-                                    </a>
-                                <% } %>
-                                
-                                <% if (pagination.page < pagination.pages) { %>
-                                    <a href="?page=<%= pagination.page + 1 %>" class="px-3 py-1 rounded bg-gray-100 text-gray-600 hover:bg-gray-200">
-                                        <i class="fas fa-chevron-right"></i>
-                                    </a>
-                                <% } %>
+
+                    <div class="lg:hidden divide-y divide-gray-100">
+                        <% if (recharges.length === 0) { %>
+                            <div class="p-12 text-center text-gray-400">
+                                <i class="fas fa-history text-4xl mb-2"></i>
+                                <p>No hay recargas registradas</p>
                             </div>
+                        <% } else { %>
+                            <% recharges.forEach(function(recharge) { %>
+                                <div class="p-4 space-y-3">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <h4 class="font-bold text-gray-800"><%= recharge.restaurantName %></h4>
+                                            <p class="text-[10px] text-gray-400 font-mono">ID: <%= recharge.pointId %></p>
+                                        </div>
+                                        <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-[10px] font-black">
+                                            +<%= recharge.amount %>
+                                        </span>
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-2 gap-4 py-2 border-y border-gray-50 bg-gray-50/30 rounded-lg px-2">
+                                        <div>
+                                            <p class="text-[9px] text-gray-400 uppercase font-bold tracking-tighter">Anterior</p>
+                                            <p class="text-sm font-semibold text-gray-500"><%= recharge.previousScans %></p>
+                                        </div>
+                                        <div class="text-right border-l border-gray-100">
+                                            <p class="text-[9px] text-gray-400 uppercase font-bold tracking-tighter text-indigo-500">Nuevo Total</p>
+                                            <p class="text-sm font-black text-indigo-700"><%= recharge.newScans %></p>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex justify-between items-center text-[10px]">
+                                        <span class="text-gray-500 italic truncate pr-4 max-w-[60%]">
+                                            <i class="fas fa-sticky-note mr-1 text-gray-300"></i> <%= recharge.notes || 'Sin notas' %>
+                                        </span>
+                                        <span class="font-bold text-gray-400 bg-gray-100 px-2 py-1 rounded">
+                                            <%= new Date(recharge.createdAt).toLocaleDateString() %>
+                                        </span>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        <% } %>
+                    </div>
+                </div>
+
+                <% if (pagination.pages > 1) { %>
+                    <div class="mt-6 flex flex-col items-center gap-4">
+                        <div class="flex gap-1">
+                            <% if (pagination.page > 1) { %>
+                                <a href="?page=<%= pagination.page - 1 %>" class="w-10 h-10 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-600"><i class="fas fa-chevron-left text-xs"></i></a>
+                            <% } %>
+
+                            <% 
+                            var startPage = Math.max(1, pagination.page - 1);
+                            var endPage = Math.min(pagination.pages, pagination.page + 1);
+                            for (var i = startPage; i <= endPage; i++) { 
+                            %>
+                                <a href="?page=<%= i %>" class="w-10 h-10 flex items-center justify-center rounded-lg font-bold <%= i === pagination.page ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600 border border-gray-200' %>">
+                                    <%= i %>
+                                </a>
+                            <% } %>
+
+                            <% if (pagination.page < pagination.pages) { %>
+                                <a href="?page=<%= pagination.page + 1 %>" class="w-10 h-10 flex items-center justify-center rounded-lg bg-white border border-gray-200 text-gray-600"><i class="fas fa-chevron-right text-xs"></i></a>
+                            <% } %>
                         </div>
-                    <% } %>
-                </div>
-                
-                <!-- Exportar datos -->
-                <div class="mt-6 flex justify-end">
-                    <button onclick="exportToCSV()" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200">
-                        <i class="fas fa-download"></i> Exportar a CSV
-                    </button>
-                </div>
+                        <p class="text-xs text-gray-400">Página <%= pagination.page %> de <%= pagination.pages %> (<%= pagination.total %> registros)</p>
+                    </div>
+                <% } %>
             </main>
         </div>
     </div>
-    
+
     <script>
+        const rechargesData = <%- JSON.stringify(recharges) %>;
+
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const openBtn = document.getElementById('openSidebar');
+        const closeBtn = document.getElementById('closeSidebar');
+
+        const toggleSidebar = () => {
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+            document.body.classList.toggle('overflow-hidden');
+        };
+
+        openBtn.addEventListener('click', toggleSidebar);
+        closeBtn.addEventListener('click', toggleSidebar);
+        overlay.addEventListener('click', toggleSidebar);
+
         function exportToCSV() {
-            // Recopilar datos de la tabla
-            const rows = document.querySelectorAll('tbody tr');
-            let csv = 'Fecha,Restaurante,ID,Cantidad,Anterior,Nuevo Total,Admin,Notas\n';
-            
-            rows.forEach(function(row) {
-                // Saltar fila de "no hay registros"
-                if (row.querySelector('td[colspan]')) return;
-                
-                const cells = row.querySelectorAll('td');
-                if (cells.length >= 7) {
-                    const fecha = cells[0].innerText.replace(/,/g, ';');
-                    const restaurante = cells[1].innerText.replace(/,/g, ';').split('Ver detalles')[0];
-                    const id = cells[2].innerText;
-                    const cantidad = cells[3].innerText.replace(/\+/g, '').replace(/,/g, '');
-                    const anterior = cells[4].innerText;
-                    const nuevo = cells[5].innerText;
-                    const admin = cells[6].innerText.replace(/,/g, ';');
-                    const notas = cells[7] ? cells[7].innerText.replace(/,/g, ';') : '';
-                    
-                    csv += `"${fecha}","${restaurante}","${id}","${cantidad}","${anterior}","${nuevo}","${admin}","${notas}"\n`;
-                }
-            });
-            
-            // Descargar archivo
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `recargas_${new Date().toISOString().slice(0,10)}.csv`;
-            a.click();
-            URL.revokeObjectURL(url);
-            
-            Swal.fire('Éxito', 'Archivo CSV exportado correctamente', 'success');
+          if (!rechargesData || rechargesData.length === 0) {
+              return Swal.fire('Sin datos', 'No hay registros para exportar', 'info');
+          }
+      
+          const headers = ['Fecha', 'Restaurante', 'ID Punto', 'Cantidad', 'Anterior', 'Nuevo Total', 'Admin', 'Notas'];
+          const rows = rechargesData.map(r => [
+              new Date(r.createdAt).toLocaleString(),
+              r.restaurantName,
+              r.pointId,
+              r.amount,
+              r.previousScans,
+              r.newScans,
+              r.adminName,
+              r.notes ? r.notes.replace(/\n/g, ' ') : '' 
+          ]);
+      
+          const csvContent = [
+              headers.join(','), 
+              ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+          ].join('\n');
+      
+          const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+          const url = URL.createObjectURL(blob);
+          
+          const link = document.createElement('a');
+          const fechaArchivo = new Date().toISOString().slice(0, 10);
+          
+          link.setAttribute('href', url);
+          link.setAttribute('download', `reporte_recargas_${fechaArchivo}.csv`);
+          link.style.visibility = 'hidden';
+          document.body.appendChild(link);
+          
+          Swal.fire({
+              title: 'Exportando...',
+              text: 'Generando archivo de recargas',
+              icon: 'success',
+              timer: 1500,
+              showConfirmButton: false,
+              willOpen: () => {
+                  link.click();
+                  document.body.removeChild(link);
+              }
+          });
         }
     </script>
 </body>
