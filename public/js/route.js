@@ -1,4 +1,3 @@
-// route.js
 let currentRoute = null;
 let currentDeliveryIndex = 0;
 
@@ -9,19 +8,26 @@ document.addEventListener('DOMContentLoaded', () => {
 async function startRoute() {
     const listContainer = document.getElementById('deliveriesList');
     try {
-        const response = await fetch('/api/route/start');
+        const response = await fetch('/api/deliveries/pending');
         const data = await response.json();
         
         if (!data.success) {
             throw new Error(data.message || 'Error al cargar');
         }
         
-        if (!data.deliveries || data.deliveries.length === 0) {
+        const deliveries = data.deliveries || [];
+        
+        if (!deliveries || deliveries.length === 0) {
             updateEmptyState();
             return;
         }
         
-        currentRoute = data;
+        const totalEstimatedTime = deliveries.length * 5;
+        
+        currentRoute = {
+            deliveries: deliveries,
+            totalEstimatedTime: totalEstimatedTime
+        };
         currentDeliveryIndex = 0;
         
         renderRouteUI();
@@ -45,14 +51,18 @@ async function startRoute() {
                 <button onclick="startRoute()" class="bg-indigo-600 text-white px-6 py-2 rounded-full text-sm font-bold">Reintentar</button>
             </div>
         `;
+        enableControls(false);
     }
 }
 
 function renderRouteUI() {
-    if (!currentRoute) return;
+    if (!currentRoute || !currentRoute.deliveries) return;
     
-    document.getElementById('routeStats').textContent = 
-        `${currentRoute.deliveries.length} Paradas | ~${currentRoute.totalEstimatedTime || 0} min`;
+    const totalPending = currentRoute.deliveries.length;
+    const lateCount = currentRoute.deliveries.filter(d => d.isLate).length;
+    
+    document.getElementById('routeStats').innerHTML = 
+        `${totalPending} Paradas | ~${currentRoute.totalEstimatedTime || 0} min ${lateCount > 0 ? `| <span class="text-red-500">${lateCount} atrasados</span>` : ''}`;
     
     document.getElementById('totalTime').textContent = `${currentRoute.totalEstimatedTime || 0} min`;
     
@@ -64,33 +74,53 @@ function renderRouteUI() {
 
     currentRoute.deliveries.forEach((delivery, index) => {
         const isActive = index === currentDeliveryIndex;
+        const isLate = delivery.isLate || (delivery.daysPending && delivery.daysPending > 0);
+        const daysPending = delivery.daysPending || 0;
         
-        const card = document.createElement('div');
-        let cardClasses = 'relative p-4 rounded-2xl border transition-all duration-300 ';
+        let cardClasses = 'relative p-4 rounded-2xl border transition-all duration-300 cursor-pointer ';
         if (isActive) {
-            cardClasses += 'bg-indigo-50 border-indigo-400 z-10 scale-[1.02] shadow-md';
+            cardClasses += 'bg-indigo-50 border-indigo-400 z-10 scale-[1.02] shadow-md ring-2 ring-indigo-300';
+        } else if (isLate) {
+            cardClasses += 'bg-red-50 border-red-200 shadow-sm hover:shadow-md';
         } else {
-            cardClasses += 'bg-white border-gray-100 shadow-sm opacity-70';
+            cardClasses += 'bg-white border-gray-100 shadow-sm hover:shadow-md opacity-80';
         }
-        card.className = cardClasses;
         
-        card.innerHTML = `
+        const fechaStr = new Date(delivery.createdAt || delivery.date).toLocaleDateString('es-ES', { 
+            day: '2-digit', 
+            month: 'short', 
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        const cardDiv = document.createElement('div');
+        cardDiv.className = cardClasses;
+        
+        cardDiv.innerHTML = `
             <div class="flex justify-between items-start mb-2">
-                <span class="font-bold ${isActive ? 'text-indigo-700' : 'text-gray-500'}">
-                    #${index + 1} - Factura ${delivery.invoiceNumber || delivery.notes || ''}
-                </span>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="font-bold ${isActive ? 'text-indigo-700' : isLate ? 'text-red-600' : 'text-gray-500'}">
+                        #${index + 1} - ${delivery.invoiceNumber || delivery.notes || 'Manual'}
+                    </span>
+                    ${isLate ? `<span class="bg-red-100 text-red-600 text-[10px] px-2 py-0.5 rounded-full font-bold">⚠️ ${daysPending} día(s) atrasado</span>` : ''}
+                </div>
                 ${isActive ? '<span class="bg-indigo-600 text-white text-[10px] px-2 py-1 rounded-full font-bold animate-pulse uppercase tracking-wider shadow-sm">En Curso</span>' : ''}
             </div>
             
             <div class="space-y-1 text-sm">
-                <p class="font-bold text-gray-800 text-lg leading-tight">${delivery.address}</p>
-                <p class="text-gray-600 text-xs"><i class="fas fa-user mr-1 text-gray-400"></i> ${delivery.customerName || 'Cliente'}</p>
+                <p class="font-bold text-gray-800 text-base leading-tight">📍 ${delivery.address || 'Dirección no disponible'}</p>
+                <div class="flex items-center justify-between flex-wrap gap-2">
+                    <p class="text-gray-600 text-xs"><i class="fas fa-user mr-1 text-gray-400"></i> ${delivery.customerName || 'Cliente'}</p>
+                    <p class="text-gray-400 text-[10px]"><i class="far fa-calendar-alt mr-1"></i> ${fechaStr}</p>
+                </div>
                 <div class="flex items-center gap-3 pt-3">
-                     <button onclick="openContactOptions('${delivery.phone}', '${delivery.customerName || 'Cliente'}')" class="text-emerald-700 font-bold bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg text-xs flex items-center gap-1 active:scale-95 transition">
+                     <button onclick="event.stopPropagation(); openContactOptions('${delivery.phone || ''}', '${delivery.customerName || 'Cliente'}')" 
+                            class="text-emerald-700 font-bold bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg text-xs flex items-center gap-1 active:scale-95 transition">
                         <i class="fab fa-whatsapp text-emerald-500"></i> Contactar
                      </button>
                      <span class="font-black text-gray-800 ml-auto bg-gray-100 px-2 py-1 rounded text-base">
-                        $${Number(delivery.amount).toLocaleString('es-CO')}
+                        $${Number(delivery.amount || 0).toLocaleString('es-CO')}
                      </span>
                 </div>
             </div>
@@ -101,10 +131,25 @@ function renderRouteUI() {
                 </div>
             ` : ''}
         `;
-        listContainer.appendChild(card);
+        
+        cardDiv.onclick = () => {
+            if (!isActive) {
+                currentDeliveryIndex = index;
+                renderRouteUI();
+                Swal.fire({
+                    toast: true,
+                    position: 'top',
+                    icon: 'info',
+                    title: `Seleccionada entrega #${index + 1}`,
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+            }
+        };
+        
+        listContainer.appendChild(cardDiv);
     });
     
-    // Auto-scroll a la tarjeta activa
     if (currentDeliveryIndex < currentRoute.deliveries.length) {
         const activeCard = listContainer.children[currentDeliveryIndex];
         if (activeCard) {
@@ -127,6 +172,10 @@ function updateEmptyState() {
         </div>
     `;
     enableControls(false);
+    
+    document.getElementById('routeStats').textContent = `0 Paradas | 0 min`;
+    document.getElementById('totalTime').textContent = `0 min`;
+    document.getElementById('totalEarnings').textContent = `$0`;
 }
 
 function enableControls(enable) {
@@ -139,12 +188,11 @@ function enableControls(enable) {
     if (skipBtn) skipBtn.disabled = !enable;
 }
 
-// NUEVA FUNCIÓN DE NAVEGACIÓN (Diseño Mobile-First)
 function startNavigation() {
     if (!currentRoute || currentDeliveryIndex >= currentRoute.deliveries.length) return;
     
     const delivery = currentRoute.deliveries[currentDeliveryIndex];
-    const addressQuery = encodeURIComponent(delivery.address); 
+    const addressQuery = encodeURIComponent((delivery.address || '')); 
     
     Swal.fire({
         html: `
@@ -197,12 +245,13 @@ function startNavigation() {
 }
 
 async function completeDelivery() {
-    if (!currentRoute) return;
+    if (!currentRoute || !currentRoute.deliveries[currentDeliveryIndex]) return;
+    
     const delivery = currentRoute.deliveries[currentDeliveryIndex];
 
     const result = await Swal.fire({
         title: '¿Pedido Entregado?',
-        html: `Factura <b>#${delivery.invoiceNumber || 'Manual'}</b><br>Cobrar: <b>$${Number(delivery.amount).toLocaleString('es-CO')}</b>`,
+        html: `Factura <b>#${delivery.invoiceNumber || 'Manual'}</b><br>Cobrar: <b>$${Number(delivery.amount || 0).toLocaleString('es-CO')}</b>`,
         icon: 'question',
         showCancelButton: true,
         confirmButtonColor: '#10b981',
@@ -215,8 +264,8 @@ async function completeDelivery() {
     if (!result.isConfirmed) return;
 
     try {
-        const response = await fetch(`/api/delivery/${delivery._id}/status`, {
-            method: 'POST',
+        const response = await fetch(`/api/deliveries/${delivery._id}/status`, {
+            method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: 'entregado' })
         });
@@ -248,7 +297,7 @@ async function completeDelivery() {
                 updateEmptyState();
             } else {
                 if (currentDeliveryIndex >= currentRoute.deliveries.length) {
-                    currentDeliveryIndex = currentRoute.deliveries.length - 1;
+                    currentDeliveryIndex = 0;
                 }
                 renderRouteUI();
             }
@@ -256,6 +305,7 @@ async function completeDelivery() {
             throw new Error('Error en la respuesta del servidor');
         }
     } catch (error) {
+        console.error('Error:', error);
         Swal.fire('Error', 'No se pudo actualizar el estado', 'error');
     }
 }
@@ -312,12 +362,11 @@ function moveCurrentDeliveryBehindNext() {
     });
 }
 
-// NUEVA FUNCIÓN DE CONTACTO (Diseño Mobile-First)
 function openContactOptions(phone, name) {
-    let cleanPhone = phone.replace(/\D/g, ''); 
-    if (!cleanPhone.startsWith('57')) cleanPhone = '57' + cleanPhone;
+    let cleanPhone = phone ? phone.replace(/\D/g, '') : ''; 
+    if (cleanPhone && !cleanPhone.startsWith('57')) cleanPhone = '57' + cleanPhone;
 
-    const displayPhone = `+${cleanPhone.substring(0,2)} ${cleanPhone.substring(2,5)} ${cleanPhone.substring(5,8)} ${cleanPhone.substring(8)}`;
+    const displayPhone = cleanPhone ? `+${cleanPhone.substring(0,2)} ${cleanPhone.substring(2,5)} ${cleanPhone.substring(5,8)} ${cleanPhone.substring(8)}` : 'Número no disponible';
 
     Swal.fire({
         html: `
@@ -325,11 +374,12 @@ function openContactOptions(phone, name) {
                 <div class="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 shadow-inner">
                     <i class="fas fa-user-circle"></i>
                 </div>
-                <h2 class="text-2xl font-black text-gray-800">${name}</h2>
+                <h2 class="text-2xl font-black text-gray-800">${name || 'Cliente'}</h2>
                 <p class="text-lg font-bold text-gray-500 mt-1 tracking-wider">${displayPhone}</p>
             </div>
 
             <div class="space-y-3">
+                ${cleanPhone ? `
                 <button onclick="window.open('https://wa.me/${cleanPhone}', '_blank'); Swal.close();"
                     class="w-full bg-[#e8fbf0] hover:bg-[#d1f7e1] border border-[#bcefd1] text-[#0d9446] p-4 rounded-2xl flex items-center gap-4 transition active:scale-95 shadow-sm">
                     <div class="w-12 h-12 bg-[#25D366] text-white rounded-full flex items-center justify-center text-3xl shadow-md">
@@ -357,6 +407,12 @@ function openContactOptions(phone, name) {
                         <i class="fas fa-chevron-right opacity-60"></i>
                     </div>
                 </button>
+                ` : `
+                <div class="text-center text-gray-400 py-4">
+                    <i class="fas fa-phone-slash text-2xl mb-2"></i>
+                    <p class="text-sm">No hay número de teléfono disponible</p>
+                </div>
+                `}
             </div>
         `,
         showConfirmButton: false,
@@ -370,10 +426,12 @@ function openContactOptions(phone, name) {
 }
 
 function exportRoute() {
-    if (!currentRoute) return;
+    if (!currentRoute || !currentRoute.deliveries) return;
+    
     let exportText = `RUTA - ${new Date().toLocaleDateString()}\n----------------\n`;
     currentRoute.deliveries.forEach((d, i) => {
-        exportText += `#${i+1} (${d.invoiceNumber || 'N/A'}) - ${d.address} - $${Number(d.amount).toLocaleString('es-CO')}\n`;
+        const fecha = new Date(d.createdAt || d.date).toLocaleDateString('es-ES');
+        exportText += `#${i+1} (${d.invoiceNumber || 'N/A'}) - ${fecha}\n   ${d.address || 'Sin dirección'} - $${Number(d.amount || 0).toLocaleString('es-CO')}\n`;
     });
     
     const blob = new Blob([exportText], { type: 'text/plain' });

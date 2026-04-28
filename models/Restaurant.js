@@ -11,4 +11,7 @@ const restaurantSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 });
 
+restaurantSchema.index({ status: 1, availableScans: 1 });
+restaurantSchema.index({ companyId: 1 });
+
 module.exports = mongoose.model('Delrestaurant', restaurantSchema);

@@ -41,19 +41,31 @@ mongoose.connect(process.env.MONGODB_URI)
 
 app.use('/auth', require('./routes/auth'));
 
+app.use('/', require('./routes/deliveries'));
+app.use('/tools', require('./routes/tools'));
+app.use('/profile', require('./routes/profile'));
+app.use('/admin', require('./routes/admin'));
+const restaurantRoutes = require('./routes/restaurant');
+app.use('/restaurante', restaurantRoutes);
+
+app.use('/api', require('./routes/api/index'));
+
 app.get('/manifest.json', (req, res) => {
     res.type('application/manifest+json');
     res.sendFile(path.join(__dirname, 'public/manifest.json'));
 });
+
 app.get('/sw.js', (req, res) => {
     res.sendFile(path.join(__dirname, 'public/js/sw.js'));
 });
+
 app.get('/offline', (req, res) => {
     res.render('offline', {
       info,
       title: `Sin Conexión | ${info.name_page}`,
     });
 });
+
 app.get('/ping', (req, res) => {
   res.send('Pong');
 });
@@ -65,9 +77,6 @@ app.get('/route', requireAuth, (req, res) => {
       key: process.env.MAPS_KEY || ''
     });
 });
-
-app.use('/', require('./routes/deliveries'));
-app.use('/tools', require('./routes/tools'));
 
 setInterval(() => {
   fetch((info.dominio || `http://localhost:${PORT}`) + '/ping')

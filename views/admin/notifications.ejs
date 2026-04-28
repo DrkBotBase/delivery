@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .preview-card {
+            transition: all 0.3s ease;
+            max-width: 380px;
+            margin: 0 auto;
+        }
+        .preview-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+        }
+        /* Scrollbar suave para la lista */
+        #notificationsList::-webkit-scrollbar {
+            width: 5px;
+        }
+        #notificationsList::-webkit-scrollbar-thumb {
+            background: #e2e8f0;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 antialiased">
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden"></div>
+
+    <div class="flex h-screen overflow-hidden">
+        
+        <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-indigo-800 text-white flex flex-col z-50 transform -translate-x-full transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0">
+            <%- include("p-sidebar") %>
+        </aside>
+        
+        <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+            
+            <header class="bg-white shadow-sm p-4 lg:p-6 flex items-center justify-between">
+                <div class="flex items-center">
+                    <button id="openSidebar" class="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-md">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                    <div class="ml-4 lg:ml-0">
+                        <h2 class="text-xl lg:text-2xl font-bold text-gray-800">Notificaciones</h2>
+                        <p class="hidden sm:block text-gray-500 text-sm">Gestiona los anuncios para usuarios y restaurantes</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-3">
+                    <span class="hidden sm:block text-sm font-medium text-gray-600"><%= admin.username %></span>
+                    <button onclick="confirmLogout()" class="p-2 bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200 transition">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </header>
+
+            <main class="flex-1 overflow-y-auto p-4 lg:p-6">
+                <div class="max-w-6xl mx-auto">
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+                            <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                <i class="fas fa-edit text-indigo-500"></i> Crear Notificación
+                            </h2>
+                            
+                            <form id="notificationForm" class="space-y-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1 tracking-wider">Título *</label>
+                                    <input type="text" id="title" 
+                                           class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition"
+                                           placeholder="Ej: 🚀 Nueva Actualización" required>
+                                </div>
+                                
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-400 uppercase mb-1 tracking-wider">Tipo</label>
+                                        <select id="type" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 bg-white outline-none">
+                                            <option value="info">ℹ️ Información</option>
+                                            <option value="success">✅ Éxito</option>
+                                            <option value="warning">⚠️ Advertencia</option>
+                                            <option value="promotion">🎉 Promoción</option>
+                                            <option value="update">🔄 Actualización</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-400 uppercase mb-1 tracking-wider">Plantilla</label>
+                                        <select id="contentTemplate" class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none" onchange="applyTemplate()">
+                                            <option value="">-- Personalizado --</option>
+                                            <option value="update">🚀 Actualización</option>
+                                            <option value="promotion">🎉 Promoción</option>
+                                            <option value="warning">⚠️ Alerta</option>
+                                            <option value="achievement">🏆 Logro</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1 tracking-wider">Mensaje corto *</label>
+                                    <textarea id="message" rows="2" 
+                                              class="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                                              placeholder="Resumen para la notificación push..." required></textarea>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-400 uppercase mb-1 tracking-wider">Contenido HTML</label>
+                                    <textarea id="content" rows="5" 
+                                              class="w-full px-4 py-2 border border-gray-200 rounded-xl font-mono text-xs focus:ring-2 focus:ring-indigo-500 outline-none"
+                                              placeholder="Estructura interna..."></textarea>
+                                </div>
+                                
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                                    <input type="text" id="imageUrl" class="px-4 py-2 border border-gray-200 rounded-xl outline-none" placeholder="URL del Banner">
+                                    <input type="datetime-local" id="expiresAt" class="px-4 py-2 border border-gray-200 rounded-xl outline-none">
+                                </div>
+                                
+                                <div class="flex gap-3 pt-4">
+                                    <button type="submit" class="flex-1 bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-100">
+                                        <i class="fas fa-paper-plane mr-2"></i> Enviar
+                                    </button>
+                                    <button type="button" onclick="previewNotification()" class="px-5 bg-gray-50 text-gray-500 rounded-xl border border-gray-200 hover:bg-gray-100 transition">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 flex flex-col">
+                            <h2 class="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
+                                <i class="fas fa-magic text-indigo-500"></i> Vista Previa
+                            </h2>
+                            <div id="previewContainer" class="preview-card bg-gray-50 rounded-2xl p-6 min-h-[350px] border-2 border-dashed border-gray-200 flex items-center justify-center">
+                                <p class="text-center text-gray-400 text-sm">
+                                    Completa el formulario para previsualizar
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8 bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                                <i class="fas fa-history text-indigo-500"></i> Notificaciones Recientes
+                            </h2>
+                            <button onclick="loadNotificationsList()" class="p-2 text-indigo-500 hover:bg-indigo-50 rounded-full transition">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                        
+                        <div id="notificationsList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            </div>
+                        
+                        <div id="pagination" class="flex justify-center gap-2 mt-8"></div>
+                    </div>
+
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const openBtn = document.getElementById('openSidebar');
+
+        const toggleSidebar = () => {
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+            document.body.classList.toggle('overflow-hidden');
+        };
+
+        openBtn.addEventListener('click', toggleSidebar);
+        overlay.addEventListener('click', toggleSidebar);
+
+        let currentPage = 1;
+        
+        const templates = {
+            update: (title, message) => `
+<div class="space-y-3">
+    <div class="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-4 text-white text-center">
+        <i class="fas fa-rocket text-2xl mb-1"></i>
+        <p class="font-bold">¡Nueva Actualización!</p>
+    </div>
+    <div>
+        <p class="font-bold text-gray-800">✨ Novedades:</p>
+        <ul class="mt-2 space-y-1 text-sm text-gray-600 list-disc list-inside">
+            <li>Escribe aquí las novedades...</li>
+            <li>Agrega los cambios importantes</li>
+        </ul>
+    </div>
+    <div class="bg-yellow-50 p-3 rounded-lg text-center">
+        <p class="text-xs text-yellow-700">Cierra y vuelve a abrir la app para actualizar</p>
+    </div>
+</div>`,
+            
+            promotion: (title, message) => `
+<div class="space-y-3 text-center">
+    <div class="bg-gradient-to-r from-pink-500 to-orange-500 rounded-xl p-4 text-white">
+        <i class="fas fa-gift text-2xl mb-1"></i>
+        <p class="font-bold text-2xl">${message.split(' ').slice(0,3).join(' ') || 'OFERTA'}</p>
+    </div>
+    <p class="text-gray-600 text-sm">${message}</p>
+    <div class="bg-gray-100 rounded-xl p-2">
+        <p class="font-mono font-bold text-indigo-600">USA EL CÓDIGO: PROMO2024</p>
+    </div>
+</div>`,
+            
+            info: (title, message) => `
+<div class="space-y-3">
+    <div class="flex items-center gap-3 pb-2 border-b border-gray-200">
+        <i class="fas fa-info-circle text-blue-500 text-xl"></i>
+        <p class="font-bold text-gray-800">${title}</p>
+    </div>
+    <p class="text-gray-600 text-sm leading-relaxed">${message}</p>
+</div>`,
+            
+            warning: (title, message) => `
+<div class="space-y-3">
+    <div class="bg-red-50 border-l-4 border-red-500 rounded-xl p-3">
+        <div class="flex items-start gap-2">
+            <i class="fas fa-exclamation-triangle text-red-500 mt-0.5"></i>
+            <p class="text-sm text-red-700">${message}</p>
+        </div>
+    </div>
+</div>`,
+            
+            achievement: (title, message) => `
+<div class="space-y-3 text-center">
+    <div class="w-16 h-16 mx-auto bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+        <i class="fas fa-trophy text-white text-2xl"></i>
+    </div>
+    <h3 class="font-bold text-gray-800 text-lg">¡Felicidades!</h3>
+    <p class="text-gray-600 text-sm">${message}</p>
+</div>`,
+            
+            reminder: (title, message) => `
+<div class="space-y-3">
+    <div class="flex items-center gap-3 bg-orange-50 rounded-xl p-3">
+        <i class="fas fa-clock text-orange-500 text-xl"></i>
+        <div>
+            <p class="font-bold text-gray-800">Recordatorio</p>
+            <p class="text-sm text-gray-600">${message}</p>
+        </div>
+    </div>
+</div>`,
+            
+            maintenance: (title, message) => `
+<div class="space-y-3">
+    <div class="bg-yellow-50 rounded-xl p-4 text-center">
+        <i class="fas fa-tools text-yellow-600 text-2xl mb-2"></i>
+        <p class="font-bold text-gray-800">Mantenimiento Programado</p>
+        <p class="text-sm text-gray-600 mt-1">${message}</p>
+        <p class="text-xs text-gray-400 mt-2">Gracias por tu comprensión</p>
+    </div>
+</div>`
+        };
+        
+        function applyTemplate() {
+            const template = document.getElementById('contentTemplate').value;
+            const title = document.getElementById('title').value;
+            const message = document.getElementById('message').value;
+            
+            if (template && templates[template]) {
+                const html = templates[template](title, message);
+                document.getElementById('content').value = html;
+                previewNotification();
+            }
+        }
+        
+        function previewNotification() {
+            const title = document.getElementById('title').value || 'Título de ejemplo';
+            const message = document.getElementById('message').value || 'Mensaje de ejemplo';
+            const type = document.getElementById('type').value;
+            const content = document.getElementById('content').value;
+            
+            const container = document.getElementById('previewContainer');
+            
+            const typeColors = {
+                info: 'bg-blue-50 border-blue-300',
+                success: 'bg-green-50 border-green-300',
+                warning: 'bg-red-50 border-red-300',
+                promotion: 'bg-pink-50 border-pink-300',
+                update: 'bg-purple-50 border-purple-300'
+            };
+            
+            const typeIcons = {
+                info: 'fa-info-circle text-blue-500',
+                success: 'fa-check-circle text-green-500',
+                warning: 'fa-exclamation-triangle text-red-500',
+                promotion: 'fa-tag text-pink-500',
+                update: 'fa-sync-alt text-purple-500'
+            };
+            
+            let html = `
+                <div class="rounded-xl border ${typeColors[type] || 'bg-gray-50 border-gray-200'} p-4">
+                    <div class="flex items-start gap-3 mb-3">
+                        <i class="fas ${typeIcons[type] || 'fa-bell'} text-xl"></i>
+                        <div class="flex-1">
+                            <h3 class="font-bold text-gray-800">${escapeHtml(title)}</h3>
+                            <p class="text-xs text-gray-500">Ahora mismo</p>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-3">${escapeHtml(message)}</p>
+            `;
+            
+            if (content) {
+                html += `<div class="mt-3 pt-3 border-t border-gray-200 text-sm">${content}</div>`;
+            }
+            
+            html += `</div>`;
+            
+            container.innerHTML = html;
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        async function createNotification() {
+            const formData = {
+                title: document.getElementById('title').value,
+                type: document.getElementById('type').value,
+                message: document.getElementById('message').value,
+                content: document.getElementById('content').value,
+                link: document.getElementById('link').value,
+                imageUrl: document.getElementById('imageUrl').value,
+                expiresAt: document.getElementById('expiresAt').value || null
+            };
+            
+            if (!formData.title || !formData.message) {
+                Swal.fire('Error', 'Título y mensaje son requeridos', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/notifications/admin', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Notificación enviada',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    
+                    document.getElementById('notificationForm').reset();
+                    document.getElementById('content').value = '';
+                    document.getElementById('previewContainer').innerHTML = '<p class="text-center text-gray-400 text-sm"><i class="fas fa-magic"></i> Completa el formulario para ver la vista previa</p>';
+                    loadNotificationsList();
+                } else {
+                    Swal.fire('Error', data.error, 'error');
+                }
+            } catch (error) {
+                Swal.fire('Error', 'No se pudo crear', 'error');
+            }
+        }
+        
+        async function loadNotificationsList(page = 1) {
+            currentPage = page;
+            try {
+                const response = await fetch(`/api/notifications/admin?page=${page}&limit=10`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    renderNotificationsList(data.notifications);
+                    renderPagination(data.pagination);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+        
+        function renderNotificationsList(notifications) {
+            const container = document.getElementById('notificationsList');
+            
+            if (notifications.length === 0) {
+                container.innerHTML = `<div class="text-center py-8 text-gray-400"><i class="fas fa-bell-slash text-3xl mb-2"></i><p>No hay notificaciones</p></div>`;
+                return;
+            }
+            
+            container.innerHTML = notifications.map(notif => `
+                <div class="border border-gray-200 rounded-xl p-4 hover:shadow-md transition">
+                    <div class="flex justify-between items-start">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs px-2 py-1 rounded-full ${getStatusClass(notif.isActive)}">
+                                ${notif.isActive ? 'Activa' : 'Inactiva'}
+                            </span>
+                            <span class="text-xs text-gray-500">${new Date(notif.createdAt).toLocaleString()}</span>
+                        </div>
+                        <button onclick="deleteNotification('${notif._id}')" class="text-red-500 hover:text-red-700">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    <h3 class="font-bold text-gray-800 mt-2">${escapeHtml(notif.title)}</h3>
+                    <p class="text-sm text-gray-600 mt-1">${escapeHtml(notif.message)}</p>
+                    <div class="mt-2 text-xs text-gray-400">
+                        <i class="fas fa-users"></i> Leída por: ${notif.readBy?.length || 0} usuarios
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function renderPagination(pagination) {
+            const container = document.getElementById('pagination');
+            if (pagination.totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            let html = '';
+            for (let i = 1; i <= pagination.totalPages; i++) {
+                html += `<button onclick="loadNotificationsList(${i})" class="px-3 py-1 rounded-lg ${i === currentPage ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700'}">${i}</button>`;
+            }
+            container.innerHTML = html;
+        }
+        
+        async function deleteNotification(id) {
+            const result = await Swal.fire({
+                title: '¿Eliminar notificación?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                confirmButtonText: 'Sí, eliminar'
+            });
+            
+            if (result.isConfirmed) {
+                await fetch(`/api/notifications/admin/${id}`, { method: 'DELETE' });
+                Swal.fire('Eliminada', '', 'success');
+                loadNotificationsList();
+            }
+        }
+        
+        function getStatusClass(isActive) {
+            return isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500';
+        }
+        
+        document.getElementById('notificationForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            createNotification();
+        });
+        
+        document.getElementById('title').addEventListener('input', previewNotification);
+        document.getElementById('message').addEventListener('input', previewNotification);
+        document.getElementById('type').addEventListener('change', previewNotification);
+        document.getElementById('content').addEventListener('input', previewNotification);
+        
+        loadNotificationsList();
+    </script>
+</body>
+</html>

@@ -83,4 +83,17 @@ const deliverySchema = new mongoose.Schema({
   timestamps: true
 });
 
+deliverySchema.index({ user: 1, createdAt: -1 });
+deliverySchema.index({ shiftId: 1, createdAt: -1 });
+deliverySchema.index({ invoiceNumber: 1 });
+deliverySchema.index({ phone: 1 });
+deliverySchema.index({ user: 1, date: -1 });
+deliverySchema.index({ 
+  invoiceNumber: 'text', 
+  customerName: 'text', 
+  address: 'text', 
+  notes: 'text' 
+});
+
+
 module.exports = mongoose.model('Delivery', deliverySchema);

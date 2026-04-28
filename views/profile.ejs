@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <%- include("partials/head") %>
+  <style>
+    .avatar-option {
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .avatar-option:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .avatar-option.selected {
+      ring: 2px solid #4f46e5;
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen font-sans text-gray-800">
+    <header class="sticky top-0 z-50 border-b border-gray-200 shadow-sm bg-gray-50/80 backdrop-blur-sm">
+        <div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <a href="/panel" class="inline-block focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-xl transition-transform active:scale-95">
+                    <div class="w-10 h-10 bg-gradient-to-br from-indigo-600 to-indigo-700 rounded-xl flex items-center justify-center text-white shadow-lg">
+                        <i class="fas fa-arrow-left"></i>
+                    </div>
+                </a>
+                <div>
+                    <h1 class="text-lg font-bold text-gray-900">Mi Perfil</h1>
+                    <p class="text-xs text-gray-500">Configuración y estadísticas</p>
+                </div>
+            </div>
+            <button onclick="confirmLogout()" class="w-9 h-9 flex items-center justify-center bg-red-50 rounded-full text-red-500 hover:bg-red-100 transition">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
+        </div>
+    </header>
+    
+    <main class="max-w-md mx-auto px-4 pt-6 pb-24 space-y-6">
+        <div class="bg-white rounded-2xl shadow-lg p-6 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full -mr-16 -mt-16 opacity-50"></div>
+            
+            <div class="flex flex-col items-center text-center relative z-10">
+              <div class="relative mb-4">
+                <% 
+                let avatarSrc = '/avatars/default.svg';
+                if (user.avatar) {
+                    if (user.isGoogleUser && user.avatar.startsWith('http')) {
+                        avatarSrc = user.avatar;  // URL de Google
+                    } else {
+                        avatarSrc = '/avatars/' + user.avatar;  // Avatar local
+                    }
+                }
+                %>
+                
+                <img id="profileAvatar" 
+                     src="<%= avatarSrc %>" 
+                     alt="Avatar" 
+                     class="w-24 h-24 rounded-full object-cover border-4 border-indigo-100 shadow-md"
+                     onerror="this.src='/avatars/default.svg'">
+                
+                <% if (!user.isGoogleUser) { %>
+                    <button onclick="showAvatarSelector()" class="absolute bottom-0 right-0 bg-indigo-600 text-white rounded-full w-8 h-8 flex items-center justify-center shadow-lg hover:bg-indigo-700 transition">
+                        <i class="fas fa-camera text-xs"></i>
+                    </button>
+                <% } else { %>
+                    <div class="absolute bottom-0 right-0 bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center shadow-lg" title="Avatar sincronizado con Google">
+                        <i class="fab fa-google text-xs"></i>
+                    </div>
+                <% } %>
+            </div>
+                
+              <div class="flex items-center gap-2 mb-1">
+                  <h2 id="displayName" class="text-xl font-bold text-gray-800">
+                      <%= user.fullName || user.username %>
+                  </h2>
+                  <button onclick="editFullName()" class="text-indigo-500 hover:text-indigo-700 transition">
+                      <i class="fas fa-pencil-alt text-xs"></i>
+                  </button>
+              </div>
+              <p class="text-sm text-gray-500">@<%= user.username %></p>
+              
+              <% if (!user.isGoogleUser && !user.fullName) { %>
+                  <div class="mt-2 bg-yellow-50 text-yellow-700 text-xs px-3 py-1 rounded-full flex items-center gap-1">
+                      <i class="fas fa-info-circle"></i> Agrega tu nombre
+                  </div>
+              <% } %>
+              
+              <% if (user.isGoogleUser && !user.fullName) { %>
+                  <div class="mt-2 bg-blue-50 text-blue-600 text-xs px-3 py-1 rounded-full flex items-center gap-1">
+                      <i class="fab fa-google"></i> Nombre sincronizado con Google
+                  </div>
+              <% } %>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-2xl shadow-lg p-5">
+            <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <i class="fas fa-chart-line text-indigo-500"></i> Estadísticas Generales
+            </h3>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-emerald-50 rounded-xl p-3 text-center">
+                    <p class="text-2xl font-bold text-emerald-600" id="globalTotalAmount">-</p>
+                    <p class="text-xs text-gray-500">Total Recaudado</p>
+                </div>
+                <div class="bg-red-50 rounded-xl p-3 text-center">
+                    <p class="text-2xl font-bold text-red-600" id="globalTotalExpenses">-</p>
+                    <p class="text-xs text-gray-500">Total Gastos</p>
+                </div>
+                <div class="bg-purple-50 rounded-xl p-3 text-center">
+                    <p class="text-2xl font-bold text-purple-600" id="globalNetTotal">-</p>
+                    <p class="text-xs text-gray-500">Total Neto</p>
+                </div>
+                <div class="bg-indigo-50 rounded-xl p-3 text-center">
+                    <p class="text-2xl font-bold text-indigo-600" id="globalTotalDeliveries">-</p>
+                    <p class="text-xs text-gray-500">Cantidad Entregas</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-2xl shadow-lg p-5">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    <i class="fas fa-calendar-alt text-indigo-500"></i> Mis Jornadas
+                </h3>
+                <span id="totalShifts" class="text-xs bg-gray-100 px-2 py-1 rounded-full">- jornadas</span>
+            </div>
+            <div id="shiftsList" class="space-y-3 max-h-80 overflow-y-auto">
+                <div class="text-center py-8 text-gray-400">
+                    <i class="fas fa-spinner fa-spin"></i> Cargando jornadas...
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-2xl shadow-lg p-5">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    <i class="fas fa-store text-indigo-500"></i> Restaurantes Vinculados
+                </h3>
+                <button onclick="showLinkedRestaurants()" class="text-xs bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full hover:bg-indigo-100 transition">
+                    <i class="fas fa-plus"></i> Vincular
+                </button>
+            </div>
+            <div id="restaurantsList" class="space-y-2">
+                <div class="text-center py-8 text-gray-400">
+                    <i class="fas fa-spinner fa-spin"></i> Cargando restaurantes...
+                </div>
+            </div>
+        </div>
+    
+        <div class="bg-white rounded-2xl shadow-lg p-5">
+            <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <i class="fas fa-shield-alt text-indigo-500"></i> Configuración
+            </h3>
+            <div class="space-y-3">
+                <button onclick="changePassword()" class="w-full flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition">
+                    <span class="text-sm text-gray-700"><i class="fas fa-lock mr-2 text-gray-400"></i> Cambiar contraseña</span>
+                    <i class="fas fa-chevron-right text-gray-400 text-xs"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="text-center pb-4">
+            <p class="text-xs text-gray-400">MJFOOD • <%= info.version %></p>
+        </div>
+    </main>
+    
+    <script>
+        window.isGoogleUser = <%= user.isGoogleUser %>;
+        window.currentUser = {
+            id: "<%= user._id %>",
+            username: "<%= user.username %>",
+            fullName: "<%= user.fullName || '' %>",
+            email: "<%= user.email || '' %>",
+            googleId: "<%= user.googleId || '' %>",
+            isGoogleUser: <%= user.isGoogleUser %>
+        };
+        
+        async function loadProfileStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const totalDeliveriesCount = data.raw?.totalDeliveriesCount || data.history?.reduce((sum, day) => sum + (day.deliveriesCount || 0), 0) || 0;
+                    document.getElementById('globalTotalDeliveries').textContent = totalDeliveriesCount.toLocaleString('es-CO');
+                    document.getElementById('globalTotalAmount').textContent = '$' + (data.raw?.totalDeliveries?.toLocaleString('es-CO') || '0');
+                    document.getElementById('globalTotalExpenses').textContent = '$' + (data.raw?.totalExpenses?.toLocaleString('es-CO') || '0');
+                    document.getElementById('globalNetTotal').textContent = '$' + (data.total?.toLocaleString('es-CO') || '0');
+                }
+            } catch (error) {
+                console.error('Error cargando estadísticas:', error);
+            }
+        }
+        
+        async function loadShifts() {
+            try {
+                const response = await fetch('/api/shifts/history?limit=50');
+                const data = await response.json();
+                
+                const container = document.getElementById('shiftsList');
+                const totalSpan = document.getElementById('totalShifts');
+                
+                if (data.success && data.shifts?.length > 0) {
+                    totalSpan.textContent = `${data.shifts.length} jornadas`;
+                    
+                    container.innerHTML = data.shifts.map(shift => {
+                        const startDate = new Date(shift.startTime).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+                        const startTime = new Date(shift.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        const endDate = shift.endTime ? new Date(shift.endTime).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }) : 'En curso';
+                        const total = shift.stats?.grandTotal || shift.totalDeliveryAmount + (shift.baseMoney || 0);
+                        const statusColor = shift.status === 'active' ? 'text-emerald-600 bg-emerald-50' : 'text-gray-500 bg-gray-100';
+                        const statusText = shift.status === 'active' ? 'Activa' : 'Cerrada';
+                        
+                        return `
+                          <div class="p-3 bg-gray-50 rounded-xl border border-gray-100 hover:shadow-md transition">
+                              <div class="flex justify-between items-start mb-2">
+                                  <div>
+                                      <p class="font-bold text-gray-800">${startDate} - ${startTime}</p>
+                                      <p class="text-xs text-gray-500">Base: $${(shift.baseMoney || 0).toLocaleString('es-CO')}</p>
+                                  </div>
+                                  <span class="text-xs px-2 py-1 rounded-full ${statusColor}">${statusText}</span>
+                              </div>
+                              
+                              <div class="flex justify-between items-center text-sm mb-3">
+                                  <span class="text-gray-600">
+                                      <i class="fas fa-box text-[10px] mr-1"></i> 
+                                      ${shift.stats?.deliveriesCount || 0} entregas
+                                  </span>
+                                  <span class="font-bold text-indigo-600">
+                                      <i class="fas fa-coins text-[10px] mr-1"></i>
+                                      $${total?.toLocaleString('es-CO') || 0}
+                                  </span>
+                              </div>
+                              
+                              <div class="flex gap-2">
+                                  <button onclick="window.location.href='/panel?shiftId=${shift._id}'" 
+                                          class="flex-1 flex items-center justify-center gap-1 text-xs text-indigo-600 bg-indigo-50 py-1.5 rounded-lg hover:bg-indigo-100 transition">
+                                      <i class="fas fa-eye text-[10px]"></i> Ver detalles
+                                  </button>
+                                  <button onclick="shareShift('${shift.shareToken}')" 
+                                          class="flex items-center justify-center gap-1 px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs hover:bg-gray-200 transition"
+                                          title="Compartir jornada">
+                                      <i class="fas fa-share-alt text-xs"></i>
+                                  </button>
+                              </div>
+                          </div>
+                      `;
+                    }).join('');
+                } else {
+                    container.innerHTML = `
+                        <div class="text-center py-8 text-gray-400">
+                            <i class="fas fa-calendar-alt text-3xl mb-2 opacity-50"></i>
+                            <p class="text-sm">No hay jornadas registradas</p>
+                            <p class="text-xs">Inicia tu primera jornada desde el panel</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error cargando jornadas:', error);
+                document.getElementById('shiftsList').innerHTML = `
+                    <div class="text-center py-8 text-red-400">
+                        <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
+                        <p class="text-sm">Error al cargar jornadas</p>
+                    </div>
+                `;
+            }
+        }
+        
+        async function loadRestaurants() {
+            try {
+                const response = await fetch('/api/vinapp/restaurants');
+                const data = await response.json();
+                
+                const container = document.getElementById('restaurantsList');
+                
+                if (data.success && data.restaurants?.length > 0) {
+                    container.innerHTML = data.restaurants.map(rest => `
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-store text-indigo-500 text-xs"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-800 text-sm">${escapeHtml(rest.name)}</p>
+                                    <p class="text-xs text-gray-400">ID: ${rest.pointId} | Comp: ${rest.companyId}</p>
+                                </div>
+                            </div>
+                            <button onclick="removeRestaurant('${rest.companyId}', '${rest.pointId}')" 
+                                    class="text-red-400 hover:text-red-600 transition p-2 rounded-full hover:bg-red-50"
+                                    title="Desvincular restaurante">
+                                <i class="fas fa-trash-alt text-xs"></i>
+                            </button>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = `
+                        <div class="text-center py-8 text-gray-400">
+                            <i class="fas fa-store text-3xl mb-2 opacity-50"></i>
+                            <p class="text-sm">No hay restaurantes vinculados</p>
+                            <button onclick="showLinkedRestaurants()" class="mt-2 text-xs text-indigo-500 hover:underline">
+                                <i class="fas fa-plus"></i> Vincular restaurante
+                            </button>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error cargando restaurantes:', error);
+                document.getElementById('restaurantsList').innerHTML = `
+                    <div class="text-center py-8 text-red-400">
+                        <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
+                        <p class="text-sm">Error al cargar restaurantes</p>
+                        <button onclick="loadRestaurants()" class="mt-2 text-xs text-indigo-500 hover:underline">Reintentar</button>
+                    </div>
+                `;
+            }
+        }
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+        
+        async function editFullName() {
+            const currentName = window.currentUser.fullName || '';
+            
+            const { value: newName } = await Swal.fire({
+                title: 'Editar nombre',
+                input: 'text',
+                inputLabel: 'Tu nombre completo',
+                inputValue: currentName,
+                inputPlaceholder: 'Ej: Juan Pérez García',
+                showCancelButton: true,
+                confirmButtonText: 'Guardar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#4f46e5',
+                inputValidator: (value) => {
+                    if (!value || value.trim() === '') {
+                        return 'El nombre no puede estar vacío';
+                    }
+                }
+            });
+            
+            if (newName && newName !== currentName) {
+                try {
+                    const response = await fetch('/api/user/update-name', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ fullName: newName })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        window.currentUser.fullName = newName;
+                        document.getElementById('displayName').textContent = newName;
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Nombre actualizado',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    } else {
+                        Swal.fire('Error', data.error || 'No se pudo actualizar', 'error');
+                    }
+                } catch (error) {
+                    Swal.fire('Error', 'Error de conexión', 'error');
+                }
+            }
+        }
+        
+        async function changePassword() {
+            const { value: formValues } = await Swal.fire({
+                title: 'Cambiar contraseña',
+                html: `
+                    <input type="password" id="currentPassword" class="swal2-input" placeholder="Contraseña actual" required>
+                    <input type="password" id="newPassword" class="swal2-input" placeholder="Nueva contraseña" required>
+                    <input type="password" id="confirmPassword" class="swal2-input" placeholder="Confirmar nueva contraseña" required>
+                `,
+                focusConfirm: false,
+                showCancelButton: true,
+                confirmButtonText: 'Actualizar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#4f46e5',
+                preConfirm: () => {
+                    const current = document.getElementById('currentPassword').value;
+                    const newPass = document.getElementById('newPassword').value;
+                    const confirm = document.getElementById('confirmPassword').value;
+                    
+                    if (!current || !newPass || !confirm) {
+                        Swal.showValidationMessage('Todos los campos son requeridos');
+                        return false;
+                    }
+                    if (newPass !== confirm) {
+                        Swal.showValidationMessage('Las contraseñas nuevas no coinciden');
+                        return false;
+                    }
+                    if (newPass.length < 6) {
+                        Swal.showValidationMessage('La nueva contraseña debe tener al menos 6 caracteres');
+                        return false;
+                    }
+                    return { current, new: newPass };
+                }
+            });
+            
+            if (formValues) {
+                try {
+                    const response = await fetch('/api/user/change-password', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            currentPassword: formValues.current, 
+                            newPassword: formValues.new 
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        Swal.fire('Éxito', 'Contraseña actualizada correctamente', 'success');
+                    } else {
+                        Swal.fire('Error', data.error || 'No se pudo actualizar', 'error');
+                    }
+                } catch (error) {
+                    Swal.fire('Error', 'Error de conexión', 'error');
+                }
+            }
+        }
+        
+        async function removeRestaurant(companyId, pointId) {
+            const result = await Swal.fire({
+                title: '¿Desvincular restaurante?',
+                text: 'Podrás volver a vincularlo más tarde con el código',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, desvincular',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#9ca3af'
+            });
+            
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Desvinculando...',
+                    text: 'Por favor espera',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+                
+                try {
+                    const response = await fetch('/api/user/remove-restaurant', {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ companyId: companyId, pointId: pointId })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        await Swal.fire({
+                            icon: 'success',
+                            title: '¡Desvinculado!',
+                            text: data.message || 'Restaurante removido correctamente',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                        loadRestaurants();
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: data.error || 'No se pudo desvincular el restaurante',
+                            confirmButtonColor: '#ef4444'
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error al desvincular:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error de conexión',
+                        text: 'No se pudo conectar con el servidor',
+                        confirmButtonColor: '#ef4444'
+                    });
+                }
+            }
+        }
+        
+        function showAvatarSelector() {
+            if (window.isGoogleUser) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Avatar de Google',
+                    text: 'Los usuarios que iniciaron sesión con Google usan su foto de perfil de Google. No es posible cambiarla aquí.',
+                    confirmButtonColor: '#4f46e5'
+                });
+                return;
+            }
+            
+            const avatars = ['default.svg', 'avatar1.svg', 'avatar2.svg', 'avatar3.svg', 'avatar4.svg', 'avatar5.svg'];
+            
+            Swal.fire({
+                title: 'Elige tu avatar',
+                html: `
+                    <div class="grid grid-cols-3 gap-3 p-2">
+                        ${avatars.map(avatar => `
+                            <div onclick="selectAvatar('${avatar}')" class="avatar-option cursor-pointer rounded-xl p-2 hover:bg-indigo-50 transition">
+                                <img src="/avatars/${avatar}" alt="${avatar}" class="w-16 h-16 rounded-full mx-auto object-cover border-2 border-transparent hover:border-indigo-500 transition">
+                            </div>
+                        `).join('')}
+                    </div>
+                `,
+                showConfirmButton: false,
+                showCloseButton: true,
+                customClass: { popup: 'rounded-3xl' }
+            });
+        }
+        
+        async function selectAvatar(avatarName) {
+            try {
+                const response = await fetch('/api/user/update-avatar', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ avatar: avatarName })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('profileAvatar').src = `/avatars/${avatarName}`;
+                    window.currentUser.avatar = avatarName;
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Avatar actualizado',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                    Swal.close();
+                } else {
+                    Swal.fire('Error', data.error || 'No se pudo actualizar el avatar', 'error');
+                }
+            } catch (error) {
+                Swal.fire('Error', 'Error de conexión', 'error');
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            loadProfileStats();
+            loadShifts();
+            loadRestaurants();
+            
+            const avatarImg = document.getElementById('profileAvatar');
+            if (avatarImg && window.currentUser?.avatar) {
+                avatarImg.src = `/avatars/${window.currentUser.avatar}`;
+            }
+        });
+    </script>
+    <script src="/js/app.js"></script>
+</body>
+</html>

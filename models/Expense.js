@@ -8,4 +8,8 @@ const expenseSchema = new mongoose.Schema({
     date: { type: Date, default: Date.now }
 });
 
+expenseSchema.index({ user: 1, date: -1 });
+expenseSchema.index({ shiftId: 1, date: -1 });
+expenseSchema.index({ description: 'text' });
+
 module.exports = mongoose.model('Delexpense', expenseSchema);

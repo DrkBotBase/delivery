@@ -12,7 +12,6 @@ class PWAHandler {
             window.addEventListener('beforeinstallprompt', (e) => {
                 e.preventDefault();
                 this.deferredPrompt = e;
-                //console.log('✅ beforeinstallprompt disponible');
                 
                 setTimeout(() => {
                     if (!this.isStandalone && this.deferredPrompt) {
@@ -23,7 +22,6 @@ class PWAHandler {
         }
 
         window.addEventListener('appinstalled', () => {
-            //console.log('🎉 App instalada exitosamente');
             this.hideInstallPromotion();
             this.deferredPrompt = null;
             this.isStandalone = true;
@@ -273,8 +271,6 @@ class PWAHandler {
         try {
             this.deferredPrompt.prompt();
             const { outcome } = await this.deferredPrompt.userChoice;
-            
-            //console.log(`Usuario ${outcome === 'accepted' ? 'aceptó' : 'rechazó'} la instalación`);
             
             if (typeof gtag !== 'undefined') {
                 gtag('event', outcome === 'accepted' ? 'install_accepted' : 'install_rejected', {
@@ -640,7 +636,6 @@ class PWAHandler {
         if (!('Notification' in window) || Notification.permission === 'granted') {
             return;
         }
-        //console.log('Notificaciones disponibles');
     }
 
     async shareApp() {
@@ -660,7 +655,7 @@ class PWAHandler {
                 }
                 
             } catch (error) {
-                //console.log('Error al compartir:', error);
+              console.error(error)
             }
         } else {
             try {

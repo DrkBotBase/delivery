@@ -69,8 +69,7 @@ async function connectToWhatsApp() {
     try {
         const { state, saveCreds } = await useMongoDBAuthState();
         const { version, isLatest } = await fetchLatestBaileysVersion();
-        
-        console.log(`[WhatsApp] Iniciando sistema v${version.join('.')} (Última: ${isLatest})`);
+        //console.log(`[WhatsApp] Iniciando sistema v${version.join('.')} (Última: ${isLatest})`);
         
         sock = makeWASocket({
             version,
@@ -90,11 +89,11 @@ async function connectToWhatsApp() {
                 const statusCode = lastDisconnect?.error?.output?.statusCode;
                 const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
                 
-                console.log(`[WhatsApp] Conexión cerrada. Código: ${statusCode}. ¿Reconectar?: ${shouldReconnect}`);
+                //console.log(`[WhatsApp] Conexión cerrada. Código: ${statusCode}. ¿Reconectar?: ${shouldReconnect}`);
                 if (shouldReconnect) {
                     setTimeout(connectToWhatsApp, 5000);
                 } else {
-                  console.log('[WhatsApp] Sesión cerrada permanentemente (Logged Out). Se requiere vincular de nuevo.');
+                  //console.log('[WhatsApp] Sesión cerrada permanentemente (Logged Out). Se requiere vincular de nuevo.');
                   sock = null;
                 }
             } else if (connection === 'open') {
