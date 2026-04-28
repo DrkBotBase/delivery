@@ -128,28 +128,39 @@
             </div>
             <div class="flex gap-2">
                 <div class="relative">
-                    <button onclick="toggleNotifications()" class="w-9 h-9 flex items-center justify-center bg-gray-100 rounded-full text-gray-600 hover:bg-gray-200 transition-all hover:scale-105 relative">
+                    <button onclick="toggleNotifications()" 
+                            class="w-9 h-9 flex items-center justify-center bg-gray-100 rounded-full text-gray-600 hover:bg-gray-200 transition-all hover:scale-105 relative">
                         <i class="fas fa-bell"></i>
                         <span id="notificationBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 hidden">0</span>
                     </button>
                     
-                    <div id="notificationsDropdown" class="hidden fixed right-0 top-16 w-96 bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 z-50 overflow-hidden transform transition-all">
-                      <div class="flex justify-between items-center p-4 border-b border-gray-100 bg-gray-50/80 backdrop-blur-sm">
-                          <h3 class="font-bold text-gray-800 flex items-center gap-2">
-                              <i class="fas fa-bell text-indigo-500"></i> Notificaciones
-                          </h3>
-                          <button onclick="markAllNotificationsAsRead()" class="text-[11px] font-semibold text-indigo-500 hover:text-indigo-700 transition px-2 py-1 hover:bg-indigo-50 rounded-md">
-                              Marcar todo leído
-                          </button>
-                      </div>
-                      <div id="notificationsList" class="overflow-y-auto max-h-[420px] bg-white scroll-smooth">
-                          <div class="text-center py-8 text-gray-400">
-                              <i class="fas fa-spinner fa-spin text-indigo-500 text-2xl mb-2"></i>
-                              <p class="text-sm">Sincronizando...</p>
-                          </div>
-                      </div>
-                  </div>
-            
+                    <div id="notificationsDropdown" class="hidden fixed right-0 top-16 w-[380px] max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden transform transition-all duration-200 origin-top-right">
+                        <div class="flex justify-between items-center p-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+                            <h3 class="font-bold text-gray-800 flex items-center gap-2">
+                                <i class="fas fa-bell text-indigo-500"></i> Notificaciones
+                                <span id="notificationCount" class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full hidden">0</span>
+                            </h3>
+                            <button onclick="markAllNotificationsAsRead()" 
+                                    class="text-[11px] font-semibold text-indigo-500 hover:text-indigo-700 transition px-2 py-1 hover:bg-indigo-50 rounded-md">
+                                Marcar todo leído
+                            </button>
+                        </div>
+                        
+                        <div id="notificationsList" class="overflow-y-auto max-h-[420px] bg-white scroll-smooth">
+                            <div class="text-center py-10 text-gray-400">
+                                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                    <i class="fas fa-bell-slash text-2xl text-gray-400"></i>
+                                </div>
+                                <p class="text-sm font-medium">Cargando notificaciones...</p>
+                            </div>
+                        </div>
+                        
+                        <div class="border-t border-gray-100 p-2 text-center bg-gray-50/50">
+                            <a href="/profile?tab=notifications" class="text-xs text-indigo-500 hover:text-indigo-700 transition">
+                                Ver todas las notificaciones →
+                            </a>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="relative group">
