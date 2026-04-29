@@ -206,13 +206,16 @@
 
 <script>
     function formatDateOnly(dateStr) {
-        if (!dateStr) return 'Sin fecha';
-        const date = new Date(dateStr);
-        return date.toLocaleDateString('es-CO', { 
-            weekday: 'short', 
-            month: 'short', 
-            day: 'numeric' 
-        });
+      if (!dateStr) return 'Sin fecha';
+      
+      const date = new Date(dateStr + 'T00:00:00'); 
+      
+      return date.toLocaleDateString('es-CO', { 
+          weekday: 'short', 
+          month: 'short', 
+          day: 'numeric',
+          timeZone: 'UTC'
+      });
     }
     
     function sortDeliveries(criteria) {
@@ -504,30 +507,30 @@
         };
         
         Swal.fire({
-            title: userName,
-            html: '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-3xl text-indigo-500"></i><p class="mt-3 text-gray-500">Cargando estadísticas...</p></div>',
-            showConfirmButton: false,
-            allowOutsideClick: false,
-            didOpen: async () => {
-                try {
-                    currentData = await loadStats(currentPeriod);
-                    if (currentData.success) {
-                        Swal.update({
-                            html: renderContent(),
-                            showConfirmButton: true,
-                            confirmButtonColor: '#4f46e5',
-                            confirmButtonText: 'Cerrar',
-                            width: window.innerWidth < 640 ? '95%' : '450px',
-                            customClass: { popup: 'rounded-2xl' }
-                        });
-                    } else {
-                        Swal.fire('Error', 'No se pudieron cargar las estadísticas', 'error');
-                    }
-                } catch (error) {
-                    console.error(error);
-                    Swal.fire('Error', 'Error de conexión', 'error');
-                }
-            }
+          title: userName,
+          width: window.innerWidth < 640 ? '95%' : '450px',
+          customClass: { popup: 'rounded-2xl' },
+          html: '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-3xl text-indigo-500"></i><p class="mt-3 text-gray-500">Cargando estadísticas...</p></div>',
+          showConfirmButton: false,
+          allowOutsideClick: false,
+          didOpen: async () => {
+              try {
+                  currentData = await loadStats(currentPeriod);
+                  if (currentData.success) {
+                      Swal.update({
+                          html: renderContent(),
+                          showConfirmButton: true,
+                          confirmButtonColor: '#4f46e5',
+                          confirmButtonText: 'Cerrar'
+                      });
+                  } else {
+                      Swal.fire('Error', 'No se pudieron cargar las estadísticas', 'error');
+                  }
+              } catch (error) {
+                  console.error(error);
+                  Swal.fire('Error', 'Error de conexión', 'error');
+              }
+          }
         });
         
         window.switchPeriod = async (period) => {

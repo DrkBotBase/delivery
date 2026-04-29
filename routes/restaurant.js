@@ -296,7 +296,8 @@ router.get('/delivery-stats/:userId', requireRestaurantAuth, async (req, res) =>
                     dayKey: {
                         $dateToString: {
                             format: "%Y-%m-%d",
-                            date: "$startTime"
+                            date: "$startTime",
+                            timezone: "-05:00"
                         }
                     },
                     totalDeliveryAmount: 1,
