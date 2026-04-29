@@ -206,16 +206,24 @@
 
 <script>
     function formatDateOnly(dateStr) {
-      if (!dateStr) return 'Sin fecha';
-      
-      const date = new Date(dateStr + 'T00:00:00'); 
-      
-      return date.toLocaleDateString('es-CO', { 
-          weekday: 'short', 
-          month: 'short', 
-          day: 'numeric',
-          timeZone: 'UTC'
-      });
+        if (!dateStr) return 'Sin fecha';
+        let date;
+        
+        if (!dateStr.includes('T')) {
+            date = new Date(dateStr.replace(/-/g, '\/')); 
+        } else {
+            date = new Date(dateStr);
+        }
+        if (isNaN(date.getTime())) return 'Fecha inválida';
+    
+        const formatter = new Intl.DateTimeFormat('es-CO', {
+            weekday: 'short',
+            day: 'numeric',
+            month: 'short'
+        });
+    
+        let formatted = formatter.format(date);
+        return formatted.charAt(0).toUpperCase() + formatted.slice(1);
     }
     
     function sortDeliveries(criteria) {
@@ -380,7 +388,7 @@
             const monthlySummary = currentData.monthlySummary || [];
             const bestShift = currentData.bestShift;
             const worstShift = currentData.worstShift;
-            
+            console.log(currentData)
             return `
                 <div class="space-y-4 text-left">
                     <div class="flex gap-2 bg-gray-100 rounded-lg p-1">
