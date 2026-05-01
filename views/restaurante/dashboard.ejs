@@ -294,11 +294,13 @@
                                     <p class="text-xs text-gray-400">${new Date(recharge.createdAt).toLocaleTimeString()}</p>
                                 </div>
                             </div>
+                            <!--
                             <div class="flex justify-between items-center mt-2 text-xs">
                                 <span class="text-gray-500">Antes: ${recharge.previousScans}</span>
                                 <i class="fas fa-arrow-right text-gray-400 text-xs"></i>
                                 <span class="text-emerald-600 font-semibold">Ahora: ${recharge.newScans}</span>
                             </div>
+                            -->
                             ${recharge.notes ? `<p class="text-xs text-gray-400 mt-2"><i class="fas fa-sticky-note"></i> ${recharge.notes}</p>` : ''}
                         </div>
                     `;
