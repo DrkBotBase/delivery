@@ -50,6 +50,188 @@
             to { opacity: 1; transform: translateY(0); }
         }
     </style>
+    <style>
+      @keyframes slideIn {
+          from {
+              opacity: 0;
+              transform: translateY(20px);
+          }
+          to {
+              opacity: 1;
+              transform: translateY(0);
+          }
+      }
+      
+      @keyframes messagePop {
+          from {
+              opacity: 0;
+              transform: translateY(10px) scale(0.95);
+          }
+          to {
+              opacity: 1;
+              transform: translateY(0) scale(1);
+          }
+      }
+      
+      @keyframes typing {
+          0%, 60%, 100% { transform: translateY(0); }
+          30% { transform: translateY(-6px); }
+      }
+      
+      @keyframes blink {
+          0%, 50% { opacity: 1; }
+          51%, 100% { opacity: 0; }
+      }
+      
+      .animate-slideIn {
+          animation: slideIn 0.3s ease;
+      }
+      
+      .animate-messagePop {
+          animation: messagePop 0.3s ease-out;
+      }
+      
+      /* Indicador de escritura mejorado */
+      .typing-indicator {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          padding: 8px 12px;
+      }
+      
+      .typing-indicator span {
+          width: 8px;
+          height: 8px;
+          background: #9ca3af;
+          border-radius: 50%;
+          animation: typing 1.4s infinite;
+      }
+      
+      .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+      .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+      
+      /* Texto de escritura */
+      .typing-text {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          font-size: 13px;
+          color: #6b7280;
+      }
+      
+      .typing-text .cursor {
+          width: 2px;
+          height: 14px;
+          background: #4f46e5;
+          animation: blink 1s infinite;
+      }
+      
+      /* Preguntas clickeables */
+      .quick-reply-btn {
+          background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+          border: 1px solid #e5e7eb;
+          padding: 8px 16px;
+          border-radius: 24px;
+          font-size: 12px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          color: #374151;
+          white-space: nowrap;
+      }
+      
+      .quick-reply-btn:hover {
+          background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+          border-color: #818cf8;
+          transform: translateY(-2px);
+          box-shadow: 0 2px 8px rgba(79, 70, 229, 0.2);
+      }
+      
+      .quick-reply-btn:active {
+          transform: translateY(0);
+      }
+      
+      .quick-replies-container {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+          margin-top: 12px;
+          padding-top: 8px;
+          border-top: 1px solid #f3f4f6;
+      }
+      
+      /* Botón de asesor en mensajes */
+      .advisor-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          background: #25D366;
+          color: white;
+          padding: 10px 20px;
+          border-radius: 30px;
+          font-weight: 600;
+          font-size: 14px;
+          text-decoration: none;
+          margin-top: 12px;
+          transition: all 0.2s;
+      }
+      
+      .advisor-btn:hover {
+          background: #128C7E;
+          transform: scale(1.02);
+      }
+      
+      /* Estilos de mensajes */
+      .message-bubble strong {
+          color: #4f46e5;
+          font-weight: 700;
+      }
+      
+      .message-bubble em {
+          font-style: italic;
+          color: #6b7280;
+      }
+      
+      .message-bubble a {
+          color: #4f46e5;
+          text-decoration: underline;
+      }
+      
+      .user-message .message-bubble {
+          background: #4f46e5;
+          color: white;
+          border-bottom-right-radius: 4px;
+      }
+      
+      /* Scrollbar */
+      .chat-messages::-webkit-scrollbar {
+          width: 6px;
+      }
+      
+      .chat-messages::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 10px;
+      }
+      
+      .chat-messages::-webkit-scrollbar-thumb {
+          background: #c7d2fe;
+          border-radius: 10px;
+      }
+      
+      @media (max-width: 640px) {
+          .chatbot-panel {
+              width: calc(100vw - 40px);
+              right: -10px;
+              height: 500px;
+          }
+          
+          .quick-reply-btn {
+              white-space: normal;
+              font-size: 11px;
+              padding: 6px 12px;
+          }
+      }
+  </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans antialiased overflow-x-hidden">
     <nav class="absolute w-full z-20 top-0 left-0 px-6 py-4">
@@ -103,11 +285,11 @@
                 
                 <div class="relative z-10 transform -rotate-3 hover:rotate-0 hover:scale-[1.02] transition-all duration-500 cursor-pointer">
                     
-                    <div class="bg-white p-2 sm:p-3 rounded-3xl shadow-2xl border-4 border-gray-800/10 overflow-hidden relative">
-                        <img src="https://images.unsplash.com/photo-1526628953301-3e589a6a8b74?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" 
+                    <div class="bg-white p-1 sm:p-2 rounded-3xl shadow-2xl border-4 border-gray-800/10 overflow-hidden relative">
+                        <img src="/assets/images/hero.png" 
                              alt="App Dashboard" class="rounded-2xl w-full h-auto object-cover opacity-90 hover:opacity-100 transition">
-                        
-                        <div class="absolute -bottom-2 -left-2 sm:-bottom-4 sm:-left-4 bg-white p-3 sm:p-4 rounded-2xl shadow-xl flex items-center gap-2 sm:gap-3 animate-bounce border border-gray-100 scale-90 sm:scale-100 origin-bottom-left">
+                        <!--
+                        <div class="absolute -bottom-2 -right-2 sm:-bottom-4 sm:-right-4 bg-white p-3 sm:p-4 rounded-2xl shadow-xl flex items-center gap-2 sm:gap-3 animate-bounce border border-gray-100 scale-90 sm:scale-100 origin-bottom-right">
                             <div class="bg-indigo-100 text-indigo-600 w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center">
                                 <i class="fas fa-cloud-download-alt text-sm sm:text-base"></i>
                             </div>
@@ -116,6 +298,7 @@
                                 <p class="font-bold text-gray-800 text-xs sm:text-sm">Importada con éxito</p>
                             </div>
                         </div>
+                        -->
                     </div>
 
                 </div>
@@ -225,6 +408,413 @@
             </p>
         </div>
     </footer>
+    
+<!-- Chatbot Widget -->
+<div id="chatbot-widget" class="fixed bottom-5 right-5 z-50 font-sans">
+    <div class="chatbot-toggle w-14 h-14 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-full flex items-center justify-center cursor-pointer shadow-lg hover:scale-110 transition-all duration-300 relative" id="chat-toggle">
+        <i class="fas fa-comment-dots text-white text-2xl"></i>
+        <span class="notification-dot absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center font-bold hidden">1</span>
+    </div>
+    
+    <div class="chatbot-panel absolute bottom-20 right-0 w-[380px] h-[550px] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-slideIn hidden" id="chat-panel">
+        <div class="chat-header bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <i class="fas fa-robot text-2xl"></i>
+                <div>
+                    <h3 class="font-bold text-base m-0">MJ Bot</h3>
+                    <p class="text-xs opacity-90 m-0">Respuesta inmediata</p>
+                </div>
+            </div>
+            <button id="chat-close" class="bg-white/20 hover:bg-white/30 w-8 h-8 rounded-full transition-all duration-200 hover:rotate-90">
+                <i class="fas fa-times text-white"></i>
+            </button>
+        </div>
+        
+        <div class="chat-messages flex-1 overflow-y-auto p-5 bg-gray-50 flex flex-col gap-4" id="chat-messages">
+            <!-- Mensaje de bienvenida -->
+            <div class="message bot-message flex gap-2.5 animate-messagePop">
+                <div class="message-avatar w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-robot text-gray-600 text-sm"></i>
+                </div>
+                <div class="message-bubble max-w-[80%] p-3 rounded-2xl text-sm leading-relaxed bg-white text-gray-800 border border-gray-200 rounded-bl-none">
+                    ¡Hola! 👋 Soy el asistente comercial de <strong>MJFOOD Repartidor</strong>.<br><br>
+                    Mi objetivo es ayudarte a convertir tus entregas en algo más rápido y organizado. Actualmente ofrecemos <strong>100 escaneos gratis</strong> para que pruebes el sistema sin compromiso.<br><br>
+                    ¿En qué puedo ayudarte hoy?
+                </div>
+            </div>
+        </div>
+        
+        <div class="chat-input-area p-4 bg-white border-t border-gray-200 flex gap-2.5 items-end">
+            <textarea id="chat-input" placeholder="Escribe tu mensaje..." rows="1" class="flex-1 border border-gray-300 rounded-2xl px-4 py-2.5 text-sm resize-none font-sans focus:border-indigo-500 focus:outline-none max-h-[100px]"></textarea>
+            <button id="chat-send" class="send-btn w-10 h-10 bg-indigo-600 hover:bg-indigo-700 rounded-full text-white transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center">
+                <i class="fas fa-paper-plane text-sm"></i>
+            </button>
+        </div>
+        <div class="chat-footer py-2 px-4 bg-gray-50 text-center text-xs text-gray-500 border-t border-gray-200">
+            <small>Respuesta automática • 
+                <a href="https://wa.me/573046793853?text=Hola,%20quiero%20hablar%20con%20un%20asesor%20sobre%20MJFOOD%20Repartidor" target="_blank" class="text-green-600 hover:text-green-700 font-medium">
+                    <i class="fab fa-whatsapp"></i> Contactar asesor
+                </a>
+            </small>
+        </div>
+    </div>
+</div>
+<script>
+    // ========== RESPUESTAS PRECARGADAS (basadas en el backend) ==========
+    
+    // Función para simular escritura
+    async function simulateTyping(callback) {
+        const delay = 500 + Math.random() * 700; // Entre 500ms y 1200ms
+        return new Promise(resolve => setTimeout(() => {
+            callback();
+            resolve();
+        }, delay));
+    }
+    
+    const knowledgeBase = {
+        // Información general
+        concepto: "MJFOOD Repartidor es una **PWA** (Progressive Web App) diseñada para **domiciliarios de restaurantes en Colombia** que ya usan el sistema VinApp. Se instala desde el navegador sin necesidad de Play Store.",
+        
+        instalacion: "**📱 Instalación de MJFOOD Repartidor**\n\nEs una **PWA**, no se descarga de Play Store.\n\n**Pasos:**\n1. Abre el link en el navegador (Chrome, Safari, Edge)\n2. Selecciona **'Añadir a pantalla de inicio'**\n3. ¡Listo! No ocupa espacio y es instantánea.\n\n**Link de registro:** https://delivery.mjfood.top/tools/restaurant",
+        
+        escaneo: "**🔍 Escaneo Inteligente**\n\nEl domiciliario solo ingresa el **NÚMERO ÚNICO** de la factura física de VinApp. El sistema extrae automáticamente:\n\n• Nombre del cliente\n• Número de teléfono\n• Dirección exacta de entrega\n• Detalle de los productos del pedido\n\n**Beneficio:** Olvídate de escribir datos manualmente.",
+        
+        herramientas: "**🛠️ Herramientas de Entrega**\n\n• Botones de navegación directa a **Google Maps y Waze** con la dirección ya cargada\n• Botones para **Llamar o WhatsApp** al cliente sin guardar el número\n• Envío de **factura en PDF** al cliente\n• **Modo Ruta:** Organiza y visualiza todos los pedidos escaneados para optimizar el trayecto\n\n¿Te gustaría saber más sobre alguna función específica?",
+        
+        contabilidad: "**💰 Contabilidad para el Domiciliario**\n\nEl sistema liquida automáticamente:\n\n• ✅ Pedidos entregados\n• ✅ Ganancias por pedido\n• ✅ Gastos reportados\n• ✅ Resumen completo de la Jornada\n\n**Todo en tiempo real y sin cálculos manuales.**",
+        
+        panelAdmin: "**📊 Panel Administrativo (Dueño)**\n\nComo dueño de restaurante, puedes:\n\n• Ver el **saldo de escaneos** disponible\n• Revisar **estadísticas de rendimiento** de cada domiciliario\n• Acceder al **historial de recargas** realizadas\n• Gestionar domiciliarios mediante **código de vinculación**\n\n¿Quieres saber cómo generar tu código de restaurante?",
+        
+        precio: "**💰 Precio: $70 COP por escaneo**\n\n• **Sin mensualidades fijas** - Solo pagas lo que usas\n• **Modelo de recarga** - Cargas créditos cuando necesites\n• **Prueba gratuita:** 100 escaneos gratis al registrarse\n• **Privacidad total:** No se requiere correo, teléfono ni tarjeta de crédito\n\n**¿Listo para empezar?** Regístrate en https://delivery.mjfood.top/tools/restaurant",
+        
+        registro: "**📝 ¿Cómo iniciar?**\n\nEs muy sencillo:\n\n**Paso 1:** Ingresa al link de registro:\nhttps://delivery.mjfood.top/tools/restaurant\n\n**Paso 2:** Ingresa el **número de cualquier factura** de tu restaurante (sistema VinApp)\n\n**Paso 3:** El sistema generará tu código único y te dará **100 créditos GRATIS**\n\n**¿Tienes una factura a la mano? ¡Empieza ahora!**",
+        
+        pruebaGratis: "**🎁 Prueba Gratuita de 100 escaneos**\n\nLa prueba es realmente GRATIS:\n\n• ✅ **100 escaneos totalmente gratis**\n• ✅ Sin pedir correo electrónico\n• ✅ Sin número de teléfono\n• ✅ Sin tarjeta de crédito\n• ✅ Sin mensualidades ocultas\n\n**¡Actívala ahora!** https://delivery.mjfood.top/tools/restaurant",
+        
+        vinculacion: "**🔗 Código de Vinculación**\n\nEl dueño del restaurante genera un código único. Los domiciliarios usan ese código para vincularse al sistema. Esto permite:\n\n• Control de quién accede\n• Estadísticas por domiciliario\n• Gestión centralizada\n\n**¿Eres restaurante?** Genera tu código en el panel administrativo después de registrarte.",
+        
+        contactoAsesor: "**👨‍💼 ¿Necesitas hablar con un asesor?**\n\nUn ejecutivo comercial puede ayudarte a:\n\n• Resolver dudas específicas\n• Configurar tu cuenta\n• Personalizar tu plan\n\n📱 **Contáctanos por WhatsApp:**\nhttps://wa.me/573046793853?text=Hola,%20quiero%20información%20sobre%20MJFOOD%20Repartidor\n\nRespondemos en menos de 5 minutos."
+    };
+    
+    // Palabras clave y su respuesta correspondiente
+    const intentMap = [
+        { keywords: ['concepto', 'qué es', 'que es', 'que significa', 'explica', 'que hace'], response: knowledgeBase.concepto },
+        { keywords: ['instalación', 'instalar', 'como instalo', 'como se instala', 'pwa', 'descargar'], response: knowledgeBase.instalacion },
+        { keywords: ['escaneo', 'escanear', 'como escanea', 'factura', 'escanea factura'], response: knowledgeBase.escaneo },
+        { keywords: ['herramienta', 'funciones', 'que puede hacer', 'botones', 'mapas', 'waze', 'maps', 'navegación', 'ruta', 'modo ruta'], response: knowledgeBase.herramientas },
+        { keywords: ['contabilidad', 'ganancia', 'pago', 'liquida', 'cuanto gano', 'finanzas', 'jornada'], response: knowledgeBase.contabilidad },
+        { keywords: ['panel', 'administrador', 'dueño', 'admin', 'estadísticas', 'recarga', 'vinculación', 'codigo'], response: knowledgeBase.panelAdmin },
+        { keywords: ['precio', 'costo', 'cuanto cuesta', 'vale', '$', 'cop', 'pesos', 'mensualidad', 'recarga', 'que cuesta'], response: knowledgeBase.precio },
+        { keywords: ['registro', 'registrar', 'como me registro', 'crear cuenta', 'empezar', 'iniciar', 'registrarme'], response: knowledgeBase.registro },
+        { keywords: ['prueba', 'gratis', 'gratuita', '100 escaneos', 'creditos', 'cortesía', 'regalo'], response: knowledgeBase.pruebaGratis },
+        { keywords: ['vinculación', 'vincular', 'codigo de vinculación', 'código'], response: knowledgeBase.vinculacion },
+        { keywords: ['asesor', 'contactar', 'hablar con alguien', 'soporte', 'ayuda personal', 'whatsapp', 'whatsApp'], response: knowledgeBase.contactoAsesor }
+    ];
+    
+    // Preguntas clickeables principales
+    const quickQuestions = [
+        { text: "💰 ¿Cuánto cuesta?", response: knowledgeBase.precio },
+        { text: "🎁 Prueba gratis de 100 escaneos", response: knowledgeBase.pruebaGratis },
+        { text: "📝 ¿Cómo me registro?", response: knowledgeBase.registro },
+        { text: "📱 ¿Cómo se instala?", response: knowledgeBase.instalacion },
+        { text: "🔍 ¿Qué puede escanear?", response: knowledgeBase.escaneo },
+        { text: "👨‍💼 Contactar asesor", response: knowledgeBase.contactoAsesor }
+    ];
+    
+    // Saludos y respuestas
+    const greetings = {
+        keywords: ['hola', 'buenas', 'buen día', 'buenas tardes', 'buenas noches', 'hey', 'holi', 'que tal', 'cómo estás', 'como estas', 'saludos', 'quiubo', 'hello', 'hi'],
+        response: "¡Hola! 👋 Bienvenido a **MJFOOD Repartidor**. ¿En qué puedo ayudarte hoy? Puedes preguntarme sobre precios, registro, instalación o cómo funciona el escaneo inteligente. También tenemos **100 escaneos gratis** para que pruebes el sistema. 🚀"
+    };
+    
+    const thanks = {
+        keywords: ['gracias', 'thank', 'thanks', 'ok gracias', 'vale gracias', 'agradecido'],
+        response: "¡De nada! 😊 Estoy aquí para ayudarte. Recuerda que puedes contactar a un asesor por WhatsApp si necesitas ayuda más personalizada. ¡Que tengas excelente día! 🚀"
+    };
+    
+    // ========== FUNCIONES PRINCIPALES ==========
+    
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    function formatResponse(text) {
+        if (!text) return '';
+        
+        let formatted = escapeHtml(text);
+        
+        // Convertir **negritas**
+        formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        
+        // Convertir *itálica*
+        formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
+        
+        // Convertir URLs a enlaces
+        formatted = formatted.replace(/(https?:\/\/[^\s\n]+)/g, (url) => {
+            return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-indigo-600 underline">${url}</a>`;
+        });
+        
+        // Convertir saltos de línea
+        formatted = formatted.replace(/\n/g, '<br>');
+        
+        // Mejorar listas
+        formatted = formatted.replace(/(\d+)\.\s+(.*?)(?=<br>|$)/gm, '<div class="mt-1 mb-1">$1. $2</div>');
+        formatted = formatted.replace(/[•\-]\s+(.*?)(?=<br>|$)/gm, '<div class="mt-1 mb-1 ml-2">• $1</div>');
+        
+        return formatted;
+    }
+    
+    // Detectar intención del mensaje
+    function detectIntent(message) {
+        const lowerMessage = message.toLowerCase().trim();
+        const cleanMessage = lowerMessage.replace(/[¿?¡!.,;:]/g, '');
+        
+        // Verificar saludos
+        for (const keyword of greetings.keywords) {
+            if (cleanMessage.includes(keyword)) {
+                return { matched: true, response: greetings.response, type: 'greeting' };
+            }
+        }
+        
+        // Verificar agradecimientos
+        for (const keyword of thanks.keywords) {
+            if (cleanMessage.includes(keyword)) {
+                return { matched: true, response: thanks.response, type: 'thanks' };
+            }
+        }
+        
+        // Verificar intenciones específicas
+        for (const intent of intentMap) {
+            for (const keyword of intent.keywords) {
+                if (cleanMessage.includes(keyword)) {
+                    return { matched: true, response: intent.response, type: 'intent' };
+                }
+            }
+        }
+        
+        // Respuesta por defecto
+        return { 
+            matched: true, 
+            response: "**🤔 No entendí bien tu pregunta**\n\nPuedo ayudarte con:\n\n• 💰 **Precios** (¿Cuánto cuesta?)\n• 📝 **Registro** (¿Cómo me registro?)\n• 🎁 **Prueba gratis** (100 escaneos)\n• 📱 **Instalación** (¿Cómo se instala?)\n• 🔍 **Escaneo** (¿Qué puede escanear?)\n\n¿O prefieres **hablar con un asesor**?\nhttps://wa.me/573046793853?text=Hola,%20quiero%20información%20sobre%20MJFOOD%20Repartidor",
+            type: 'default' 
+        };
+    }
+    
+    // ========== CHAT ==========
+    
+    let isResponding = false;
+    
+    const toggle = document.getElementById('chat-toggle');
+    const panel = document.getElementById('chat-panel');
+    const closeBtn = document.getElementById('chat-close');
+    const messagesContainer = document.getElementById('chat-messages');
+    const input = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('chat-send');
+    
+    // Agregar mensaje al chat
+    function addMessage(text, sender, showQuickReplies = false) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${sender}-message flex gap-2.5 animate-messagePop`;
+        
+        const avatar = document.createElement('div');
+        avatar.className = 'message-avatar w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0';
+        avatar.style.background = sender === 'bot' ? '#e5e7eb' : '#4f46e5';
+        avatar.innerHTML = sender === 'bot' ? '<i class="fas fa-robot text-gray-600 text-sm"></i>' : '<i class="fas fa-user text-white text-sm"></i>';
+        
+        const bubble = document.createElement('div');
+        bubble.className = 'message-bubble max-w-[80%] p-3 rounded-2xl text-sm leading-relaxed';
+        
+        if (sender === 'bot') {
+            bubble.classList.add('bg-white', 'text-gray-800', 'border', 'border-gray-200', 'rounded-bl-none');
+            bubble.innerHTML = formatResponse(text);
+            
+            // Agregar preguntas clickeables si es necesario
+            if (showQuickReplies) {
+                const container = document.createElement('div');
+                container.className = 'quick-replies-container';
+                
+                quickQuestions.forEach(q => {
+                    const btn = document.createElement('button');
+                    btn.className = 'quick-reply-btn';
+                    btn.textContent = q.text;
+                    btn.onclick = () => {
+                        handleQuickQuestion(q.response);
+                    };
+                    container.appendChild(btn);
+                });
+                bubble.appendChild(container);
+            }
+        } else {
+            bubble.classList.add('bg-indigo-600', 'text-white', 'rounded-br-none');
+            bubble.textContent = text;
+        }
+        
+        messageDiv.appendChild(avatar);
+        messageDiv.appendChild(bubble);
+        
+        messagesContainer.appendChild(messageDiv);
+        scrollToBottom();
+    }
+    
+    // Mostrar indicador de escritura
+    function showTypingIndicator() {
+        const typingDiv = document.createElement('div');
+        typingDiv.id = 'typing-indicator';
+        typingDiv.className = 'message bot-message flex gap-2.5';
+        typingDiv.innerHTML = `
+            <div class="message-avatar w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-robot text-gray-600 text-sm"></i>
+            </div>
+            <div class="message-bubble bg-white text-gray-800 border border-gray-200 rounded-2xl rounded-bl-none p-3">
+                <div class="typing-text">
+                    <span>Escribiendo</span>
+                    <div class="typing-indicator" style="display: inline-flex; padding: 0;">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+        `;
+        messagesContainer.appendChild(typingDiv);
+        scrollToBottom();
+    }
+    
+    function removeTypingIndicator() {
+        const indicator = document.getElementById('typing-indicator');
+        if (indicator) indicator.remove();
+    }
+    
+    function scrollToBottom() {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+    
+    // Manejar pregunta clickeable
+    async function handleQuickQuestion(response) {
+        if (isResponding) return;
+        
+        // Ocultar preguntas clickeables anteriores
+        const allContainers = document.querySelectorAll('.quick-replies-container');
+        allContainers.forEach(container => container.style.display = 'none');
+        
+        isResponding = true;
+        
+        // Mostrar indicador de escritura
+        showTypingIndicator();
+        
+        // Simular tiempo de escritura
+        await new Promise(resolve => setTimeout(resolve, 600 + Math.random() * 400));
+        
+        removeTypingIndicator();
+        addMessage(response, 'bot', false);
+        
+        isResponding = false;
+        saveConversation();
+    }
+    
+    // Enviar mensaje del usuario
+    async function sendMessage() {
+        const message = input.value.trim();
+        if (!message || isResponding) return;
+        
+        // Ocultar preguntas clickeables al enviar mensaje
+        const allContainers = document.querySelectorAll('.quick-replies-container');
+        allContainers.forEach(container => container.style.display = 'none');
+        
+        // Agregar mensaje del usuario
+        addMessage(message, 'user');
+        input.value = '';
+        input.style.height = 'auto';
+        
+        isResponding = true;
+        
+        // Mostrar indicador de escritura
+        showTypingIndicator();
+        
+        // Simular tiempo de procesamiento (como si estuviera escribiendo)
+        await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 500));
+        
+        // Detectar intención y obtener respuesta
+        const intent = detectIntent(message);
+        
+        removeTypingIndicator();
+        
+        // Mostrar respuesta del bot
+        const showReplies = intent.type === 'greeting' || intent.type === 'default';
+        addMessage(intent.response, 'bot', showReplies);
+        
+        isResponding = false;
+        saveConversation();
+    }
+    
+    // Event listeners
+    toggle.addEventListener('click', () => {
+        const isVisible = panel.style.display === 'flex';
+        panel.style.display = isVisible ? 'none' : 'flex';
+        if (!isVisible) {
+            input.focus();
+        }
+    });
+    
+    closeBtn.addEventListener('click', () => {
+        panel.style.display = 'none';
+    });
+    
+    input.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+    });
+    
+    input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+    
+    sendBtn.addEventListener('click', sendMessage);
+    
+    // Guardar conversación
+    function saveConversation() {
+        const messages = [];
+        document.querySelectorAll('.message').forEach(msg => {
+            const sender = msg.classList.contains('user-message') ? 'user' : 'bot';
+            const bubble = msg.querySelector('.message-bubble');
+            let text = bubble?.textContent || bubble?.innerText;
+            if (text && sender === 'user') {
+                messages.push({ sender, text });
+            } else if (text && sender === 'bot') {
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = text;
+                const cleanText = tempDiv.textContent || tempDiv.innerText;
+                messages.push({ sender, text: cleanText });
+            }
+        });
+        localStorage.setItem('chatHistory', JSON.stringify(messages.slice(-30)));
+    }
+    
+    // Agregar preguntas clickeables al mensaje de bienvenida
+    setTimeout(() => {
+        const lastMessage = messagesContainer.querySelector('.message.bot-message:last-child');
+        if (lastMessage) {
+            const bubble = lastMessage.querySelector('.message-bubble');
+            const container = document.createElement('div');
+            container.className = 'quick-replies-container';
+            
+            quickQuestions.slice(0, 4).forEach(q => {
+                const btn = document.createElement('button');
+                btn.className = 'quick-reply-btn';
+                btn.textContent = q.text;
+                btn.onclick = () => handleQuickQuestion(q.response);
+                container.appendChild(btn);
+            });
+            bubble.appendChild(container);
+        }
+    }, 100);
+</script>
+
     <script>
         let waitingWorker = null;
         let updateBanner = null;

@@ -11,6 +11,7 @@ const whatsappApi = require('./whatsapp');
 const restaurantApi = require('./restaurant');
 const userApi = require('./user');
 const notificationsApi = require('./notifications');
+const chatApi = require('./chat');
 
 router.use('/deliveries', deliveriesApi);
 router.use('/expenses', expensesApi);
@@ -22,6 +23,7 @@ router.use('/whatsapp', whatsappApi);
 router.use('/restaurant', restaurantApi);
 router.use('/user', userApi);
 router.use('/notifications', notificationsApi);
+router.use('/chat', chatApi);
 
 router.get('/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date() });

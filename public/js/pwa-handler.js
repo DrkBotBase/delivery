@@ -750,7 +750,7 @@ class PWAHandler {
             #pwa-share-button {
                 position: fixed;
                 bottom: 25px;
-                right: 25px;
+                left: 25px;
                 width: 56px;
                 height: 56px;
                 background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
