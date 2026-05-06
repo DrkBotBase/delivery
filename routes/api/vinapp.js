@@ -170,14 +170,31 @@ router.get('/ticket/:idOrder', requireAuth, async (req, res) => {
         let customerGivenAmount = rawPayWith > sumOfMethods ? rawPayWith : sumOfMethods;
         
         const change = customerGivenAmount > total ? customerGivenAmount - total : 0;
-
-        const products = (data.details || []).map(detail => ({
-            name: detail.name_product,
-            quantity: detail.quantity,
-            unitPrice: parseFloat(detail.value),
-            subtotal: parseFloat(detail.value) * detail.quantity,
-            observations: detail.observations || ''
-        }));
+        
+        const products = [];
+        
+        (data.details || []).forEach(detail => {
+            let productValue = parseFloat(detail.value);
+            let productName = detail.name_product;
+            
+            if (productValue === 0 && detail.additions && detail.additions.length > 0) {
+                let totalAdditionsValue = 0;
+                
+                detail.additions.forEach(addition => {
+                    totalAdditionsValue += parseFloat(addition.value);
+                });
+                
+                productValue = totalAdditionsValue;
+            }
+            
+            products.push({
+                name: productName,
+                quantity: detail.quantity,
+                unitPrice: productValue,
+                subtotal: productValue * detail.quantity,
+                observations: detail.observations || ''
+            });
+        });
 
         const cleanTicket = {
             restaurant: {
@@ -206,7 +223,6 @@ router.get('/ticket/:idOrder', requireAuth, async (req, res) => {
             },
             products
         };
-        
         res.json({ success: true, ticket: cleanTicket });
     } catch (error) {
         console.error('Error obteniendo ticket digital:', error);

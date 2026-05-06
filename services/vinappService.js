@@ -90,28 +90,34 @@ class VinAppService {
 
         return this.mapToDelivery(targetOrder, shippingCost, phoneNumber);
     }
-
-
+    
     mapToDelivery(vinData, shippingCost, phoneNumber) {
-        const cleanTotal = parseFloat((vinData.total || '0').toString().replace(/\./g, '').replace(',', '.'));
-        const paymentType = vinData.id_type_forma_pago == 37 ? 'Efectivo' : 'Transferencia';
-        
-        return {
-            invoiceNumber: vinData.document_number || vinData.consecutive_invoice_pos,
-            numberComanda: `CM: ${vinData.consecutivo_comanda}`,
-            idOrder: vinData.id_order,
-            customerName: vinData.name || 'Cliente',
-            address: vinData.address || 'Sin dirección',
-            phone: vinData.phone || phoneNumber || 'No Teléfono',
-            date: moment(vinData.created_at).toDate(),
-            amount: shippingCost,
-            subtotal: cleanTotal > shippingCost ? cleanTotal - shippingCost : cleanTotal, 
-            total: cleanTotal,
-            notes: paymentType,
-            deliveryStatus: 'pendiente',
-            imageUrl: '/icons/192.png',
-            pointsEarned: Math.floor(cleanTotal / 1000) 
-        };
+      const cleanTotal = parseFloat((vinData.total || '0').toString().replace(/\./g, '').replace(',', '.'));
+      
+      const getPaymentMethod = (id) => {
+          const methods = { 37: "Efectivo", 38: "Transferencia", 39: "Transferencia", 40: "Nequi", 41: "RappiPay" };
+          return methods[id] || "Otro";
+      };
+      
+      const hasMultiplePayments = vinData.id_type_forma_pago_secundaria && vinData.valor_forma_pago_secundaria;
+      const paymentType = hasMultiplePayments ? "Multipago" : getPaymentMethod(vinData.id_type_forma_pago);
+      
+      return {
+        invoiceNumber: vinData.document_number || vinData.consecutive_invoice_pos,
+        numberComanda: `CM: ${vinData.consecutivo_comanda}`,
+        idOrder: vinData.id_order,
+        customerName: vinData.name || 'Cliente',
+        address: vinData.address || 'Sin dirección',
+        phone: vinData.phone || phoneNumber || 'No Teléfono',
+        date: moment(vinData.created_at).toDate(),
+        amount: shippingCost,
+        subtotal: cleanTotal > shippingCost ? cleanTotal - shippingCost : cleanTotal, 
+        total: cleanTotal,
+        notes: paymentType,
+        deliveryStatus: 'pendiente',
+        imageUrl: '/icons/192.png',
+        pointsEarned: Math.floor(cleanTotal / 1000) 
+      };
     }
 }
 
