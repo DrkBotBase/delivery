@@ -50,6 +50,9 @@ app.use('/restaurante', restaurantRoutes);
 
 app.use('/api', require('./routes/api/index'));
 
+// servicio externo
+app.use('/nq', require('./routes/nq'));
+
 app.get('/manifest.json', (req, res) => {
     res.type('application/manifest+json');
     res.sendFile(path.join(__dirname, 'public/manifest.json'));

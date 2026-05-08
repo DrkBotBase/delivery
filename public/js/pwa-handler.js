@@ -103,13 +103,13 @@ class PWAHandler {
         style.id = 'pwa-banner-styles';
         style.textContent = `
             :root {
-                --pwa-primary: #2563EB;
-                --pwa-primary-hover: #1d4ed8;
-                --pwa-text: #111827;
-                --pwa-text-light: #6B7280;
-                --pwa-bg: #ffffff;
-                --pwa-shadow: 0 10px 25px rgba(0,0,0,0.15);
-                --pwa-radius: 16px;
+                --pwa-primary: #4f46e5;
+                --pwa-primary-hover: #4338ca;
+                --pwa-bg: #1e293b;
+                --pwa-text: #f8fafc;
+                --pwa-text-light: #94a3b8;
+                --pwa-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+                --pwa-radius: 24px;
             }
             
             [data-pwa-installed="true"] .pwa-banner {
@@ -301,19 +301,27 @@ class PWAHandler {
                         <button class="pwa-modal-close">&times;</button>
                     </div>
                     <div class="pwa-modal-content">
-                        ${this.isIOS ? `
-                            <div class="install-step">
-                                <span class="step-number">1</span>
-                                <p>Toca el botón <strong>Compartir</strong> (📤) en Safari</p>
-                            </div>
-                            <div class="install-step">
-                                <span class="step-number">2</span>
-                                <p>Desplázate hacia abajo y selecciona <strong>Añadir a Inicio</strong></p>
-                            </div>
-                            <div class="install-step">
-                                <span class="step-number">3</span>
-                                <p>Toca <strong>Añadir</strong> en la esquina superior derecha</p>
-                            </div>
+                      ${this.isIOS ? `
+                          <div class="install-step ios">
+                              <span class="step-number">1</span>
+                              <div class="step-text">
+                                  <p>Toca el botón <strong>Compartir</strong> en la barra inferior de Safari.</p>
+                                  <div class="ios-icon-box"><i class="fa-solid fa-arrow-up-from-bracket"></i></div>
+                              </div>
+                          </div>
+                          <div class="install-step ios">
+                              <span class="step-number">2</span>
+                              <div class="step-text">
+                                  <p>Busca hacia abajo y selecciona <strong>"Añadir a la pantalla de inicio"</strong>.</p>
+                                  <div class="ios-icon-box"><i class="fa-solid fa-plus-square"></i></div>
+                              </div>
+                          </div>
+                          <div class="install-step ios">
+                              <span class="step-number">3</span>
+                              <div class="step-text">
+                                  <p>Toca en <strong>"Añadir"</strong> para finalizar.</p>
+                              </div>
+                          </div>
                         ` : this.isAndroid ? `
                             <div class="install-step">
                                 <span class="step-number">1</span>
@@ -367,168 +375,89 @@ class PWAHandler {
             }
         });
     }
-
+    
     styleManualInstallModal() {
-        if (document.querySelector('#pwa-modal-styles')) return;
-        
-        const style = document.createElement('style');
-        style.id = 'pwa-modal-styles';
-        style.textContent = `
-            .pwa-modal-overlay {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: rgba(0,0,0,0.7);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                z-index: 10000;
-                padding: 20px;
-                animation: fadeIn 0.3s ease;
-            }
-            
-            @keyframes fadeIn {
-                from { opacity: 0; }
-                to { opacity: 1; }
-            }
-            
-            .pwa-modal {
-                background: white;
-                border-radius: 16px;
-                max-width: 450px;
-                width: 100%;
-                overflow: hidden;
-                box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-                animation: slideUp 0.4s ease;
-            }
-            
-            @keyframes slideUp {
-                from {
-                    opacity: 0;
-                    transform: translateY(30px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-            }
-            
-            .pwa-modal-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 20px 24px;
-                border-bottom: 1px solid #e5e7eb;
-            }
-            
-            .pwa-modal-header h3 {
-                margin: 0;
-                font-size: 18px;
-                color: #111827;
-            }
-            
-            .pwa-modal-close {
-                background: transparent;
-                border: none;
-                font-size: 24px;
-                cursor: pointer;
-                color: #6b7280;
-                line-height: 1;
-                padding: 0;
-                width: 30px;
-                height: 30px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                border-radius: 50%;
-            }
-            
-            .pwa-modal-close:hover {
-                background: #f3f4f6;
-                color: #111827;
-            }
-            
-            .pwa-modal-content {
-                padding: 24px;
-            }
-            
-            .install-step {
-                display: flex;
-                align-items: flex-start;
-                gap: 12px;
-                margin-bottom: 20px;
-            }
-            
-            .install-step:last-child {
-                margin-bottom: 0;
-            }
-            
-            .step-number {
-                background: #2563EB;
-                color: white;
-                width: 28px;
-                height: 28px;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 14px;
-                font-weight: 600;
-                flex-shrink: 0;
-            }
-            
-            .install-step p {
-                margin: 0;
-                color: #4b5563;
-                line-height: 1.5;
-                font-size: 15px;
-            }
-            
-            .install-step strong {
-                color: #111827;
-            }
-            
-            .pwa-modal-footer {
-                padding: 20px 24px;
-                border-top: 1px solid #e5e7eb;
-                text-align: right;
-            }
-            
-            .pwa-modal-button {
-                background: #2563EB;
-                color: white;
-                border: none;
-                padding: 12px 28px;
-                border-radius: 8px;
-                font-weight: 600;
-                font-size: 15px;
-                cursor: pointer;
-                transition: all 0.2s;
-            }
-            
-            .pwa-modal-button:hover {
-                background: #1d4ed8;
-                transform: translateY(-1px);
-                box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-            }
-            
-            @media (max-width: 480px) {
-                .pwa-modal {
-                    max-width: 100%;
-                }
-                
-                .pwa-modal-header,
-                .pwa-modal-content,
-                .pwa-modal-footer {
-                    padding: 16px;
-                }
-            }
-        `;
-        document.head.appendChild(style);
+      if (document.querySelector('#pwa-modal-styles')) return;
+      
+      const style = document.createElement('style');
+      style.id = 'pwa-modal-styles';
+      style.textContent = `
+          .pwa-modal-overlay {
+              position: fixed;
+              inset: 0;
+              background: rgba(2, 6, 23, 0.85);
+              backdrop-filter: blur(8px);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              z-index: 10000;
+              padding: 20px;
+          }
+          
+          .pwa-modal {
+              background: #1e293b; /* Slate 800 */
+              border: 1px solid rgba(79, 70, 229, 0.3);
+              border-radius: 28px;
+              max-width: 400px;
+              width: 100%;
+              box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+              color: #f8fafc;
+          }
+          
+          .pwa-modal-header {
+              padding: 24px;
+              text-align: center;
+              border-bottom: 1px solid rgba(255,255,255,0.05);
+          }
+  
+          .ios-icon-box {
+              display: inline-flex;
+              background: #334155;
+              padding: 8px;
+              border-radius: 8px;
+              margin-top: 8px;
+              color: #818cf8;
+          }
+  
+          .step-number {
+              background: #4f46e5; /* Indigo */
+              color: white;
+              min-width: 32px;
+              height: 32px;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-weight: 800;
+          }
+  
+          .install-step {
+              display: flex;
+              gap: 16px;
+              margin-bottom: 24px;
+              align-items: flex-start;
+          }
+  
+          .pwa-modal-button {
+              width: 100%;
+              background: #4f46e5;
+              color: white;
+              padding: 16px;
+              border-radius: 16px;
+              font-weight: 700;
+              border: none;
+              cursor: pointer;
+              transition: all 0.2s;
+          }
+  
+          .pwa-modal-button:active {
+              transform: scale(0.98);
+              background: #4338ca;
+          }
+      `;
+      document.head.appendChild(style);
     }
-
+    
     handleNetworkStatus() {
         const updateOnlineStatus = () => {
             if (!navigator.onLine) {

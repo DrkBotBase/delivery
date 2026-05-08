@@ -28,11 +28,8 @@
     <meta name="theme-color" content="#4f46e5">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="manifest" href="/manifest.json">
     <link rel="apple-touch-icon" href="<%= info.dominio %>/icons/144.png">
     
-    <link rel="manifest" href="/manifest.json">
-
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -460,9 +457,6 @@
     </div>
 </div>
 <script>
-    // ========== RESPUESTAS PRECARGADAS (basadas en el backend) ==========
-    
-    // Función para simular escritura
     async function simulateTyping(callback) {
         const delay = 500 + Math.random() * 700; // Entre 500ms y 1200ms
         return new Promise(resolve => setTimeout(() => {
@@ -472,31 +466,19 @@
     }
     
     const knowledgeBase = {
-        // Información general
         concepto: "MJFOOD Repartidor es una **PWA** (Progressive Web App) diseñada para **domiciliarios de restaurantes en Colombia** que ya usan el sistema VinApp. Se instala desde el navegador sin necesidad de Play Store.",
-        
         instalacion: "**📱 Instalación de MJFOOD Repartidor**\n\nEs una **PWA**, no se descarga de Play Store.\n\n**Pasos:**\n1. Abre el link en el navegador (Chrome, Safari, Edge)\n2. Selecciona **'Añadir a pantalla de inicio'**\n3. ¡Listo! No ocupa espacio y es instantánea.\n\n**Link de registro:** https://delivery.mjfood.top/tools/restaurant",
-        
         escaneo: "**🔍 Escaneo Inteligente**\n\nEl domiciliario solo ingresa el **NÚMERO ÚNICO** de la factura física de VinApp. El sistema extrae automáticamente:\n\n• Nombre del cliente\n• Número de teléfono\n• Dirección exacta de entrega\n• Detalle de los productos del pedido\n\n**Beneficio:** Olvídate de escribir datos manualmente.",
-        
         herramientas: "**🛠️ Herramientas de Entrega**\n\n• Botones de navegación directa a **Google Maps y Waze** con la dirección ya cargada\n• Botones para **Llamar o WhatsApp** al cliente sin guardar el número\n• Envío de **factura en PDF** al cliente\n• **Modo Ruta:** Organiza y visualiza todos los pedidos escaneados para optimizar el trayecto\n\n¿Te gustaría saber más sobre alguna función específica?",
-        
         contabilidad: "**💰 Contabilidad para el Domiciliario**\n\nEl sistema liquida automáticamente:\n\n• ✅ Pedidos entregados\n• ✅ Ganancias por pedido\n• ✅ Gastos reportados\n• ✅ Resumen completo de la Jornada\n\n**Todo en tiempo real y sin cálculos manuales.**",
-        
         panelAdmin: "**📊 Panel Administrativo (Dueño)**\n\nComo dueño de restaurante, puedes:\n\n• Ver el **saldo de escaneos** disponible\n• Revisar **estadísticas de rendimiento** de cada domiciliario\n• Acceder al **historial de recargas** realizadas\n• Gestionar domiciliarios mediante **código de vinculación**\n\n¿Quieres saber cómo generar tu código de restaurante?",
-        
         precio: "**💰 Precio: $70 COP por escaneo**\n\n• **Sin mensualidades fijas** - Solo pagas lo que usas\n• **Modelo de recarga** - Cargas créditos cuando necesites\n• **Prueba gratuita:** 100 escaneos gratis al registrarse\n• **Privacidad total:** No se requiere correo, teléfono ni tarjeta de crédito\n\n**¿Listo para empezar?** Regístrate en https://delivery.mjfood.top/tools/restaurant",
-        
         registro: "**📝 ¿Cómo iniciar?**\n\nEs muy sencillo:\n\n**Paso 1:** Ingresa al link de registro:\nhttps://delivery.mjfood.top/tools/restaurant\n\n**Paso 2:** Ingresa el **número de cualquier factura** de tu restaurante (sistema VinApp)\n\n**Paso 3:** El sistema generará tu código único y te dará **100 créditos GRATIS**\n\n**¿Tienes una factura a la mano? ¡Empieza ahora!**",
-        
         pruebaGratis: "**🎁 Prueba Gratuita de 100 escaneos**\n\nLa prueba es realmente GRATIS:\n\n• ✅ **100 escaneos totalmente gratis**\n• ✅ Sin pedir correo electrónico\n• ✅ Sin número de teléfono\n• ✅ Sin tarjeta de crédito\n• ✅ Sin mensualidades ocultas\n\n**¡Actívala ahora!** https://delivery.mjfood.top/tools/restaurant",
-        
         vinculacion: "**🔗 Código de Vinculación**\n\nEl dueño del restaurante genera un código único. Los domiciliarios usan ese código para vincularse al sistema. Esto permite:\n\n• Control de quién accede\n• Estadísticas por domiciliario\n• Gestión centralizada\n\n**¿Eres restaurante?** Genera tu código en el panel administrativo después de registrarte.",
-        
         contactoAsesor: "**👨‍💼 ¿Necesitas hablar con un asesor?**\n\nUn ejecutivo comercial puede ayudarte a:\n\n• Resolver dudas específicas\n• Configurar tu cuenta\n• Personalizar tu plan\n\n📱 **Contáctanos por WhatsApp:**\nhttps://wa.me/573046793853?text=Hola,%20quiero%20información%20sobre%20MJFOOD%20Repartidor\n\nRespondemos en menos de 5 minutos."
     };
     
-    // Palabras clave y su respuesta correspondiente
     const intentMap = [
         { keywords: ['concepto', 'qué es', 'que es', 'que significa', 'explica', 'que hace'], response: knowledgeBase.concepto },
         { keywords: ['instalación', 'instalar', 'como instalo', 'como se instala', 'pwa', 'descargar'], response: knowledgeBase.instalacion },
@@ -511,7 +493,6 @@
         { keywords: ['asesor', 'contactar', 'hablar con alguien', 'soporte', 'ayuda personal', 'whatsapp', 'whatsApp'], response: knowledgeBase.contactoAsesor }
     ];
     
-    // Preguntas clickeables principales
     const quickQuestions = [
         { text: "💰 ¿Cuánto cuesta?", response: knowledgeBase.precio },
         { text: "🎁 Prueba gratis de 100 escaneos", response: knowledgeBase.pruebaGratis },
@@ -521,7 +502,6 @@
         { text: "👨‍💼 Contactar asesor", response: knowledgeBase.contactoAsesor }
     ];
     
-    // Saludos y respuestas
     const greetings = {
         keywords: ['hola', 'buenas', 'buen día', 'buenas tardes', 'buenas noches', 'hey', 'holi', 'que tal', 'cómo estás', 'como estas', 'saludos', 'quiubo', 'hello', 'hi'],
         response: "¡Hola! 👋 Bienvenido a **MJFOOD Repartidor**. ¿En qué puedo ayudarte hoy? Puedes preguntarme sobre precios, registro, instalación o cómo funciona el escaneo inteligente. También tenemos **100 escaneos gratis** para que pruebes el sistema. 🚀"
@@ -532,8 +512,6 @@
         response: "¡De nada! 😊 Estoy aquí para ayudarte. Recuerda que puedes contactar a un asesor por WhatsApp si necesitas ayuda más personalizada. ¡Que tengas excelente día! 🚀"
     };
     
-    // ========== FUNCIONES PRINCIPALES ==========
-    
     function escapeHtml(text) {
         const div = document.createElement('div');
         div.textContent = text;
@@ -542,50 +520,34 @@
     
     function formatResponse(text) {
         if (!text) return '';
-        
         let formatted = escapeHtml(text);
-        
-        // Convertir **negritas**
         formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-        
-        // Convertir *itálica*
         formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
-        
-        // Convertir URLs a enlaces
         formatted = formatted.replace(/(https?:\/\/[^\s\n]+)/g, (url) => {
             return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-indigo-600 underline">${url}</a>`;
         });
-        
-        // Convertir saltos de línea
         formatted = formatted.replace(/\n/g, '<br>');
-        
-        // Mejorar listas
         formatted = formatted.replace(/(\d+)\.\s+(.*?)(?=<br>|$)/gm, '<div class="mt-1 mb-1">$1. $2</div>');
         formatted = formatted.replace(/[•\-]\s+(.*?)(?=<br>|$)/gm, '<div class="mt-1 mb-1 ml-2">• $1</div>');
-        
         return formatted;
     }
     
-    // Detectar intención del mensaje
     function detectIntent(message) {
         const lowerMessage = message.toLowerCase().trim();
         const cleanMessage = lowerMessage.replace(/[¿?¡!.,;:]/g, '');
         
-        // Verificar saludos
         for (const keyword of greetings.keywords) {
             if (cleanMessage.includes(keyword)) {
                 return { matched: true, response: greetings.response, type: 'greeting' };
             }
         }
         
-        // Verificar agradecimientos
         for (const keyword of thanks.keywords) {
             if (cleanMessage.includes(keyword)) {
                 return { matched: true, response: thanks.response, type: 'thanks' };
             }
         }
         
-        // Verificar intenciones específicas
         for (const intent of intentMap) {
             for (const keyword of intent.keywords) {
                 if (cleanMessage.includes(keyword)) {
@@ -594,7 +556,6 @@
             }
         }
         
-        // Respuesta por defecto
         return { 
             matched: true, 
             response: "**🤔 No entendí bien tu pregunta**\n\nPuedo ayudarte con:\n\n• 💰 **Precios** (¿Cuánto cuesta?)\n• 📝 **Registro** (¿Cómo me registro?)\n• 🎁 **Prueba gratis** (100 escaneos)\n• 📱 **Instalación** (¿Cómo se instala?)\n• 🔍 **Escaneo** (¿Qué puede escanear?)\n\n¿O prefieres **hablar con un asesor**?\nhttps://wa.me/573046793853?text=Hola,%20quiero%20información%20sobre%20MJFOOD%20Repartidor",
@@ -602,10 +563,7 @@
         };
     }
     
-    // ========== CHAT ==========
-    
     let isResponding = false;
-    
     const toggle = document.getElementById('chat-toggle');
     const panel = document.getElementById('chat-panel');
     const closeBtn = document.getElementById('chat-close');
@@ -613,7 +571,6 @@
     const input = document.getElementById('chat-input');
     const sendBtn = document.getElementById('chat-send');
     
-    // Agregar mensaje al chat
     function addMessage(text, sender, showQuickReplies = false) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${sender}-message flex gap-2.5 animate-messagePop`;
@@ -630,7 +587,6 @@
             bubble.classList.add('bg-white', 'text-gray-800', 'border', 'border-gray-200', 'rounded-bl-none');
             bubble.innerHTML = formatResponse(text);
             
-            // Agregar preguntas clickeables si es necesario
             if (showQuickReplies) {
                 const container = document.createElement('div');
                 container.className = 'quick-replies-container';
@@ -658,7 +614,6 @@
         scrollToBottom();
     }
     
-    // Mostrar indicador de escritura
     function showTypingIndicator() {
         const typingDiv = document.createElement('div');
         typingDiv.id = 'typing-indicator';
@@ -691,20 +646,16 @@
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
     
-    // Manejar pregunta clickeable
     async function handleQuickQuestion(response) {
         if (isResponding) return;
         
-        // Ocultar preguntas clickeables anteriores
         const allContainers = document.querySelectorAll('.quick-replies-container');
         allContainers.forEach(container => container.style.display = 'none');
         
         isResponding = true;
         
-        // Mostrar indicador de escritura
         showTypingIndicator();
         
-        // Simular tiempo de escritura
         await new Promise(resolve => setTimeout(resolve, 600 + Math.random() * 400));
         
         removeTypingIndicator();
@@ -714,34 +665,27 @@
         saveConversation();
     }
     
-    // Enviar mensaje del usuario
     async function sendMessage() {
         const message = input.value.trim();
         if (!message || isResponding) return;
         
-        // Ocultar preguntas clickeables al enviar mensaje
         const allContainers = document.querySelectorAll('.quick-replies-container');
         allContainers.forEach(container => container.style.display = 'none');
         
-        // Agregar mensaje del usuario
         addMessage(message, 'user');
         input.value = '';
         input.style.height = 'auto';
         
         isResponding = true;
         
-        // Mostrar indicador de escritura
         showTypingIndicator();
         
-        // Simular tiempo de procesamiento (como si estuviera escribiendo)
         await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 500));
         
-        // Detectar intención y obtener respuesta
         const intent = detectIntent(message);
         
         removeTypingIndicator();
         
-        // Mostrar respuesta del bot
         const showReplies = intent.type === 'greeting' || intent.type === 'default';
         addMessage(intent.response, 'bot', showReplies);
         
@@ -749,7 +693,6 @@
         saveConversation();
     }
     
-    // Event listeners
     toggle.addEventListener('click', () => {
         const isVisible = panel.style.display === 'flex';
         panel.style.display = isVisible ? 'none' : 'flex';
@@ -776,7 +719,6 @@
     
     sendBtn.addEventListener('click', sendMessage);
     
-    // Guardar conversación
     function saveConversation() {
         const messages = [];
         document.querySelectorAll('.message').forEach(msg => {
@@ -795,7 +737,6 @@
         localStorage.setItem('chatHistory', JSON.stringify(messages.slice(-30)));
     }
     
-    // Agregar preguntas clickeables al mensaje de bienvenida
     setTimeout(() => {
         const lastMessage = messagesContainer.querySelector('.message.bot-message:last-child');
         if (lastMessage) {
@@ -814,159 +755,5 @@
         }
     }, 100);
 </script>
-
-    <script>
-        let waitingWorker = null;
-        let updateBanner = null;
-
-        function showUpdateBanner(worker) {
-            if (updateBanner) return;
-            
-            waitingWorker = worker;
-            
-            updateBanner = document.createElement('div');
-            updateBanner.id = 'pwa-update-banner';
-            updateBanner.className = 'pwa-update-banner';
-            updateBanner.innerHTML = `
-                <div class="update-content">
-                    <span>🔄 ¡Nueva versión disponible!</span>
-                    <p>Actualiza para obtener las últimas mejoras.</p>
-                </div>
-                <div class="update-actions">
-                    <button id="update-later" class="btn-text">Más tarde</button>
-                    <button id="update-now" class="btn-primary">Actualizar</button>
-                </div>
-            `;
-            
-            document.body.appendChild(updateBanner);
-            
-            const style = document.createElement('style');
-            style.textContent = `
-                .pwa-update-banner {
-                    position: fixed;
-                    bottom: 80px;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    width: min(90%, 400px);
-                    background: #2d3748;
-                    color: white;
-                    padding: 16px 20px;
-                    border-radius: 12px;
-                    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-                    z-index: 9998;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 12px;
-                    animation: slideUp 0.5s ease;
-                }
-                
-                .update-content span {
-                    font-weight: 600;
-                    font-size: 15px;
-                    display: block;
-                    margin-bottom: 4px;
-                }
-                
-                .update-content p {
-                    margin: 0;
-                    font-size: 13px;
-                    opacity: 0.9;
-                }
-                
-                .update-actions {
-                    display: flex;
-                    gap: 10px;
-                    justify-content: flex-end;
-                }
-                
-                #update-later, #update-now {
-                    padding: 8px 16px;
-                    border-radius: 6px;
-                    font-size: 13px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    border: none;
-                    transition: all 0.2s;
-                }
-                
-                #update-later {
-                    background: transparent;
-                    color: #a0aec0;
-                }
-                
-                #update-later:hover {
-                    background: rgba(255,255,255,0.1);
-                }
-                
-                #update-now {
-                    background: #38a169;
-                    color: white;
-                }
-                
-                #update-now:hover {
-                    background: #2f855a;
-                    transform: translateY(-1px);
-                }
-                
-                @keyframes slideUp {
-                    from {
-                        opacity: 0;
-                        transform: translate(-50%, 20px);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translate(-50%, 0);
-                    }
-                }
-            `;
-            
-            if (!document.querySelector('#update-banner-styles')) {
-                style.id = 'update-banner-styles';
-                document.head.appendChild(style);
-            }
-            
-            document.getElementById('update-now').addEventListener('click', () => {
-                waitingWorker.postMessage({ type: 'SKIP_WAITING' });
-                updateBanner.remove();
-                updateBanner = null;
-            });
-            
-            document.getElementById('update-later').addEventListener('click', () => {
-                updateBanner.remove();
-                updateBanner = null;
-            });
-        }
-
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', async () => {
-                try {
-                    const registration = await navigator.serviceWorker.register('/sw.js');
-                    if (registration.waiting) {
-                        showUpdateBanner(registration.waiting);
-                    }
-                    
-                    registration.addEventListener('updatefound', () => {
-                        const newWorker = registration.installing;
-                        newWorker.addEventListener('statechange', () => {
-                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                showUpdateBanner(newWorker);
-                            }
-                        });
-                    });
-                } catch (error) {
-                    console.error('❌ Error registrando Service Worker:', error);
-                }
-            });
-            
-            navigator.serviceWorker.addEventListener('controllerchange', () => {
-              window.location.reload();
-            });
-        }
-        
-        if (window.matchMedia('(display-mode: standalone)').matches) {
-            document.documentElement.setAttribute('data-pwa-installed', 'true');
-        }
-    </script>
-    <script src="/js/pwa-handler.js"></script>
 </body>
 </html>
