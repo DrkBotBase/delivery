@@ -3,10 +3,12 @@ const router = express.Router();
 const { getNequiStatus, clearCache } = require('../services/statsNq');
 
 const allowedOrigins = [
-    'https://status-nequi.mjfood.top',
-    'https://status-nequi.mjfood.top',
+    'https://nequi.mjfood.top',
+    'https://delivery.mjfood.top',
+     /\.github\.io$/,
     'null'
 ];
+
 router.use((req, res, next) => {
     const origin = req.headers.origin;
     
@@ -26,12 +28,7 @@ router.use((req, res, next) => {
     }
     next();
 });
-/*
-router.get('/status', async (req, res) => {
-    const statusData = await getNequiStatus();
-    res.render('stats_nq', statusData);
-});
-*/
+
 router.get('/api/status', async (req, res) => {
     const forceRefresh = req.query.refresh === 'true';
     const statusData = await getNequiStatus(forceRefresh);
