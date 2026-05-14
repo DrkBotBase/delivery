@@ -7,7 +7,7 @@ module.exports = {
     dominio: process.env.DOMINIO || '',
     keywords: 'Repartidores, comida, pedidos online, código QR, carta digital, MJ Food, Restaurantes Colombia, Tecnología Delivery',
     fb_app_id: '',
-    version: '3.0.0'
+    version: '3.3.0'
   },
   PORT: process.env.PORT || 3000
 };
