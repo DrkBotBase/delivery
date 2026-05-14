@@ -12,8 +12,8 @@ router.get('/notifications', requireAuth, requireAdmin, async (req, res) => {
       res.render('admin/notifications', {
         info,
         admin: user,
-            title: 'Admin | Notificaciones'
-        });
+        title: 'Admin | Notificaciones'
+      });
     } catch (error) {
         console.error('Error en admin/notifications:', error);
         res.status(500).send('Error al cargar el panel');
