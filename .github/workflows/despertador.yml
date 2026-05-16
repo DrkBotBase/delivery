@@ -9,5 +9,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Hacer ping a la app de Delivery
-        run: curl -s https://delivery.mjfood.top/ping
+        run: curl -s https://neutral-billie-drkbot-872cd981.koyeb.app/ping
         
