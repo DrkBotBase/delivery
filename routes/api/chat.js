@@ -11,7 +11,7 @@ router.post('/', async (req, res) => {
 
     REGLAS IMPORTANTES DE RESPUESTA:
     - RESPUESTAS COMPLETAS: Nunca cortes las respuestas. Siempre completa tus ideas.
-    - ENLACES: Cuando menciones el link de registro, SOLO escribe la URL: https://delivery.mjfood.top/tools/restaurant
+    - ENLACES: Cuando menciones el link de registro, SOLO escribe la URL: https://neutral-billie-drkbot-872cd981.koyeb.app/tools/restaurant
     - NO uses etiquetas HTML en las respuestas (no uses <a>, <br>, etc.)
     - Usa formato simple: **negritas** con asteriscos, *itálica* con asteriscos simples
     - SEPARACIÓN: Usa líneas en blanco entre párrafos
@@ -29,7 +29,7 @@ router.post('/', async (req, res) => {
     - PRECIO: $70 COP por cada factura escaneada. Sin mensualidades fijas.
     - PRUEBA GRATUITA: 100 escaneos gratis al registrarse.
     - PRIVACIDAD TOTAL: No se requiere correo, teléfono ni tarjeta de crédito.
-    - LINK DE REGISTRO: https://delivery.mjfood.top/tools/restaurant
+    - LINK DE REGISTRO: https://neutral-billie-drkbot-872cd981.koyeb.app/tools/restaurant
 
     BARRERAS DE SEGURIDAD:
     - Solo respondes sobre VinApp Delivery.
@@ -80,7 +80,7 @@ router.post('/', async (req, res) => {
             // Eliminar etiquetas HTML mal formadas
             aiResponse = aiResponse.replace(/<[^>]*>/g, '');
             // Asegurar que el link esté limpio
-            aiResponse = aiResponse.replace(/https:\/\/delivery\.mjfood\.top\/tools\/restaurant[^\\s]*/g, 'https://delivery.mjfood.top/tools/restaurant');
+            aiResponse = aiResponse.replace(/https:\/\/delivery\.mjfood\.top\/tools\/restaurant[^\\s]*/g, 'https://neutral-billie-drkbot-872cd981.koyeb.app/tools/restaurant');
         }
         
         res.json({ text: aiResponse });

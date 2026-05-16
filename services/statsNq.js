@@ -1,4 +1,4 @@
-const axios = require('axios');
+/*const axios = require('axios');
 
 let cachedData = null;
 let lastFetchTime = null;
@@ -178,3 +178,4 @@ function clearCache() {
 }
 
 module.exports = { getNequiStatus, clearCache };
+*/

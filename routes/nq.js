@@ -1,10 +1,10 @@
-const express = require('express');
+/*const express = require('express');
 const router = express.Router();
 const { getNequiStatus, clearCache } = require('../services/statsNq');
 
 const allowedOrigins = [
-    'https://nequi.mjfood.top',
-    'https://delivery.mjfood.top',
+    'https://.mjfood.top',
+    'https://.mjfood.top',
      /\.github\.io$/,
     'null'
 ];
@@ -39,4 +39,4 @@ router.post('/api/status/clear-cache', async (req, res) => {
     res.json({ success: true, message: 'Caché limpiado correctamente' });
 });
 
-module.exports = router;
+module.exports = router;*/
