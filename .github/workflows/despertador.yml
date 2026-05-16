@@ -1,0 +1,13 @@
+name: Mantener Koyeb Despierto
+
+on:
+  schedule:
+    - cron: '*/20 * * * *'
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hacer ping a la app de Delivery
+        run: curl -s https://delivery.mjfood.top/ping
+        
