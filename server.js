@@ -81,12 +81,6 @@ app.get('/route', requireAuth, (req, res) => {
     });
 });
 
-setInterval(() => {
-  fetch((info.dominio || `http://localhost:${PORT}`) + '/ping')
-    .then(res => { /* console.log('Ping OK'); */ })
-    .catch(err => console.error('Ping Error:', err.message));
-}, 25 * 60 * 1000);
-
 app.use((req, res, next) => {
     res.status(404).render('404', {
       info,
