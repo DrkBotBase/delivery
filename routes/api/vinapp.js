@@ -592,7 +592,7 @@ router.post('/share-ticket/:deliveryId', requireAuth, async (req, res) => {
 
         res.json({
             success: true,
-            url: `${config.dominio}/t/${token}`,
+            url: `${info.dominio}/t/${token}`,
             expiresAt
         });
     } catch (error) {
