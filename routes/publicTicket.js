@@ -80,6 +80,10 @@ function renderTicketPage(t, expiresAt) {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ticket ${escapeHtml(t.order.invoiceNumber)}</title>
+
+<meta property="og:title" content="Ticket ${escapeHtml(t.order.invoiceNumber)}">
+<meta property="og:description" content="Encuentra acá los detalles de tu pedido.">
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
     * { box-sizing: border-box; }
