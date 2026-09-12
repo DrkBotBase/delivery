@@ -8,7 +8,7 @@ const Restaurant = require('../../models/Restaurant');
 const VinAppService = require('../../services/vinappService');
 const moment = require('moment-timezone');
 
-const { info } = require('./config');
+const { info } = require('../../config');
 
 let _providersCache = null;
 function getProviders() {
