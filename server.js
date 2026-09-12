@@ -49,6 +49,7 @@ const restaurantRoutes = require('./routes/restaurant');
 app.use('/restaurante', restaurantRoutes);
 
 app.use('/api', require('./routes/api/index'));
+app.use('/', require('./routes/publicTicket'));
 
 // servicio externo
 //app.use('/nq', require('./routes/nq'));

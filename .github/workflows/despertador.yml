@@ -10,4 +10,3 @@ jobs:
     steps:
       - name: Hacer ping a la app de Delivery
         run: curl -s https://neutral-billie-drkbot-872cd981.koyeb.app/ping
-        

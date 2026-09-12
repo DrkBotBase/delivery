@@ -15,7 +15,7 @@ const deliverySchema = new mongoose.Schema({
     required: true
   },
   idOrder: {
-    type: Number,
+    type: String,
     required: true
   },
   pointId: {
@@ -78,7 +78,29 @@ const deliverySchema = new mongoose.Schema({
   },
   deliveryTime: { 
     type: Date 
-  }
+  },
+  provider: {
+    type: String,
+    default: null
+  },
+  providerUrl: {
+    type: String,
+    default: null
+  },
+  isExternal: {
+    type: Boolean,
+    default: false
+  },
+  products: [{
+    name: String,
+    quantity: Number,
+    unitPrice: Number,
+    subtotal: Number,
+    observations: String
+  }],
+  shareToken:  { type: String, index: true, sparse: true, unique: true },
+  shareExpiresAt: { type: Date },
+  ticketSnapshot: { type: Object }
 }, {
   timestamps: true
 });
@@ -94,6 +116,5 @@ deliverySchema.index({
   address: 'text', 
   notes: 'text' 
 });
-
 
 module.exports = mongoose.model('Delivery', deliverySchema);

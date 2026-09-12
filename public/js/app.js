@@ -617,12 +617,12 @@ function openDeliveryModal(id) {
                 </div>
                 <div class="mt-6 grid grid-cols-2 gap-3">
                     ${(delivery.idOrder && delivery.idOrder !== 0 && delivery.idOrder !== '0') 
-                        ? `<button onclick="viewDigitalInvoice('${delivery.idOrder}')" class="col-span-2 py-2.5 bg-gray-800 text-white rounded-xl font-bold shadow-lg shadow-gray-400/30 active:scale-95 transition">
-                             <i class="fas fa-receipt mr-2"></i> Ver Factura
-                           </button>` 
-                        : `<button class="col-span-2 py-2.5 bg-gray-800 text-white rounded-xl font-bold shadow-lg shadow-gray-400/30 active:scale-95 transition">
-                             <i class="fas fa-image mr-2"></i> Pedido Manual
-                           </button>`
+                      ? `<button onclick="viewDigitalInvoice('${delivery.idOrder}', '${delivery.invoiceNumber}', '${delivery._id}')" class="col-span-2 py-2.5 bg-gray-800 text-white rounded-xl font-bold shadow-lg shadow-gray-400/30 active:scale-95 transition">
+                           <i class="fas fa-receipt mr-2"></i> Ver Factura
+                         </button>` 
+                      : `<button class="col-span-2 py-2.5 bg-gray-800 text-white rounded-xl font-bold shadow-lg shadow-gray-400/30 active:scale-95 transition">
+                           <i class="fas fa-image mr-2"></i> Pedido Manual
+                         </button>`
                     }
                     <button onclick="editDelivery('${delivery._id}')" class="py-2.5 bg-white border-2 border-gray-200 text-gray-600 rounded-xl font-bold hover:bg-gray-50 active:scale-95 transition">
                         Editar
@@ -973,36 +973,261 @@ async function showLinkedRestaurants() {
     }
 }
 
-async function viewDigitalInvoice(idOrder) {
-    Swal.fire({ title: 'Generando ticket...', text: 'Consultando datos del restaurante', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+async function viewDigitalInvoice(idOrder, invoiceNumber = '', deliveryId = null) {
+    Swal.fire({
+        title: 'Generando ticket...',
+        text: 'Consultando datos del pedido',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+    });
+
     try {
         const response = await fetch(`/api/vinapp/ticket/${idOrder}`);
         if (!checkSession(response)) return;
+
         const result = await response.json();
-        if (!result.success || !result.ticket) return Swal.fire('Error', result.error || 'No se pudo obtener el detalle de la factura.', 'error');
+        if (!result.success || !result.ticket) {
+            return Swal.fire('Error', result.error || 'No se pudo obtener el detalle de la factura.', 'error');
+        }
+
         const t = result.ticket;
+
         const formatMoney = (amount) => new Intl.NumberFormat('es-CO').format(amount);
-        const formatDate = (dateString) => { const date = new Date(dateString); return date.toLocaleString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }); };
+        const formatDate = (dateString) => {
+            const date = new Date(dateString);
+            return date.toLocaleString('es-CO', {
+                day: '2-digit', month: '2-digit', year: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
+        };
+
         let productsHTML = '';
-        t.products.forEach(p => { productsHTML += `<div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;"><span style="flex: 2; text-align: left; padding-right: 5px;">${p.name}</span><span style="width: 25px; text-align: center;">${p.quantity}</span><span style="width: 55px; text-align: right;">$${formatMoney(p.unitPrice)}</span><span style="width: 60px; text-align: right; font-weight: bold;">$${formatMoney(p.subtotal)}</span></div>`;
-        if (p.observations) productsHTML += `<div style="font-size: 10px; color: #666; text-align: left; padding-left: 10px; margin-bottom: 8px;">📝 ${p.observations}</div>`; });
-        let paymentHTML = '';
-        if (t.financials.payments.length === 1) { paymentHTML += `<div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>Método pago:</span> <span>${t.financials.payments[0].method}</span></div><div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>Paga con:</span> <span>$${formatMoney(t.financials.customerGivenAmount)}</span></div>`; } 
-        else { t.financials.payments.forEach((pay, index) => { paymentHTML += `<div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>Pago ${index + 1} (${pay.method}):</span> <span>$${formatMoney(pay.amount)}</span></div>`; }); if (t.financials.customerGivenAmount > t.financials.totalPaid) paymentHTML += `<div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>Efectivo recibido:</span> <span>$${formatMoney(t.financials.customerGivenAmount)}</span></div>`; }
-        if (t.financials.change > 0) paymentHTML += `<div style="display: flex; justify-content: space-between; margin-bottom: 4px; font-weight: bold;"><span>Cambio a devolver:</span> <span>$${formatMoney(t.financials.change)}</span></div>`;
-        const ticketHTML = `<div id="print-ticket-area" style="font-family: 'Courier New', monospace; color: #000; padding: 10px; max-width: 380px; margin: 0 auto; background: #fff; line-height: 1.2;"><div style="text-align: center; border-bottom: 1px dashed #ccc; padding-bottom: 10px; margin-bottom: 10px;"><h2 style="font-size: 18px; margin: 0 0 5px 0; letter-spacing: 2px;">📋 FACTURA</h2><div style="font-size: 14px; font-weight: bold;">${t.restaurant.name}</div><div style="font-size: 11px; color: #666;">${t.restaurant.address}</div><div style="font-size: 11px; color: #666;">Tel: ${t.restaurant.phone}</div></div><div style="font-size: 12px; text-align: left; margin-bottom: 10px;"><div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><b>Factura:</b> <span>${t.order.invoiceNumber}</span></div><div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><b>Pedido #:</b> <span>${t.order.id}</span></div><div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><b>Fecha:</b> <span>${formatDate(t.order.date)}</span></div><div style="border-top: 1px dashed #ccc; margin: 8px 0;"></div><div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><b>Cliente:</b> <span>${t.customer.name}</span></div><div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><b>Teléfono:</b> <span>${t.customer.phone}</span></div><div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><b>Dirección:</b> <span style="text-align: right; max-width: 65%;">${t.customer.address}</span></div></div><div style="border-top: 1px dashed #ccc; margin: 8px 0;"></div><div style="margin-bottom: 10px;"><div style="display: flex; justify-content: space-between; font-weight: bold; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-bottom: 8px; font-size: 11px;"><span style="flex: 2; text-align: left;">Producto</span><span style="width: 25px; text-align: center;">Cant</span><span style="width: 55px; text-align: right;">Precio</span><span style="width: 60px; text-align: right;">Total</span></div>${productsHTML}</div><div style="border-top: 1px dashed #ccc; margin: 8px 0;"></div><div style="font-size: 13px; text-align: left;"><div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>SUBTOTAL:</span> <span>$${formatMoney(t.financials.subtotal)}</span></div><div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>DOMICILIO:</span> <span>$${formatMoney(t.financials.shipping)}</span></div><div style="display: flex; justify-content: space-between; font-size: 16px; font-weight: bold; border-top: 1px solid #000; margin-top: 6px; padding-top: 6px;"><span>TOTAL:</span> <span>$${formatMoney(t.financials.total)}</span></div></div><div style="border-top: 1px dashed #ccc; margin: 8px 0;"></div><div style="font-size: 12px; text-align: left;">${paymentHTML}</div><div style="border-top: 1px dashed #ccc; margin: 8px 0;"></div><div style="text-align: center; font-size: 10px; color: #666; padding-top: 5px;"><div>✨ ¡Gracias por tu compra! ✨</div><div style="margin-top: 4px;">App Delivery Tracker</div></div></div>`;
-        Swal.fire({ html: ticketHTML, showCloseButton: true, showCancelButton: true, showConfirmButton: true, confirmButtonText: '<i class="fab fa-whatsapp text-lg"></i> Enviar Factura', cancelButtonText: 'Cerrar', confirmButtonColor: '#25D366', cancelButtonColor: '#6b7280', background: '#f3f4f6', width: 'auto', customClass: { htmlContainer: 'm-0 p-0', popup: 'rounded-3xl p-4 shadow-xl', confirmButton: 'w-full mb-2 py-3 rounded-xl font-bold shadow-md shadow-green-500/30 text-white', cancelButton: 'w-full py-3 rounded-xl font-bold' }, buttonsStyling: true }).then(async (result) => {
-            if (result.isConfirmed) {
-                Swal.fire({ title: 'Generando PDF...', text: 'Enviando al WhatsApp del cliente', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
-                try {
-                    const sendRes = await fetch(`/api/whatsapp/send-ticket/${idOrder}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ticket: t }) });
-                    const sendData = await sendRes.json();
-                    if (sendData.success) Swal.fire({ icon: 'success', title: '¡Enviado!', text: 'El cliente recibió la factura en formato PDF.', timer: 2000, showConfirmButton: false, customClass: { popup: 'rounded-2xl' } });
-                    else Swal.fire('Aviso', sendData.error || 'Función no disponible', 'warning');
-                } catch (err) { Swal.fire('Error', 'No se pudo conectar con el servidor para enviar la factura.', 'error'); }
+        (t.products || []).forEach(p => {
+            productsHTML += `<div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+                <span style="flex: 2; text-align: left; padding-right: 5px;">${p.name}</span>
+                <span style="width: 25px; text-align: center;">${p.quantity}</span>
+                <span style="width: 55px; text-align: right;">$${formatMoney(p.unitPrice)}</span>
+                <span style="width: 60px; text-align: right; font-weight: bold;">$${formatMoney(p.subtotal)}</span>
+            </div>`;
+            if (p.observations) {
+                productsHTML += `<div style="font-size: 10px; color: #666; text-align: left; padding-left: 10px; margin-bottom: 8px;">📝 ${p.observations}</div>`;
             }
         });
-    } catch (error) { console.error("Error cargando ticket:", error); Swal.fire('Error', 'No se pudo cargar la información del ticket. Intenta de nuevo.', 'error'); }
+
+        let paymentHTML = '';
+        if (t.financials.payments.length === 1) {
+            paymentHTML += `<div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>Método pago:</span> <span>${t.financials.payments[0].method}</span></div>`;
+            paymentHTML += `<div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>Paga con:</span> <span>$${formatMoney(t.financials.customerGivenAmount)}</span></div>`;
+        } else {
+            t.financials.payments.forEach((pay, index) => {
+                paymentHTML += `<div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>Pago ${index + 1} (${pay.method}):</span> <span>$${formatMoney(pay.amount)}</span></div>`;
+            });
+            if (t.financials.customerGivenAmount > t.financials.totalPaid) {
+                paymentHTML += `<div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>Efectivo recibido:</span> <span>$${formatMoney(t.financials.customerGivenAmount)}</span></div>`;
+            }
+        }
+        if (t.financials.change > 0) {
+            paymentHTML += `<div style="display: flex; justify-content: space-between; margin-bottom: 4px; font-weight: bold;"><span>Cambio a devolver:</span> <span>$${formatMoney(t.financials.change)}</span></div>`;
+        }
+
+        const ticketHTML = `<div id="print-ticket-area" style="font-family: 'Courier New', monospace; color: #000; padding: 10px; max-width: 380px; margin: 0 auto; background: #fff; line-height: 1.2;">
+            <div style="text-align: center; border-bottom: 1px dashed #ccc; padding-bottom: 10px; margin-bottom: 10px;">
+                <h2 style="font-size: 18px; margin: 0 0 5px 0; letter-spacing: 2px;">📋 FACTURA</h2>
+                <div style="font-size: 14px; font-weight: bold;">${t.restaurant.name}</div>
+                <div style="font-size: 11px; color: #666;">${t.restaurant.address || ''}</div>
+                <div style="font-size: 11px; color: #666;">${t.restaurant.phone ? 'Tel: ' + t.restaurant.phone : ''}</div>
+            </div>
+            <div style="font-size: 12px; text-align: left; margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><b>Factura:</b> <span>${t.order.invoiceNumber}</span></div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><b>Pedido #:</b> <span>${t.order.id}</span></div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><b>Fecha:</b> <span>${formatDate(t.order.date)}</span></div>
+                <div style="border-top: 1px dashed #ccc; margin: 8px 0;"></div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><b>Cliente:</b> <span>${t.customer.name}</span></div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><b>Teléfono:</b> <span>${t.customer.phone}</span></div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><b>Dirección:</b> <span style="text-align: right; max-width: 65%;">${t.customer.address}</span></div>
+            </div>
+            <div style="border-top: 1px dashed #ccc; margin: 8px 0;"></div>
+            <div style="margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between; font-weight: bold; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-bottom: 8px; font-size: 11px;">
+                    <span style="flex: 2; text-align: left;">Producto</span>
+                    <span style="width: 25px; text-align: center;">Cant</span>
+                    <span style="width: 55px; text-align: right;">Precio</span>
+                    <span style="width: 60px; text-align: right;">Total</span>
+                </div>
+                ${productsHTML}
+            </div>
+            <div style="border-top: 1px dashed #ccc; margin: 8px 0;"></div>
+            <div style="font-size: 13px; text-align: left;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>SUBTOTAL:</span> <span>$${formatMoney(t.financials.subtotal)}</span></div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>DOMICILIO:</span> <span>$${formatMoney(t.financials.shipping)}</span></div>
+                <div style="display: flex; justify-content: space-between; font-size: 16px; font-weight: bold; border-top: 1px solid #000; margin-top: 6px; padding-top: 6px;"><span>TOTAL:</span> <span>$${formatMoney(t.financials.total)}</span></div>
+            </div>
+            <div style="border-top: 1px dashed #ccc; margin: 8px 0;"></div>
+            <div style="font-size: 12px; text-align: left;">${paymentHTML}</div>
+            <div style="border-top: 1px dashed #ccc; margin: 8px 0;"></div>
+            <div style="text-align: center; font-size: 10px; color: #666; padding-top: 5px;">
+                <div>✨ ¡Gracias por tu compra! ✨</div>
+                <div style="margin-top: 4px;">App Delivery Tracker</div>
+            </div>
+        </div>`;
+
+        // Detectar si podemos compartir vía link (necesitamos deliveryId)
+        const canShare = !!deliveryId;
+
+        Swal.fire({
+            html: ticketHTML,
+            showCloseButton: true,
+            showCancelButton: true,
+            showConfirmButton: canShare,
+            confirmButtonText: '<i class="fas fa-share-alt"></i> Compartir con cliente',
+            cancelButtonText: 'Cerrar',
+            confirmButtonColor: '#25D366',
+            cancelButtonColor: '#6b7280',
+            background: '#f3f4f6',
+            width: 'auto',
+            customClass: {
+                htmlContainer: 'm-0 p-0',
+                popup: 'rounded-3xl p-4 shadow-xl',
+                confirmButton: 'w-full mb-2 py-3 rounded-xl font-bold shadow-md shadow-green-500/30 text-white',
+                cancelButton: 'w-full py-3 rounded-xl font-bold'
+            },
+            buttonsStyling: true
+        }).then(async (result) => {
+            if (result.isConfirmed && canShare) {
+                await shareTicketWithCustomer(deliveryId, t);
+            }
+        });
+    } catch (error) {
+        console.error("Error cargando ticket:", error);
+        Swal.fire('Error', 'No se pudo cargar la información del ticket. Intenta de nuevo.', 'error');
+    }
+}
+
+/**
+ * Genera el link público en el backend y muestra opciones para compartirlo.
+ */
+async function shareTicketWithCustomer(deliveryId, ticket) {
+    Swal.fire({
+        title: 'Generando enlace...',
+        text: 'Preparando link para el cliente',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+    });
+
+    try {
+        const res = await fetch(`/api/vinapp/share-ticket/${deliveryId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (!checkSession(res)) return;
+
+        const data = await res.json();
+
+        if (!data.success || !data.url) {
+            return Swal.fire('Error', data.error || 'No se pudo generar el enlace', 'error');
+        }
+
+        const url = data.url;
+        const expiresAt = data.expiresAt ? new Date(data.expiresAt) : null;
+        const expiresStr = expiresAt ? expiresAt.toLocaleDateString('es-CO', { day: '2-digit', month: 'long', year: 'numeric' }) : '';
+        const invoiceNumber = ticket?.order?.invoiceNumber || '';
+        const customerName = ticket?.customer?.name || 'Cliente';
+        const customerPhone = (ticket?.customer?.phone || '').replace(/\D/g, '');
+        const waPhone = customerPhone ? (customerPhone.startsWith('57') ? customerPhone : '57' + customerPhone) : '';
+
+        const messageText = `Hola ${customerName}, aquí está el ticket de tu pedido ${invoiceNumber}: ${url}`;
+        const waUrl = waPhone
+            ? `https://wa.me/${waPhone}?text=${encodeURIComponent(messageText)}`
+            : `https://wa.me/?text=${encodeURIComponent(messageText)}`;
+
+        await Swal.fire({
+            title: 'Enlace listo',
+            html: `
+                <div class="text-left space-y-3">
+                    <p class="text-sm text-gray-600">
+                        Comparte este enlace con el cliente. Podrá ver y descargar su ticket en PDF.
+                    </p>
+                    <div class="bg-gray-50 p-3 rounded-xl border border-gray-200">
+                        <input id="share-url-input" type="text" value="${url}" readonly
+                            class="w-full bg-transparent text-xs text-gray-700 font-mono focus:outline-none" />
+                    </div>
+                    ${expiresStr ? `<p class="text-xs text-gray-500 text-center">
+                        <i class="fas fa-clock"></i> Caduca el <b>${expiresStr}</b>
+                    </p>` : ''}
+                </div>
+            `,
+            showCancelButton: true,
+            showConfirmButton: true,
+            confirmButtonText: '<i class="fas fa-copy"></i> Copiar enlace',
+            cancelButtonText: 'Cerrar',
+            confirmButtonColor: '#4f46e5',
+            cancelButtonColor: '#6b7280',
+            didOpen: () => {
+                const input = document.getElementById('share-url-input');
+                if (input) input.select();
+            },
+            preConfirm: async () => {
+                const input = document.getElementById('share-url-input');
+                if (!input) return false;
+                input.select();
+                try {
+                    if (navigator.clipboard && window.isSecureContext) {
+                        await navigator.clipboard.writeText(url);
+                    } else {
+                        document.execCommand('copy');
+                    }
+                    return true;
+                } catch {
+                    return false;
+                }
+            }
+        }).then(async (shareResult) => {
+            if (shareResult.isConfirmed) {
+                // Toast de éxito
+                const Toast = Swal.mixin({
+                    toast: true, position: 'top-end',
+                    showConfirmButton: false, timer: 2000, timerProgressBar: true
+                });
+                Toast.fire({ icon: 'success', title: 'Enlace copiado' });
+
+                // Ofrecer compartir vía WhatsApp / Web Share
+                setTimeout(async () => {
+                    const canNativeShare = !!navigator.share;
+                    await Swal.fire({
+                        title: '¿Enviar al cliente?',
+                        html: `<p class="text-sm text-gray-600">Elige cómo compartir el enlace:</p>`,
+                        showCancelButton: true,
+                        showConfirmButton: true,
+                        showDenyButton: !!waPhone || canNativeShare,
+                        confirmButtonText: '<i class="fab fa-whatsapp"></i> WhatsApp',
+                        denyButtonText: canNativeShare ? '<i class="fas fa-share-nodes"></i> Otras apps' : 'Cerrar',
+                        cancelButtonText: 'Listo',
+                        confirmButtonColor: '#25D366',
+                        denyButtonColor: '#4f46e5',
+                        cancelButtonColor: '#9ca3af'
+                    }).then(async (r) => {
+                        if (r.isConfirmed) {
+                            window.open(waUrl, '_blank');
+                        } else if (r.isDenied && canNativeShare) {
+                            try {
+                                await navigator.share({
+                                    title: `Ticket ${invoiceNumber}`,
+                                    text: messageText,
+                                    url: url
+                                });
+                            } catch (err) {
+                                // Usuario canceló o error, ignorar
+                            }
+                        }
+                    });
+                }, 300);
+            }
+        });
+    } catch (error) {
+        console.error('Error generando link:', error);
+        Swal.fire('Error', 'No se pudo generar el enlace para compartir', 'error');
+    }
 }
 
 function copyToClipboard(text, btnElement) {
