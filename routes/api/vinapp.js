@@ -270,7 +270,7 @@ router.post('/import', requireAuth, async (req, res) => {
         
         try {
             const ticketRes = await fetch(
-                `${config.dominio}/api/vinapp/ticket/${deliveryData.idOrder}`,
+                `${info.dominio}/api/vinapp/ticket/${deliveryData.idOrder}`,
                 { headers: { Cookie: req.headers.cookie || '' } } // pasa la sesión
             );
             if (ticketRes.ok) {
@@ -505,7 +505,7 @@ router.post('/share-ticket/:deliveryId', requireAuth, async (req, res) => {
         if (delivery.shareToken && delivery.shareExpiresAt && delivery.shareExpiresAt > new Date()) {
             return res.json({
                 success: true,
-                url: `${config.dominio}/t/${delivery.shareToken}`,
+                url: `${info.dominio}/t/${delivery.shareToken}`,
                 expiresAt: delivery.shareExpiresAt,
                 reused: true
             });
@@ -538,7 +538,7 @@ router.post('/share-ticket/:deliveryId', requireAuth, async (req, res) => {
             if (!snapshot) {
                 try {
                     const r = await fetch(
-                        `${config.dominio}/api/vinapp/ticket/${invoice}`,
+                        `${info.dominio}/api/vinapp/ticket/${invoice}`,
                         { headers: { Cookie: req.headers.cookie || '' } }
                     );
                     if (r.ok) {
