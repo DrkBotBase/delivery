@@ -79,10 +79,10 @@ function renderTicketPage(t, expiresAt) {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ticket ${escapeHtml(t.order.invoiceNumber)}</title>
+<title>Resumen de pedido ${escapeHtml(t.order.invoiceNumber)}</title>
 
-<meta property="og:title" content="Ticket ${escapeHtml(t.order.invoiceNumber)}">
-<meta property="og:description" content="Encuentra acá los detalles de tu pedido.">
+<meta property="og:title" content="Resumen de pedido ${escapeHtml(t.order.invoiceNumber)}">
+<meta property="og:description" content="Consulta los detalles de tu pedido.">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
@@ -93,71 +93,93 @@ function renderTicketPage(t, expiresAt) {
         display: flex; flex-direction: column; align-items: center;
         min-height: 100vh;
     }
-#ticket {
-    font-family: 'Courier New', monospace; color: #000;
-    background: #fff; padding: 22px 20px; max-width: 420px; width: 100%;
-    border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    line-height: 1.35;
-}
+    #ticket {
+        font-family: 'Courier New', monospace; color: #000;
+        background: #fff; padding: 22px 20px; max-width: 420px; width: 100%;
+        border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        line-height: 1.35;
+    }
     .header { text-align: center; border-bottom: 1px dashed #ccc; padding-bottom: 12px; margin-bottom: 12px; }
     .header h1 { font-size: 18px; margin: 0 0 6px; letter-spacing: 2px; }
     .header .rest-name { font-size: 15px; font-weight: bold; }
     .header .rest-info { font-size: 11px; color: #666; }
+
+    /* Banner de aviso */
+    .disclaimer-banner {
+        background: #fff7ed;
+        border: 1px solid #fed7aa;
+        color: #9a3412;
+        font-size: 11px;
+        padding: 8px 10px;
+        border-radius: 8px;
+        text-align: center;
+        margin-bottom: 12px;
+        line-height: 1.4;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    .disclaimer-banner b { font-weight: 700; }
+
     .section { font-size: 12px; margin-bottom: 10px; }
     .row { display: flex; justify-content: space-between; margin-bottom: 4px; }
     .divider { border-top: 1px dashed #ccc; margin: 10px 0; }
-.products {
-    width: 100%;
-    font-size: 12px;
-}
-.products-header {
-    display: grid;
-    grid-template-columns: 1fr 30px 70px 70px;
-    gap: 6px;
-    font-weight: bold;
-    font-size: 11px;
-    border-bottom: 1px solid #ccc;
-    padding-bottom: 6px;
-    margin-bottom: 8px;
-}
-.product-row {
-    display: grid;
-    grid-template-columns: 1fr 30px 70px 70px;
-    gap: 6px;
-    align-items: start;
-    padding: 4px 0;
-    border-bottom: 1px dashed #eee;
-}
-.product-row:last-child { border-bottom: none; }
-.product-name {
-    word-break: break-word;
-    line-height: 1.3;
-}
-.product-qty  { text-align: center; }
-.product-price,
-.product-total {
-    text-align: right;
-    white-space: nowrap;
-}
-.product-total { font-weight: bold; }
-.obs {
-    font-size: 10px;
-    color: #666;
-    padding-left: 6px;
-    margin: 2px 0 6px;
-    line-height: 1.3;
-}
-.totals { font-size: 13px; margin-bottom: 6px; }
-.totals .row { display: flex; justify-content: space-between; margin-bottom: 6px; }
-.totals .total-row {
-    font-size: 16px; font-weight: bold;
-    border-top: 1px solid #000;
-    margin-top: 8px;
-    padding-top: 8px;
-}
+
+    .products { width: 100%; font-size: 12px; }
+    .products-header {
+        display: grid;
+        grid-template-columns: 1fr 30px 70px 70px;
+        gap: 6px;
+        font-weight: bold;
+        font-size: 11px;
+        border-bottom: 1px solid #ccc;
+        padding-bottom: 6px;
+        margin-bottom: 8px;
+    }
+    .product-row {
+        display: grid;
+        grid-template-columns: 1fr 30px 70px 70px;
+        gap: 6px;
+        align-items: start;
+        padding: 4px 0;
+        border-bottom: 1px dashed #eee;
+    }
+    .product-row:last-child { border-bottom: none; }
+    .product-name { word-break: break-word; line-height: 1.3; }
+    .product-qty  { text-align: center; }
+    .product-price,
+    .product-total { text-align: right; white-space: nowrap; }
+    .product-total { font-weight: bold; }
+    .obs {
+        font-size: 10px;
+        color: #666;
+        padding-left: 6px;
+        margin: 2px 0 6px;
+        line-height: 1.3;
+    }
+    .totals { font-size: 13px; margin-bottom: 6px; }
+    .totals .row { display: flex; justify-content: space-between; margin-bottom: 6px; }
+    .totals .total-row {
+        font-size: 16px; font-weight: bold;
+        border-top: 1px solid #000;
+        margin-top: 8px;
+        padding-top: 8px;
+    }
     .footer { text-align: center; font-size: 10px; color: #666; padding-top: 8px; }
+
+    /* Descargo legal */
+    .legal {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-size: 9px;
+        color: #9ca3af;
+        text-align: center;
+        line-height: 1.45;
+        margin-top: 12px;
+        padding-top: 10px;
+        border-top: 1px solid #f3f4f6;
+    }
+    .legal b { color: #6b7280; font-weight: 600; }
+
     .actions {
-        max-width: 380px; width: 100%; margin-top: 16px;
+        max-width: 420px; width: 100%; margin-top: 16px;
         display: flex; flex-direction: column; gap: 10px;
     }
     .btn {
@@ -169,7 +191,7 @@ function renderTicketPage(t, expiresAt) {
     .btn:active { transform: scale(0.97); }
     .btn-primary { background: #25D366; color: #fff; box-shadow: 0 4px 10px rgba(37,211,102,0.3); }
     .notice {
-        max-width: 380px; width: 100%; margin-top: 12px;
+        max-width: 420px; width: 100%; margin-top: 12px;
         text-align: center; font-size: 12px; color: #6b7280;
     }
 </style>
@@ -177,11 +199,16 @@ function renderTicketPage(t, expiresAt) {
 <body>
     <div id="ticket">
         <div class="header">
-            <h1>📋 FACTURA</h1>
+            <h1>📋 RESUMEN DE PEDIDO</h1>
             <div class="rest-name">${escapeHtml(t.restaurant.name)}</div>
             <div class="rest-info">${escapeHtml(t.restaurant.address || '')}</div>
             <div class="rest-info">${t.restaurant.phone ? 'Tel: ' + escapeHtml(t.restaurant.phone) : ''}</div>
         </div>
+
+        <!-- <div class="disclaimer-banner">
+            ⚠️ <b>Este documento no es una factura digital.</b><br>
+            Es únicamente un resumen informativo de tu pedido.
+        </div> -->
 
         <div class="section">
             <div class="row"><b>Factura:</b> <span>${escapeHtml(t.order.invoiceNumber)}</span></div>
@@ -211,22 +238,33 @@ function renderTicketPage(t, expiresAt) {
 
         <div class="divider"></div>
 
-<div class="totals">
-    <div class="row"><span>SUBTOTAL:</span> <span>$${formatMoney(t.financials.subtotal)}</span></div>
-    <div class="row"><span>DOMICILIO:</span> <span>$${formatMoney(t.financials.shipping)}</span></div>
-    <div class="row total-row"><span>TOTAL:</span> <span>$${formatMoney(t.financials.total)}</span></div>
-</div>
+        <div class="totals">
+            <div class="row"><span>SUBTOTAL:</span> <span>$${formatMoney(t.financials.subtotal)}</span></div>
+            <div class="row"><span>DOMICILIO:</span> <span>$${formatMoney(t.financials.shipping)}</span></div>
+            <div class="row total-row"><span>TOTAL:</span> <span>$${formatMoney(t.financials.total)}</span></div>
+        </div>
 
         <div class="divider"></div>
 
         <div class="footer">
             <div>✨ ¡Gracias por tu compra! ✨</div>
         </div>
+
+        <div class="legal">
+            <b>Aviso legal:</b> Este documento es un resumen generado automáticamente
+            con fines informativos y de consulta para el cliente. <b>No constituye
+            una factura electrónica, comprobante fiscal, ni documento equivalente</b>
+            según la normativa tributaria vigente (DIAN u otra autoridad competente).
+            Los valores aquí presentados provienen del sistema del comercio y pueden
+            variar respecto al comprobante oficial emitido por el establecimiento.
+            Para efectos fiscales, garantías o reclamaciones, solicite la factura
+            oficial directamente al restaurante.
+        </div>
     </div>
 
     <div class="actions">
         <button class="btn btn-primary" onclick="downloadPdf()">
-            📄 Descargar ticket en PDF
+            📄 Descargar resumen en PDF
         </button>
     </div>
 
@@ -249,7 +287,7 @@ function renderTicketPage(t, expiresAt) {
         try {
             await html2pdf().set({
                 margin: 5,
-                filename: 'ticket-' + invoice + '.pdf',
+                filename: 'resumen-' + invoice + '.pdf',
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
                 jsPDF: { unit: 'mm', format: 'a5', orientation: 'portrait' }
