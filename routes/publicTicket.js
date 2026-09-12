@@ -19,7 +19,7 @@ router.get('/t/:token', async (req, res) => {
                 'Pide a tu domiciliario que genere uno nuevo.'
             ));
         }
-
+        
         res.set('Cache-Control', 'private, max-age=1800'); // 30 min de cache
         res.send(renderTicketPage(delivery.ticketSnapshot, delivery.shareExpiresAt));
     } catch (error) {
@@ -241,7 +241,13 @@ function renderTicketPage(t, expiresAt) {
         <div class="totals">
             <div class="row"><span>SUBTOTAL:</span> <span>$${formatMoney(t.financials.subtotal)}</span></div>
             <div class="row"><span>DOMICILIO:</span> <span>$${formatMoney(t.financials.shipping)}</span></div>
+            ${(t.financials.payments || []).map(p => `
+                <div class="row"><span>${escapeHtml(p.method)}:</span> <span>$${formatMoney(p.amount)}</span></div>
+            `).join('')}
             <div class="row total-row"><span>TOTAL:</span> <span>$${formatMoney(t.financials.total)}</span></div>
+            ${(t.financials.change && t.financials.change > 0) ? `
+                <div class="row"><span>Cambio:</span> <span>$${formatMoney(t.financials.change)}</span></div>
+            ` : ''}
         </div>
 
         <div class="divider"></div>

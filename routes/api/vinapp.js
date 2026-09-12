@@ -85,6 +85,24 @@ function mapProviderOrderToDelivery(order, provider) {
 }
 
 function mapProviderOrderToTicket(order, provider) {
+    const payments = [];
+    const cashAmount = parseFloat(order.cashAmount || 0);
+    const transferAmount = parseFloat(order.transferAmount || 0);
+
+    if (cashAmount > 0) {
+        payments.push({ method: 'Efectivo', amount: cashAmount });
+    }
+    if (transferAmount > 0) {
+        payments.push({ method: 'Transferencia', amount: transferAmount });
+    }
+    
+    // Fallback if no specific amounts found but method is defined
+    if (payments.length === 0 && order.paymentMethod) {
+        payments.push({ method: order.paymentMethod, amount: order.total || 0 });
+    }
+
+    const totalPaid = cashAmount + transferAmount;
+    
     return {
         provider: provider.name,
         restaurant: {
@@ -106,13 +124,10 @@ function mapProviderOrderToTicket(order, provider) {
             subtotal: order.subtotal || 0,
             shipping: order.shippingCost || 0,
             total: order.total || 0,
-            payments: [{
-                method: order.paymentMethod || 'Pago',
-                amount: order.total || 0
-            }],
-            totalPaid: order.total || 0,
-            customerGivenAmount: order.cashAmount || order.total || 0,
-            change: (order.cashAmount > order.total) ? (order.cashAmount - order.total) : 0
+            payments: payments,
+            totalPaid: totalPaid,
+            customerGivenAmount: totalPaid,
+            change: (totalPaid > order.total) ? (totalPaid - order.total) : 0
         },
         products: (order.items || []).map(item => ({
             name: item.name,
