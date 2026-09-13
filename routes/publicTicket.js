@@ -81,7 +81,7 @@ function renderTicketPage(t, expiresAt) {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${escapeHtml(t.restaurant.name)}</title>
 
-<meta property="og:title" content="Resumen de pedido ${escapeHtml(t.restaurant.name)}">
+<meta property="og:title" content="${escapeHtml(t.restaurant.name)}">
 <meta property="og:description" content="Consulta los detalles de tu pedido.">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
