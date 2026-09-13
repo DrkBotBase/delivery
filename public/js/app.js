@@ -1136,7 +1136,7 @@ async function shareTicketWithCustomer(deliveryId, ticket) {
         const customerPhone = (ticket?.customer?.phone || '').replace(/\D/g, '');
         const waPhone = customerPhone ? (customerPhone.startsWith('57') ? customerPhone : '57' + customerPhone) : '';
 
-        const messageText = `Hola ${customerName}, aquí está el ticket de tu pedido ${invoiceNumber}: ${url}`;
+        const messageText = `Hola ${customerName}, aquí está el ticket de tu pedido:\n${url}`;
         const waUrl = waPhone
             ? `https://wa.me/${waPhone}?text=${encodeURIComponent(messageText)}`
             : `https://wa.me/?text=${encodeURIComponent(messageText)}`;
