@@ -62,7 +62,12 @@ function renderTicketPage(t, expiresAt) {
 
     const productsHTML = (t.products || []).map(p => `
       <div class="product-row">
-          <span class="product-name">${escapeHtml(p.name)}</span>
+          <span class="product-name">
+              ${escapeHtml(p.name)}
+              ${(p.adicionales && p.adicionales.length > 0) ? 
+                  `<div style="font-size: 10px; color: #555;">${p.adicionales.map(a => escapeHtml(a.name)).join(', ')}</div>` : 
+                  ''}
+          </span>
           <span class="product-qty">${p.quantity}</span>
           <span class="product-price">$${formatMoney(p.unitPrice)}</span>
           <span class="product-total">$${formatMoney(p.subtotal)}</span>

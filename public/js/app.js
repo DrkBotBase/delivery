@@ -1004,7 +1004,12 @@ async function viewDigitalInvoice(idOrder, invoiceNumber = '', deliveryId = null
         let productsHTML = '';
         (t.products || []).forEach(p => {
             productsHTML += `<div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
-                <span style="flex: 2; text-align: left; padding-right: 5px;">${p.name}</span>
+                <span style="flex: 2; text-align: left; padding-right: 5px;">
+                    ${p.name}
+                    ${(p.adicionales && p.adicionales.length > 0) ? 
+                        `<div style="font-size: 10px; color: #555;">${p.adicionales.map(a => a.name).join(', ')}</div>` : 
+                        ''}
+                </span>
                 <span style="width: 25px; text-align: center;">${p.quantity}</span>
                 <span style="width: 55px; text-align: right;">$${formatMoney(p.unitPrice)}</span>
                 <span style="width: 60px; text-align: right; font-weight: bold;">$${formatMoney(p.subtotal)}</span>
@@ -1142,86 +1147,50 @@ async function shareTicketWithCustomer(deliveryId, ticket) {
             : `https://wa.me/?text=${encodeURIComponent(messageText)}`;
 
         await Swal.fire({
-            title: 'Enlace listo',
+            title: 'Enlace generado',
             html: `
                 <div class="text-left space-y-3">
                     <p class="text-sm text-gray-600">
-                        Comparte este enlace con el cliente. Podrá ver y descargar su ticket en PDF.
+                        El enlace ha sido generado. Puedes compartirlo directamente con el cliente.
                     </p>
                     <div class="bg-gray-50 p-3 rounded-xl border border-gray-200">
                         <input id="share-url-input" type="text" value="${url}" readonly
                             class="w-full bg-transparent text-xs text-gray-700 font-mono focus:outline-none" />
                     </div>
-                    ${expiresStr ? `<p class="text-xs text-gray-500 text-center">
-                        <i class="fas fa-clock"></i> Caduca el <b>${expiresStr}</b>
-                    </p>` : ''}
+                    ${expiresStr ? `<p class="text-xs text-gray-500 text-center"><i class="fas fa-clock"></i> Caduca el <b>${expiresStr}</b></p>` : ''}
                 </div>
             `,
             showCancelButton: true,
             showConfirmButton: true,
-            confirmButtonText: '<i class="fas fa-copy"></i> Copiar enlace',
+            showDenyButton: true,
+            confirmButtonText: '<i class="fab fa-whatsapp"></i> WhatsApp',
+            denyButtonText: '<i class="fas fa-copy"></i> Copiar',
             cancelButtonText: 'Cerrar',
-            confirmButtonColor: '#4f46e5',
+            confirmButtonColor: '#25D366',
+            denyButtonColor: '#4f46e5',
             cancelButtonColor: '#6b7280',
-            didOpen: () => {
+        }).then(async (result) => {
+            if (result.isConfirmed) { // WhatsApp
+                window.open(waUrl, '_blank');
+            } else if (result.isDenied) { // Copiar
                 const input = document.getElementById('share-url-input');
-                if (input) input.select();
-            },
-            preConfirm: async () => {
-                const input = document.getElementById('share-url-input');
-                if (!input) return false;
-                input.select();
-                try {
-                    if (navigator.clipboard && window.isSecureContext) {
-                        await navigator.clipboard.writeText(url);
-                    } else {
-                        document.execCommand('copy');
-                    }
-                    return true;
-                } catch {
-                    return false;
-                }
-            }
-        }).then(async (shareResult) => {
-            if (shareResult.isConfirmed) {
-                // Toast de éxito
-                const Toast = Swal.mixin({
-                    toast: true, position: 'top-end',
-                    showConfirmButton: false, timer: 2000, timerProgressBar: true
-                });
-                Toast.fire({ icon: 'success', title: 'Enlace copiado' });
-
-                // Ofrecer compartir vía WhatsApp / Web Share
-                setTimeout(async () => {
-                    const canNativeShare = !!navigator.share;
-                    await Swal.fire({
-                        title: '¿Enviar al cliente?',
-                        html: `<p class="text-sm text-gray-600">Elige cómo compartir el enlace:</p>`,
-                        showCancelButton: true,
-                        showConfirmButton: true,
-                        showDenyButton: !!waPhone || canNativeShare,
-                        confirmButtonText: '<i class="fab fa-whatsapp"></i> WhatsApp',
-                        denyButtonText: canNativeShare ? '<i class="fas fa-share-nodes"></i> Otras apps' : 'Cerrar',
-                        cancelButtonText: 'Listo',
-                        confirmButtonColor: '#25D366',
-                        denyButtonColor: '#4f46e5',
-                        cancelButtonColor: '#9ca3af'
-                    }).then(async (r) => {
-                        if (r.isConfirmed) {
-                            window.open(waUrl, '_blank');
-                        } else if (r.isDenied && canNativeShare) {
-                            try {
-                                await navigator.share({
-                                    title: `Ticket ${invoiceNumber}`,
-                                    text: messageText,
-                                    url: url
-                                });
-                            } catch (err) {
-                                // Usuario canceló o error, ignorar
-                            }
+                if (input) {
+                    input.select();
+                    try {
+                        if (navigator.clipboard && window.isSecureContext) {
+                            await navigator.clipboard.writeText(url);
+                        } else {
+                            document.execCommand('copy');
                         }
-                    });
-                }, 300);
+                        const Toast = Swal.mixin({
+                            toast: true, position: 'top-end',
+                            showConfirmButton: false, timer: 2000, timerProgressBar: true
+                        });
+                        Toast.fire({ icon: 'success', title: 'Enlace copiado' });
+                    } catch (e) {
+                        console.error('Error al copiar:', e);
+                    }
+                }
             }
         });
     } catch (error) {

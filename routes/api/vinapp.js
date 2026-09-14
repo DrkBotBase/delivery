@@ -79,7 +79,8 @@ function mapProviderOrderToDelivery(order, provider) {
             quantity: item.quantity,
             unitPrice: item.price,
             subtotal: item.price * item.quantity,
-            observations: item.instructions || ''
+            observations: item.instructions || '',
+            adicionales: item.adicionales || []
         })),
     };
 }
@@ -134,7 +135,8 @@ function mapProviderOrderToTicket(order, provider) {
             quantity: item.quantity,
             unitPrice: item.price,
             subtotal: item.price * item.quantity,
-            observations: item.instructions || ''
+            observations: item.instructions || '',
+            adicionales: item.adicionales || []
         }))
     };
 }
