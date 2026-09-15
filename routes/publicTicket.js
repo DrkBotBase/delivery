@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const Delivery = require('../models/Delivery');
 
-// GET /t/:token  → página pública del ticket
 router.get('/t/:token', async (req, res) => {
     try {
         const { token } = req.params;
@@ -28,9 +27,6 @@ router.get('/t/:token', async (req, res) => {
     }
 });
 
-// ─────────────────────────────────────────────
-// Helpers de render
-// ─────────────────────────────────────────────
 function formatMoney(n) {
     return new Intl.NumberFormat('es-CO').format(n || 0);
 }
@@ -94,35 +90,103 @@ function renderTicketPage(t, expiresAt) {
     * { box-sizing: border-box; }
     body {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        background: #f3f4f6; margin: 0; padding: 20px;
+        background: #eef2f5; margin: 0; padding: 20px;
         display: flex; flex-direction: column; align-items: center;
         min-height: 100vh;
     }
+
+    /* === MÁSCARA Y CONTENEDOR DE LA IMPRESORA === */
+    .printer-wrapper {
+        position: relative;
+        max-width: 420px;
+        width: 100%;
+        margin-top: 20px;
+        /* Máscara: todo lo que sobresalga por arriba queda oculto */
+        overflow: hidden; 
+        padding-top: 30px; /* Espacio para que la impresora quepa arriba */
+    }
+
+    /* La impresora física */
+    .printer-head {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100%;
+        height: 34px;
+        background: linear-gradient(180deg, #2c3036 0%, #17191c 100%);
+        border-radius: 12px;
+        box-shadow: 0 8px 18px rgba(0,0,0,0.25);
+        z-index: 10; /* Siempre sobre el ticket */
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        padding-bottom: 4px;
+    }
+
+    /* Ranura por donde sale el ticket */
+    .printer-slot {
+        width: 90%;
+        height: 4px;
+        background: #000;
+        border-radius: 2px;
+        box-shadow: inset 0 1px 2px rgba(255,255,255,0.2);
+    }
+
+    /* Luces LED indicadoras en la impresora */
+    .printer-head::before {
+        content: '';
+        position: absolute;
+        top: 8px;
+        right: 18px;
+        width: 6px;
+        height: 6px;
+        background: #10b981;
+        border-radius: 50%;
+        box-shadow: 0 0 6px #10b981;
+    }
+
+    /* === ANIMACIÓN DEL TICKET === */
     #ticket {
         font-family: 'Courier New', monospace; color: #000;
-        background: #fff; padding: 22px 20px; max-width: 420px; width: 100%;
-        border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        background: #fff; padding: 22px 20px 30px 20px; 
+        width: 100%;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.08);
         line-height: 1.35;
+        
+        /* Estado inicial: Escondido arriba dentro de la impresora */
+        transform: translateY(-100%);
+        opacity: 0;
+
+        /* Animación fluida de salida */
+        animation: printReceipt 1.4s cubic-bezier(0.15, 0.85, 0.35, 1.2) forwards;
+        animation-delay: 0.3s;
+
+        /* Borde recortado inferior estilo ticket */
+        mask-image: radial-gradient(circle 5px at 10px 100%, transparent 100%, #000 100%);
+        mask-size: 20px 100%;
+        -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 8px), transparent 100%),
+                            repeating-linear-gradient(-45deg, black, black 5px, transparent 5px, transparent 10px);
     }
+
+    @keyframes printReceipt {
+        0% {
+            transform: translateY(-100%);
+            opacity: 0;
+        }
+        15% {
+            opacity: 1;
+        }
+        100% {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
     .header { text-align: center; border-bottom: 1px dashed #ccc; padding-bottom: 12px; margin-bottom: 12px; }
     .header h1 { font-size: 18px; margin: 0 0 6px; letter-spacing: 2px; }
     .header .rest-name { font-size: 15px; font-weight: bold; }
     .header .rest-info { font-size: 11px; color: #666; }
-
-    /* Banner de aviso */
-    .disclaimer-banner {
-        background: #fff7ed;
-        border: 1px solid #fed7aa;
-        color: #9a3412;
-        font-size: 11px;
-        padding: 8px 10px;
-        border-radius: 8px;
-        text-align: center;
-        margin-bottom: 12px;
-        line-height: 1.4;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
-    .disclaimer-banner b { font-weight: 700; }
 
     .section { font-size: 12px; margin-bottom: 10px; }
     .row { display: flex; justify-content: space-between; margin-bottom: 4px; }
@@ -170,7 +234,6 @@ function renderTicketPage(t, expiresAt) {
     }
     .footer { text-align: center; font-size: 10px; color: #666; padding-top: 8px; }
 
-    /* Descargo legal */
     .legal {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         font-size: 9px;
@@ -191,7 +254,7 @@ function renderTicketPage(t, expiresAt) {
         padding: 14px; border-radius: 12px; border: none;
         font-size: 15px; font-weight: bold; cursor: pointer;
         display: flex; align-items: center; justify-content: center; gap: 8px;
-        transition: transform 0.1s;
+        transition: transform 0.1s, background 0.2s;
     }
     .btn:active { transform: scale(0.97); }
     .btn-primary { background: #25D366; color: #fff; box-shadow: 0 4px 10px rgba(37,211,102,0.3); }
@@ -202,79 +265,82 @@ function renderTicketPage(t, expiresAt) {
 </style>
 </head>
 <body>
-    <div id="ticket">
-        <div class="header">
-            <h1>📋 RESUMEN DE PEDIDO</h1>
-            <div class="rest-name">${escapeHtml(t.restaurant.name)}</div>
-            <div class="rest-info">${escapeHtml(t.restaurant.address || '')}</div>
-            <div class="rest-info">${t.restaurant.phone ? 'Tel: ' + escapeHtml(t.restaurant.phone) : ''}</div>
+
+    <!-- Envoltorio de la impresora con la animación -->
+    <div class="printer-wrapper">
+        <div class="printer-head">
+            <div class="printer-slot"></div>
         </div>
 
-        <!-- <div class="disclaimer-banner">
-            ⚠️ <b>Este documento no es una factura digital.</b><br>
-            Es únicamente un resumen informativo de tu pedido.
-        </div> -->
-
-        <div class="section">
-            <div class="row"><b>Factura:</b> <span>${escapeHtml(t.order.invoiceNumber)}</span></div>
-            <div class="row"><b>Pedido #:</b> <span>${escapeHtml(t.order.id)}</span></div>
-            <div class="row"><b>Fecha:</b> <span>${formatDate(t.order.date)}</span></div>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="section">
-            <div class="row"><b>Cliente:</b> <span>${escapeHtml(t.customer.name)}</span></div>
-            <div class="row"><b>Teléfono:</b> <span>${escapeHtml(t.customer.phone)}</span></div>
-            <div class="row"><b>Dirección:</b> <span style="text-align:right;max-width:65%;">${escapeHtml(t.customer.address)}</span></div>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="products">
-            <div class="products-header">
-                <span>Producto</span>
-                <span style="text-align:center;">Cant</span>
-                <span style="text-align:right;">Precio</span>
-                <span style="text-align:right;">Total</span>
+        <div id="ticket">
+            <div class="header">
+                <h1>📋 RESUMEN DE PEDIDO</h1>
+                <div class="rest-name">${escapeHtml(t.restaurant.name)}</div>
+                <div class="rest-info">${escapeHtml(t.restaurant.address || '')}</div>
+                <div class="rest-info">${t.restaurant.phone ? 'Tel: ' + escapeHtml(t.restaurant.phone) : ''}</div>
             </div>
-            ${productsHTML}
-        </div>
 
-        <div class="divider"></div>
+            <div class="section">
+                <div class="row"><b>Factura:</b> <span>${escapeHtml(t.order.invoiceNumber)}</span></div>
+                <div class="row"><b>Pedido #:</b> <span>${escapeHtml(t.order.id)}</span></div>
+                <div class="row"><b>Fecha:</b> <span>${formatDate(t.order.date)}</span></div>
+            </div>
 
-        <div class="totals">
-            <div class="row"><span>SUBTOTAL:</span> <span>$${formatMoney(t.financials.subtotal)}</span></div>
-            <div class="row"><span>DOMICILIO:</span> <span>$${formatMoney(t.financials.shipping)}</span></div>
-            ${(t.financials.payments || []).map(p => `
-                <div class="row"><span>${escapeHtml(p.method)}:</span> <span>$${formatMoney(p.amount)}</span></div>
-            `).join('')}
-            <div class="row total-row"><span>TOTAL:</span> <span>$${formatMoney(t.financials.total)}</span></div>
-            ${(t.financials.change && t.financials.change > 0) ? `
-                <div class="row"><span>Cambio:</span> <span>$${formatMoney(t.financials.change)}</span></div>
-            ` : ''}
-        </div>
+            <div class="divider"></div>
 
-        <div class="divider"></div>
+            <div class="section">
+                <div class="row"><b>Cliente:</b> <span>${escapeHtml(t.customer.name)}</span></div>
+                <div class="row"><b>Teléfono:</b> <span>${escapeHtml(t.customer.phone)}</span></div>
+                <div class="row"><b>Dirección:</b> <span style="text-align:right;max-width:65%;">${escapeHtml(t.customer.address)}</span></div>
+            </div>
 
-        <div class="footer">
-            <div>✨ ¡Gracias por tu compra! ✨</div>
-        </div>
+            <div class="divider"></div>
 
-        <div class="legal">
-            <b>Aviso legal:</b> Este documento es un resumen generado automáticamente
-            con fines informativos y de consulta para el cliente. <b>No constituye
-            una factura electrónica, comprobante fiscal, ni documento equivalente</b>
-            según la normativa tributaria vigente (DIAN u otra autoridad competente).
-            Los valores aquí presentados provienen del sistema del comercio y pueden
-            variar respecto al comprobante oficial emitido por el establecimiento.
-            Para efectos fiscales, garantías o reclamaciones, solicite la factura
-            oficial directamente al restaurante.
+            <div class="products">
+                <div class="products-header">
+                    <span>Producto</span>
+                    <span style="text-align:center;">Cant</span>
+                    <span style="text-align:right;">Precio</span>
+                    <span style="text-align:right;">Total</span>
+                </div>
+                ${productsHTML}
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="totals">
+                <div class="row"><span>SUBTOTAL:</span> <span>$${formatMoney(t.financials.subtotal)}</span></div>
+                <div class="row"><span>DOMICILIO:</span> <span>$${formatMoney(t.financials.shipping)}</span></div>
+                ${(t.financials.payments || []).map(p => `
+                    <div class="row"><span>${escapeHtml(p.method)}:</span> <span>$${formatMoney(p.amount)}</span></div>
+                `).join('')}
+                <div class="row total-row"><span>TOTAL:</span> <span>$${formatMoney(t.financials.total)}</span></div>
+                ${(t.financials.change && t.financials.change > 0) ? `
+                    <div class="row"><span>Cambio:</span> <span>$${formatMoney(t.financials.change)}</span></div>
+                ` : ''}
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="footer">
+                <div>✨ ¡Gracias por tu compra! ✨</div>
+            </div>
+
+            <div class="legal">
+                <b>Aviso legal:</b> Este documento es un resumen generado automáticamente
+                con fines informativos y de consulta para el cliente. <b>No constituye
+                una factura electrónica, comprobante fiscal, ni documento equivalente</b>
+                según la normativa tributaria vigente (DIAN u otra autoridad competente).
+                Los valores aquí presentados provienen del sistema del comercio y pueden
+                variar respecto al comprobante oficial emitido por el establecimiento.
+                Para efectos fiscales, garantías o reclamaciones, solicite la factura
+                oficial directamente al restaurante.
+            </div>
         </div>
     </div>
 
     <div class="actions">
-        <button class="btn btn-primary" onclick="downloadPdf()">
+        <button class="btn btn-primary" onclick="downloadPdf(event)">
             📄 Descargar resumen en PDF
         </button>
     </div>
@@ -286,11 +352,11 @@ function renderTicketPage(t, expiresAt) {
     </div>
 
 <script>
-    async function downloadPdf() {
+    async function downloadPdf(e) {
         const el = document.getElementById('ticket');
         const invoice = ${JSON.stringify(t.order.invoiceNumber)};
 
-        const btn = event.target.closest('button');
+        const btn = e ? e.target.closest('button') : document.querySelector('.btn-primary');
         const originalText = btn.innerHTML;
         btn.innerHTML = '⏳ Generando PDF...';
         btn.disabled = true;
@@ -318,23 +384,100 @@ function renderTicketPage(t, expiresAt) {
 
 function renderErrorPage(title, subtitle = '') {
     return `<!DOCTYPE html>
-<html lang="es"><head><meta charset="UTF-8">
+<html lang="es">
+<head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${escapeHtml(title)}</title>
 <style>
-    body { font-family: -apple-system, sans-serif; background: #f3f4f6; margin: 0;
-        display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
-    .card { background: #fff; padding: 32px; border-radius: 16px; text-align: center;
-        max-width: 380px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-    h1 { font-size: 20px; margin: 0 0 12px; color: #111; }
-    p { color: #6b7280; margin: 0; }
-</style></head>
+    * { box-sizing: border-box; }
+    body { 
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+        background: #eef2f5; 
+        margin: 0;
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        min-height: 100vh; 
+        padding: 20px; 
+    }
+    .card { 
+        background: #ffffff; 
+        padding: 40px 32px; 
+        border-radius: 20px; 
+        text-align: center;
+        max-width: 400px; 
+        width: 100%;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.06); 
+        animation: fadeIn 0.4s ease-out;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .icon-wrapper {
+        width: 64px;
+        height: 64px;
+        background: #fef2f2;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        color: #ef4444;
+    }
+    .icon-wrapper svg {
+        width: 32px;
+        height: 32px;
+    }
+    h1 { 
+        font-size: 20px; 
+        font-weight: 700;
+        margin: 0 0 8px; 
+        color: #1f2937; 
+    }
+    p { 
+        color: #6b7280; 
+        font-size: 14px;
+        line-height: 1.5;
+        margin: 0 0 24px; 
+    }
+    .btn-retry {
+        display: inline-block;
+        width: 100%;
+        padding: 12px 20px;
+        background: #1f2937;
+        color: #ffffff;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 600;
+        border-radius: 12px;
+        border: none;
+        cursor: pointer;
+        transition: background 0.2s, transform 0.1s;
+    }
+    .btn-retry:hover {
+        background: #111827;
+    }
+    .btn-retry:active {
+        transform: scale(0.98);
+    }
+</style>
+</head>
 <body>
     <div class="card">
+        <div class="icon-wrapper">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+        </div>
         <h1>${escapeHtml(title)}</h1>
-        ${subtitle ? `<p>${escapeHtml(subtitle)}</p>` : ''}
+        ${subtitle ? `<p>${escapeHtml(subtitle)}</p>` : '<p>No pudimos cargar la información del documento en este momento o el ticket caducó.</p>'}
+        <button class="btn-retry" onclick="window.location.reload()">Reintentar</button>
     </div>
-</body></html>`;
+</body>
+</html>`;
 }
+
 
 module.exports = router;
