@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="h-full">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="referrer" content="no-referrer-when-downgrade">
     <title><%= info.name_page %> | Ingreso</title>
     <link rel="icon" href="<%= info.dominio %>/icons/192.png" type="image/png">
@@ -36,31 +36,35 @@
     </script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
-        body { 
+        html, body {
+            height: 100%;
+            height: 100dvh;
+            overflow: hidden;
+            touch-action: manipulation;
             -webkit-tap-highlight-color: transparent; 
             font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
         }
         .g_id_signin iframe { margin: 0 auto !important; display: block !important; }
     </style>
 </head>
-<body class="bg-[#0b0e17] text-white min-h-screen flex flex-col justify-between items-center p-6 relative overflow-x-hidden">
+<body class="bg-[#0b0e17] text-white h-full w-full flex flex-col justify-between items-center px-6 pt-[env(safe-area-inset-top,1.5rem)] pb-[env(safe-area-inset-bottom,1rem)] relative select-none">
 
     <!-- Formas de fondo decorativas (Polígonos púrpuras) -->
     <div class="absolute -top-10 -left-10 w-40 h-40 bg-[#2d1b54] opacity-40 blur-2xl rounded-full pointer-events-none"></div>
     <div class="absolute top-1/4 -right-10 w-48 h-48 bg-[#431263] opacity-30 blur-2xl rounded-full pointer-events-none"></div>
     <div class="absolute -bottom-10 -left-10 w-48 h-48 bg-[#1e1238] opacity-50 blur-xl rounded-full pointer-events-none"></div>
 
-    <!-- Contenedor principal -->
-    <div class="w-full max-w-sm flex flex-col items-center z-10 my-auto">
+    <!-- Contenedor principal centrado -->
+    <div class="w-full max-w-sm flex-1 flex flex-col justify-center items-center z-10 py-2">
         
         <!-- Ilustración / Encabezado -->
-        <div class="flex flex-col items-center mb-8 text-center">
+        <div class="flex flex-col items-center mb-5 text-center">
             
             <!-- ESPACIO PARA TU LOGO PNG -->
-            <div class="relative mb-4">
-                <div class="w-50 h-50 flex items-center justify-center p-2">
+            <div class="relative mb-2">
+                <div class="w-50 h-50 sm:w-24 sm:h-24 flex items-center justify-center p-1">
                     <img 
-                        src="/avatars/login1.png" 
+                        src="/avatars/login1.png"  
                         alt="Logo <%= info.name_page %>" 
                         class="w-full h-full object-contain drop-shadow-[0_0_15px_rgba(108,40,243,0.5)]"
                     >
@@ -68,32 +72,32 @@
             </div>
             
             <!-- Títulos 
-            <p class="text-gray-300 text-sm font-medium tracking-wide">Delivery by</p>
+            <p class="text-gray-300 text-xs sm:text-sm font-medium tracking-wide">Delivery by</p>
             -->
-            <h1 class="text-3xl font-extrabold text-[#7c3aed] tracking-wider uppercase drop-shadow-md">
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-[#7c3aed] tracking-wider uppercase drop-shadow-md">
                 <%= info.name_page %>
             </h1>
-            <p class="text-gray-400 text-sm mt-1">Tu trabajo nos mueve</p>
+            <p class="text-gray-400 text-xs sm:text-sm mt-0.5">Tu trabajo nos mueve</p>
         </div>
 
         <!-- Formulario -->
-        <form id="loginForm" class="w-full space-y-4">
+        <form id="loginForm" class="w-full space-y-3.5">
             <!-- Campo Usuario / Correo -->
             <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
-                    <i class="far fa-user text-lg"></i>
+                    <i class="far fa-user text-base"></i>
                 </div>
                 <input type="text" name="username" placeholder="Correo o teléfono" required
-                    class="w-full pl-11 pr-4 py-3.5 bg-[#141927] border border-[#232a3e] text-white placeholder-gray-400 rounded-2xl focus:ring-2 focus:ring-[#7c3aed] focus:border-transparent focus:outline-none transition-all">
+                    class="w-full pl-11 pr-4 py-3 bg-[#141927] border border-[#232a3e] text-white placeholder-gray-400 rounded-2xl focus:ring-2 focus:ring-[#7c3aed] focus:border-transparent focus:outline-none transition-all text-sm">
             </div>
 
             <!-- Campo Contraseña -->
             <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
-                    <i class="fas fa-lock text-lg"></i>
+                    <i class="fas fa-lock text-base"></i>
                 </div>
                 <input type="password" id="passwordInput" name="password" placeholder="Contraseña" required
-                    class="w-full pl-11 pr-11 py-3.5 bg-[#141927] border border-[#232a3e] text-white placeholder-gray-400 rounded-2xl focus:ring-2 focus:ring-[#7c3aed] focus:border-transparent focus:outline-none transition-all">
+                    class="w-full pl-11 pr-11 py-3 bg-[#141927] border border-[#232a3e] text-white placeholder-gray-400 rounded-2xl focus:ring-2 focus:ring-[#7c3aed] focus:border-transparent focus:outline-none transition-all text-sm">
                 <button type="button" onclick="togglePassword()" class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-white transition">
                     <i class="far fa-eye" id="eyeIcon"></i>
                 </button>
@@ -101,13 +105,13 @@
 
             <!-- Botón Principal -->
             <button type="submit" 
-                class="w-full mt-2 bg-[#6c28f3] hover:bg-[#5b21d6] active:bg-[#4c1d95] text-white font-semibold py-3.5 rounded-2xl transition shadow-lg shadow-[#6c28f3]/25 active:scale-[0.99]">
+                class="w-full mt-1 bg-[#6c28f3] hover:bg-[#5b21d6] active:bg-[#4c1d95] text-white font-semibold py-3.5 rounded-2xl transition shadow-lg shadow-[#6c28f3]/25 active:scale-[0.98] text-sm">
                 Iniciar sesión
             </button>
         </form>
 
         <!-- Google Sign-In -->
-        <div class="flex flex-col items-center justify-center w-full mt-6">
+        <div class="flex flex-col items-center justify-center w-full mt-5">
             <div id="g_id_onload"
                  data-client_id="<%= key %>" 
                  data-context="signin"
@@ -127,18 +131,17 @@
         </div>
 
         <!-- Enlace de registro -->
-        <div class="mt-8 text-center text-sm">
+        <div class="mt-5 text-center text-xs sm:text-sm">
             <span class="text-gray-400">¿No tienes una cuenta?</span>
             <a href="/auth/register" class="text-[#8b5cf6] font-semibold hover:underline ml-1">Regístrate</a>
         </div>
     </div>
 
     <!-- Pie de página / Branding inferior -->
-    <div class="w-full text-center py-4 z-10 mt-auto">
+    <div class="w-full text-center py-2 mb-2 z-10 shrink-0">
         <div class="inline-flex items-center gap-2 text-gray-400 text-xs tracking-wider uppercase">
             <i class="fas fa-motorcycle text-[#7c3aed]"></i>
             <span class="font-bold text-gray-200"><%= info.name_page %></span>
-            <span>Repartidores</span>
         </div>
     </div>
 
